@@ -123,7 +123,8 @@ pub fn execute(
             recv_fee,
             ack_fee,
             timeout_fee,
-        } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee),
+            payer,
+        } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee, payer),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
@@ -206,7 +207,16 @@ fn execute_set_fees(
     recv_fee: u128,
     ack_fee: u128,
     timeout_fee: u128,
+    payer: Option<String>,
 ) -> StdResult<Response<NeutronMsg>> {
+    let payer = match payer {
+        Some(payer) => match deps.api.addr_validate(&payer) {
+            Ok(addr) => Some(addr),
+            Err(_) => return Err(StdError::generic_err("Invalid payer address")),
+        },
+        None => None,
+    };
+
     let fees = IbcFee {
         recv_fee: vec![CosmosCoin {
             denom: denom.clone(),
@@ -220,6 +230,7 @@ fn execute_set_fees(
             denom,
             amount: Uint128::from(timeout_fee),
         }],
+        payer,
     };
     IBC_FEE.save(deps.storage, &fees)?;
     Ok(Response::default())

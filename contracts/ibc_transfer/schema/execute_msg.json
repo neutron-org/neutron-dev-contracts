@@ -67,6 +67,12 @@
             "denom": {
               "type": "string"
             },
+            "payer": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "recv_fee": {
               "type": "integer",
               "format": "uint128",

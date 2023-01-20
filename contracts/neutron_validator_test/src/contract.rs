@@ -243,6 +243,7 @@ fn execute_set_fees(
         recv_fee: get_fee_item(denom.clone(), recv_fee),
         ack_fee: get_fee_item(denom.clone(), ack_fee),
         timeout_fee: get_fee_item(denom, timeout_fee),
+        payer: None,
     };
 
     IBC_FEE.save(deps.storage, &fee)?;

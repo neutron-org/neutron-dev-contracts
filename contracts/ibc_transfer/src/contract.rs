@@ -190,7 +190,7 @@ fn execute_set_fees(
     let payer = match payer {
         Some(payer) => match deps.api.addr_validate(&payer) {
             Ok(addr) => Some(addr),
-            Err(_) => None,
+            Err(_) => return Err(StdError::generic_err("Invalid payer address")),
         },
         None => None,
     };

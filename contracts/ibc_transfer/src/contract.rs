@@ -57,6 +57,7 @@ pub enum ExecuteMsg {
         ack_fee: u128,
         timeout_fee: u128,
         denom: String,
+        payer: Option<String>,
     },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will fail, all of this happening
@@ -93,7 +94,8 @@ pub fn execute(
             ack_fee,
             timeout_fee,
             denom,
-        } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
+            payer,
+        } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom, payer),
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
         // in sudo callback handler.
@@ -183,11 +185,21 @@ fn execute_set_fees(
     ack_fee: u128,
     timeout_fee: u128,
     denom: String,
+    payer: Option<String>,
 ) -> StdResult<Response<NeutronMsg>> {
+    let payer = match payer {
+        Some(payer) => match deps.api.addr_validate(&payer) {
+            Ok(addr) => Some(addr),
+            Err(_) => return Err(StdError::generic_err("Invalid payer address")),
+        },
+        None => None,
+    };
+
     let fee = IbcFee {
         recv_fee: get_fee_item(denom.clone(), recv_fee),
         ack_fee: get_fee_item(denom.clone(), ack_fee),
         timeout_fee: get_fee_item(denom, timeout_fee),
+        payer,
     };
 
     IBC_FEE.save(deps.storage, &fee)?;

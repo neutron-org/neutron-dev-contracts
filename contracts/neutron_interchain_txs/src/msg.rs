@@ -40,6 +40,7 @@ pub enum ExecuteMsg {
         recv_fee: u128,
         ack_fee: u128,
         timeout_fee: u128,
+        payer: Option<String>,
     },
     Delegate {
         interchain_account_id: String,

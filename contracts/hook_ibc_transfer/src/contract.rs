@@ -98,17 +98,18 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
 }
 
 pub mod sudo {
+    use crate::state::{IbcTestAck, IBC_TEST_ACKS};
     use cosmwasm_std::Addr;
 
     use super::*;
 
-    pub fn ibc_ack(_deps: DepsMut, _contract: Addr, _success: bool) -> StdResult<Response> {
-        // TODO
+    pub fn ibc_ack(deps: DepsMut, _contract: Addr, success: bool) -> StdResult<Response> {
+        IBC_TEST_ACKS.save(deps.storage, &IbcTestAck::Ack(success))?;
         Ok(Response::new().add_attribute("action", "ack"))
     }
 
-    pub(crate) fn ibc_timeout(_deps: DepsMut, _contract: Addr) -> StdResult<Response> {
-        // TODO
+    pub(crate) fn ibc_timeout(deps: DepsMut, _contract: Addr) -> StdResult<Response> {
+        IBC_TEST_ACKS.save(deps.storage, &IbcTestAck::Timeout)?;
         Ok(Response::new().add_attribute("action", "timeout"))
     }
 }

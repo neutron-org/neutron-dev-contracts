@@ -456,6 +456,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "hooks_ibc_transfer"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 0.14.0",
+ "cw2",
+ "neutron-sdk",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde-json-wasm",
+]
+
+[[package]]
 name = "ibc_transfer"
 version = "0.1.0"
 dependencies = [

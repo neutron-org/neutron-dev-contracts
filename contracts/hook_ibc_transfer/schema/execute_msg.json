@@ -28,6 +28,12 @@
             "denom": {
               "type": "string"
             },
+            "memo": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "timeout_height": {
               "type": [
                 "integer",
@@ -83,27 +89,25 @@
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, contract will fail, all of this happening in sudo callback handler.",
       "type": "object",
       "required": [
-        "integration_tests_set_sudo_failure_mock"
+        "test_msg"
       ],
       "properties": {
-        "integration_tests_set_sudo_failure_mock": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, contract will revert back to normal behaviour.",
-      "type": "object",
-      "required": [
-        "integration_tests_unset_sudo_failure_mock"
-      ],
-      "properties": {
-        "integration_tests_unset_sudo_failure_mock": {
-          "type": "object"
+        "test_msg": {
+          "type": "object",
+          "required": [
+            "arg",
+            "return_err"
+          ],
+          "properties": {
+            "arg": {
+              "type": "string"
+            },
+            "return_err": {
+              "type": "boolean"
+            }
+          }
         }
       },
       "additionalProperties": false

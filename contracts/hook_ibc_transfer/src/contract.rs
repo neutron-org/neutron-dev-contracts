@@ -1,6 +1,6 @@
 use crate::msg::{
     ExecuteMsg, IBCLifecycleComplete, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg,
-    TestArgResponse,
+    TestAckResponse, TestArgResponse,
 };
 use cosmwasm_std::{
     coin, entry_point, to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
@@ -12,7 +12,7 @@ use neutron_sdk::{
     sudo::msg::RequestPacketTimeoutHeight,
 };
 
-use crate::state::{IBC_FEE, TEST_ARGS};
+use crate::state::{IBC_FEE, IBC_TEST_ACKS, TEST_ARGS};
 
 // Default timeout for IbcTransfer is 10000000 blocks
 const DEFAULT_TIMEOUT_HEIGHT: u64 = 10000000;
@@ -75,12 +75,18 @@ pub fn execute(
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::TestMsg { arg } => to_binary(&query_test_msg(deps, env, arg)?),
+        QueryMsg::TestAck {} => to_binary(&query_test_ack(deps, env)?),
     }
 }
 
 fn query_test_msg(deps: Deps, _env: Env, arg: String) -> StdResult<TestArgResponse> {
-    let sender = TEST_ARGS.may_load(deps.storage, &arg)?.unwrap_or_default();
-    Ok(TestArgResponse { sender })
+    let (sender, funds) = TEST_ARGS.may_load(deps.storage, &arg)?.unwrap_or_default();
+    Ok(TestArgResponse { sender, funds })
+}
+
+fn query_test_ack(deps: Deps, _env: Env) -> StdResult<TestAckResponse> {
+    let ack = IBC_TEST_ACKS.load(deps.storage)?;
+    Ok(TestAckResponse { ack })
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -152,7 +158,7 @@ fn execute_test_arg(
         return Err(StdError::generic_err("return error"));
     }
 
-    TEST_ARGS.save(deps.storage, &arg, &info.sender.to_string())?;
+    TEST_ARGS.save(deps.storage, &arg, &(info.sender.to_string(), info.funds))?;
 
     Ok(Response::new().add_attribute("arg", arg))
 }

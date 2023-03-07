@@ -1,4 +1,7 @@
-use crate::msg::{ExecuteMsg, IBCLifecycleComplete, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg};
+use crate::msg::{
+    ExecuteMsg, IBCLifecycleComplete, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg,
+    TestArgResponse,
+};
 use cosmwasm_std::{
     coin, entry_point, to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult,
@@ -64,9 +67,7 @@ pub fn execute(
             timeout_fee,
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
-        ExecuteMsg::TestMsg { return_err, arg } => {
-            execute_test_arg(deps, env, info, return_err, arg)
-        }
+        ExecuteMsg::TestMsg { return_err, arg } => execute_test_arg(deps, info, return_err, arg),
     }
 }
 
@@ -77,8 +78,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-fn query_test_msg(deps: Deps, _env: Env, arg: String) -> StdResult<Option<String>> {
-    TEST_ARGS.may_load(deps.storage, &arg)
+fn query_test_msg(deps: Deps, _env: Env, arg: String) -> StdResult<TestArgResponse> {
+    let sender = TEST_ARGS.may_load(deps.storage, &arg)?.unwrap_or_default();
+    Ok(TestArgResponse { sender })
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -142,7 +144,6 @@ fn execute_set_fees(
 
 fn execute_test_arg(
     deps: DepsMut,
-    _env: Env,
     info: MessageInfo,
     return_err: bool,
     arg: String,

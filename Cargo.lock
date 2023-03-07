@@ -456,7 +456,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hooks_ibc_transfer"
+name = "hook_ibc_transfer"
 version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",

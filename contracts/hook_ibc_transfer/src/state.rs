@@ -11,6 +11,6 @@ pub const IBC_TEST_ACKS: Item<IbcTestAck> = Item::new("ibc_test_acks");
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum IbcTestAck {
-    Ack(bool),
+    Response(bool),
     Timeout,
 }

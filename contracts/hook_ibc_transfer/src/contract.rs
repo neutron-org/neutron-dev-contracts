@@ -112,7 +112,7 @@ pub mod sudo {
     use super::*;
 
     pub fn ibc_ack(deps: DepsMut, _contract: Addr, success: bool) -> StdResult<Response> {
-        IBC_TEST_ACKS.save(deps.storage, &IbcTestAck::Ack(success))?;
+        IBC_TEST_ACKS.save(deps.storage, &IbcTestAck::Response(success))?;
         Ok(Response::new().add_attribute("action", "ack"))
     }
 

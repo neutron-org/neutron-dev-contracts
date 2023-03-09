@@ -111,6 +111,18 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "clean_ack"
+      ],
+      "properties": {
+        "clean_ack": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }

@@ -68,6 +68,7 @@ pub fn execute(
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
         ExecuteMsg::TestMsg { return_err, arg } => execute_test_arg(deps, info, return_err, arg),
+        ExecuteMsg::CleanAck {} => execute_clean_ack(deps),
     }
 }
 
@@ -188,6 +189,12 @@ fn execute_send(
         .api
         .debug(format!("WASMDEBUG: execute_send: sent msg: {msg:?}").as_str());
     Ok(Response::default().add_message(msg))
+}
+
+fn execute_clean_ack(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+    IBC_TEST_ACKS.remove(deps.storage);
+
+    Ok(Response::new())
 }
 
 #[entry_point]

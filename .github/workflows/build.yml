@@ -31,7 +31,7 @@ on:
         type: string
 
 env:
-  TOOLCHAIN: ${{ inputs.toolchain || 'stable' }}
+  TOOLCHAIN: ${{ inputs.toolchain || '1.63.0' }}
   TARGET: ${{ inputs.target || 'wasm32-unknown-unknown' }}
   REF: ${{ inputs.branch || 'main' }}
   ID: ${{ inputs.id || 'scheduled' }}

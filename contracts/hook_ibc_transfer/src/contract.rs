@@ -1,7 +1,4 @@
-use crate::msg::{
-    ExecuteMsg, IBCLifecycleComplete, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg,
-    TestAckResponse, TestArgResponse,
-};
+use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, TestArgResponse};
 use cosmwasm_std::{
     coin, entry_point, to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult,
@@ -12,7 +9,7 @@ use neutron_sdk::{
     sudo::msg::RequestPacketTimeoutHeight,
 };
 
-use crate::state::{IBC_FEE, IBC_TEST_ACKS, TEST_ARGS};
+use crate::state::{IBC_FEE, TEST_ARGS};
 
 // Default timeout for IbcTransfer is 10000000 blocks
 const DEFAULT_TIMEOUT_HEIGHT: u64 = 10000000;
@@ -68,7 +65,6 @@ pub fn execute(
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
         ExecuteMsg::TestMsg { return_err, arg } => execute_test_arg(deps, info, return_err, arg),
-        ExecuteMsg::CleanAck {} => execute_clean_ack(deps),
     }
 }
 
@@ -76,51 +72,12 @@ pub fn execute(
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::TestMsg { arg } => to_binary(&query_test_msg(deps, env, arg)?),
-        QueryMsg::TestAck {} => to_binary(&query_test_ack(deps, env)?),
     }
 }
 
 fn query_test_msg(deps: Deps, _env: Env, arg: String) -> StdResult<TestArgResponse> {
     let (sender, funds) = TEST_ARGS.may_load(deps.storage, &arg)?.unwrap_or_default();
     Ok(TestArgResponse { sender, funds })
-}
-
-fn query_test_ack(deps: Deps, _env: Env) -> StdResult<TestAckResponse> {
-    let ack = IBC_TEST_ACKS.load(deps.storage)?;
-    Ok(TestAckResponse { ack })
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
-    match msg {
-        SudoMsg::IBCLifecycleComplete(IBCLifecycleComplete::IBCAck {
-            channel: _,
-            sequence: _,
-            ack: _,
-            success,
-        }) => sudo::ibc_ack(deps, env.contract.address, success),
-        SudoMsg::IBCLifecycleComplete(IBCLifecycleComplete::IBCTimeout {
-            channel: _,
-            sequence: _,
-        }) => sudo::ibc_timeout(deps, env.contract.address),
-    }
-}
-
-pub mod sudo {
-    use crate::state::{IbcTestAck, IBC_TEST_ACKS};
-    use cosmwasm_std::Addr;
-
-    use super::*;
-
-    pub fn ibc_ack(deps: DepsMut, _contract: Addr, success: bool) -> StdResult<Response> {
-        IBC_TEST_ACKS.save(deps.storage, &IbcTestAck::Response(success))?;
-        Ok(Response::new().add_attribute("action", "ack"))
-    }
-
-    pub(crate) fn ibc_timeout(deps: DepsMut, _contract: Addr) -> StdResult<Response> {
-        IBC_TEST_ACKS.save(deps.storage, &IbcTestAck::Timeout)?;
-        Ok(Response::new().add_attribute("action", "timeout"))
-    }
 }
 
 fn get_fee_item(denom: String, amount: u128) -> Vec<Coin> {
@@ -189,12 +146,6 @@ fn execute_send(
         .api
         .debug(format!("WASMDEBUG: execute_send: sent msg: {msg:?}").as_str());
     Ok(Response::default().add_message(msg))
-}
-
-fn execute_clean_ack(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
-    IBC_TEST_ACKS.remove(deps.storage);
-
-    Ok(Response::new())
 }
 
 #[entry_point]

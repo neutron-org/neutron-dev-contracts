@@ -32,7 +32,9 @@ use cosmwasm_std::{
 use neutron_sdk::bindings::query::{
     InterchainQueries, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
 };
-use neutron_sdk::bindings::types::{decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue};
+use neutron_sdk::bindings::types::{
+    decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
+};
 use neutron_sdk::interchain_queries::helpers::{
     create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
     create_total_denom_key, create_validator_key, decode_and_convert,
@@ -74,7 +76,7 @@ fn build_registered_query_response(
             last_submitted_result_local_height,
             last_submitted_result_remote_height: Height {
                 revision_number: 0,
-                revision_height: 0
+                revision_height: 0,
             },
             deposit: Vec::from([Coin {
                 denom: "stake".to_string(),

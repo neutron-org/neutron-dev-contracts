@@ -537,7 +537,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.1.0"
-source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=4e37023b6dde5e2a4384421a08ac7d6d8005e3d8#4e37023b6dde5e2a4384421a08ac7d6d8005e3d8"
+source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=b465b97c7c1a59d84cc26ad7deec73b57a144c14#b465b97c7c1a59d84cc26ad7deec73b57a144c14"
 dependencies = [
  "base64 0.20.0",
  "bech32",
@@ -564,7 +564,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 0.14.0",
  "cw2",
- "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=4e37023b6dde5e2a4384421a08ac7d6d8005e3d8)",
+ "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=b465b97c7c1a59d84cc26ad7deec73b57a144c14)",
  "prost 0.11.0",
  "schemars",
  "serde",
@@ -582,7 +582,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.0.1",
  "cw2",
- "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=4e37023b6dde5e2a4384421a08ac7d6d8005e3d8)",
+ "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=b465b97c7c1a59d84cc26ad7deec73b57a144c14)",
  "prost 0.11.0",
  "prost-types 0.11.1",
  "protobuf",
@@ -800,7 +800,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
- "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=4e37023b6dde5e2a4384421a08ac7d6d8005e3d8)",
+ "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=b465b97c7c1a59d84cc26ad7deec73b57a144c14)",
  "schemars",
  "serde",
 ]

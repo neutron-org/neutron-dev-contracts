@@ -162,12 +162,10 @@
     },
     "Height": {
       "type": "object",
-      "required": [
-        "revision_height"
-      ],
       "properties": {
         "revision_height": {
           "description": "*height** is a height of remote chain",
+          "default": 0,
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0

@@ -46,14 +46,15 @@ jobs:
           ref: ${{ env.REF }}
           fetch-depth: 0
       - name: Save SHA
-        run: echo "sha=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_ENV
+        run: echo "sha=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_ENV 
       - name: Check input type
         run: |
           if git show-ref --quiet --heads $REF; then
             echo "REF is a branch"
             echo "The value is $REF"
             echo "REF_TYPE=branch" >> $GITHUB_ENV
-            echo "BRANCH=${REF}" >> $GITHUB_ENV
+            BRANCH_NAME="${REF#refs/heads/}"
+            echo "BRANCH=${BRANCH_NAME}" >> $GITHUB_ENV
           else
             echo "REF is a commit hash"
             echo "The value is $REF"
@@ -82,7 +83,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v1'
       - name: Evaluate Artifacts in GCP
         run: |
-          if gsutil -q stat gs://nit-test/${{ github.repository }}/${{ env.sha }}/*.wasm; then
+          if gsutil -q stat gs://neutron-contracts/${{ github.repository }}/${{ env.sha }}/*.wasm; then
             if [ ${{ env.ID }} != 'scheduled' ]; then
               echo "Force Contract Building requested, continuing workflow"
               echo "ARTIFACTS_EXIST=false" >> $GITHUB_ENV

@@ -155,6 +155,18 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "min_ibc_fee"
+          ],
+          "properties": {
+            "min_ibc_fee": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },

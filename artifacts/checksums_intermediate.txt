@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
->>>>>>> main
 2ffc5122bb1f3dc6619828617e8907cc60c4f6f6c7b01f11d6c6c12612c7e0d0  target/wasm32-unknown-unknown/release/ibc_transfer.wasm
 c592e87c7ff5fb89dc96b4fa4a05b2de501d87811886f22159fc59da678a9ecc  target/wasm32-unknown-unknown/release/neutron_interchain_queries.wasm
 d1453690dba576ae3f1c5b721a88d006a9f382072e005d762be03a52f7d6aace  target/wasm32-unknown-unknown/release/neutron_interchain_txs.wasm
 0215b4ecfec70fb3223f97d2bf4c45d89f288c373e8cc90ab4b5aa11cea87290  target/wasm32-unknown-unknown/release/neutron_validators_test.wasm
-7eea5a1cfdc02538d800f8bcdf1510ba9096c12938f978ef745fb57fa8c3ab4d  target/wasm32-unknown-unknown/release/reflect.wasm
+1fe890e1d7df92a5cd51bf532e4e3659e8e4b2677556b6bc1bc777fc07e73466  target/wasm32-unknown-unknown/release/reflect.wasm

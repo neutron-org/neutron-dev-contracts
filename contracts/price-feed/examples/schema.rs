@@ -2,8 +2,8 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use neutron_price_feed::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use neutron_price_feed::state::{PriceFeedRate, ReferenceData};
+use neutron_price_feed_mock::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use neutron_price_feed_mock::state::{PriceFeedRate, ReferenceData};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

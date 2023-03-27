@@ -1,5 +1,5 @@
 [package]
-name = "neutron-price-feed"
+name = "neutron-price-feed-mock"
 version = "0.1.0"
 authors = ["nhpd <dmitry.klpv@gmail.com>"]
 edition = "2021"

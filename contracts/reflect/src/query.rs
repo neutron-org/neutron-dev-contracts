@@ -23,6 +23,7 @@ pub enum InterchainQueries {
     RegisteredInterchainQuery {
         query_id: u64,
     },
+    MinIbcFee {},
 }
 
 impl CustomQuery for InterchainQueries {}

@@ -1,5 +1,5 @@
 [package]
-name = "hook_ibc_transfer"
+name = "msg_receiver"
 version = "0.1.0"
 edition = "2021"
 

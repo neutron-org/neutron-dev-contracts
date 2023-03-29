@@ -467,21 +467,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hook_ibc_transfer"
-version = "0.1.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.14.0",
- "cw2",
- "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=3e5fe889a6c5229f725895aa57d15d992ef6da23)",
- "protobuf",
- "schemars",
- "serde",
- "serde-json-wasm",
-]
-
-[[package]]
 name = "ibc_transfer"
 version = "0.1.0"
 dependencies = [
@@ -528,6 +513,21 @@ name = "libc"
 version = "0.2.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0f80d65747a3e43d1596c7c5492d95d5edddaabd45a7fcdb02b95f644164966"
+
+[[package]]
+name = "msg_receiver"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 0.14.0",
+ "cw2",
+ "neutron-sdk 0.1.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=3e5fe889a6c5229f725895aa57d15d992ef6da23)",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde-json-wasm",
+]
 
 [[package]]
 name = "neutron-sdk"

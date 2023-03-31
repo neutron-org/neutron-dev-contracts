@@ -450,7 +450,7 @@ pub fn sudo(deps: DepsMut<InterchainQueries>, env: Env, msg: SudoMsg) -> Neutron
             query_id,
             height,
             data,
-        } => sudo_tx_query_result(deps, env, query_id, height, data),
+        } => sudo_tx_query_result(deps, env, query_id, height.revision_height, data),
         _ => Ok(Response::default()),
     }
 }

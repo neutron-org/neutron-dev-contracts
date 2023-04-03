@@ -218,7 +218,6 @@ fn execute_send(
         },
         timeout_timestamp: 0,
         fee: fee.clone(),
-        memo: "".to_string(),
     };
     let coin2 = coin(2 * amount, denom);
     let msg2 = NeutronMsg::IbcTransfer {
@@ -233,7 +232,6 @@ fn execute_send(
         },
         timeout_timestamp: 0,
         fee,
-        memo: "".to_string(),
     };
     let submsg1 = msg_with_sudo_callback(
         deps.branch(),

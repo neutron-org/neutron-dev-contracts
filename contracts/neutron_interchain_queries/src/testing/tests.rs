@@ -83,7 +83,6 @@ fn build_registered_query_response(
                 amount: Uint128::from_str("100").unwrap(),
             }]),
             submit_timeout: 0,
-            registered_at_height: 0,
         },
     };
     match param {

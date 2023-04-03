@@ -38,7 +38,7 @@ cw2 = "0.15.1"
 schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 serde-json-wasm = { version = "0.4.1" }
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk.git", default-features = false, rev="99d4680ded1761f0cb8aa4e01806d564df3479cb"}
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk.git", default-features = false, rev="6e9fa85595e6ec5853bc01e1ac2ade93d8b6526a"}
 cw-storage-plus = { version = "0.14.0", features = ["iterator"]}
 protobuf = { version = "3.2.0", features = ["with-bytes"] }
 

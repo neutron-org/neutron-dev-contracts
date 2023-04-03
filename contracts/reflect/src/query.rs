@@ -24,6 +24,13 @@ pub enum InterchainQueries {
         query_id: u64,
     },
     MinIbcFee {},
+    FullDenom {
+        creator_addr: String,
+        subdenom: String,
+    },
+    DenomAdmin {
+        subdenom: String,
+    },
 }
 
 impl CustomQuery for InterchainQueries {}

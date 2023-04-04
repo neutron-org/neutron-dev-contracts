@@ -1,5 +1,5 @@
 [package]
-name = "reflect"
+name = "msg_receiver"
 version = "0.1.0"
 edition = "2021"
 
@@ -33,10 +33,14 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-cosmwasm-std = { version = "1.0.0", features = ["staking"] }
+cosmwasm-std = { version = "1.0.0", features = ["staking", "stargate"] }
 cw2 = "0.15.1"
 schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk.git", default-features = false, rev="03e844237126a92b155211d079cf9a178a289e22"}
+serde-json-wasm = { version = "0.4.1" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk.git", default-features = false, rev="6e9fa85595e6ec5853bc01e1ac2ade93d8b6526a"}
+cw-storage-plus = { version = "0.14.0", features = ["iterator"]}
+protobuf = { version = "3.2.0", features = ["with-bytes"] }
+
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0.0", default-features = false }

@@ -167,6 +167,50 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "full_denom"
+          ],
+          "properties": {
+            "full_denom": {
+              "type": "object",
+              "required": [
+                "creator_addr",
+                "subdenom"
+              ],
+              "properties": {
+                "creator_addr": {
+                  "type": "string"
+                },
+                "subdenom": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "denom_admin"
+          ],
+          "properties": {
+            "denom_admin": {
+              "type": "object",
+              "required": [
+                "subdenom"
+              ],
+              "properties": {
+                "subdenom": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -383,7 +427,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns a [`ContractInfoResponse`] with metadata on the contract from the runtime",
+          "description": "returns a ContractInfoResponse with metadata on the contract from the runtime",
           "type": "object",
           "required": [
             "contract_info"

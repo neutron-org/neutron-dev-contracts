@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "test_msg"
+      ],
+      "properties": {
+        "test_msg": {
+          "type": "object",
+          "required": [
+            "arg",
+            "return_err"
+          ],
+          "properties": {
+            "arg": {
+              "type": "string"
+            },
+            "return_err": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

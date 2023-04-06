@@ -1,6 +1,6 @@
 # before execution: create baryon_testwallet in keyring-backend test in NEUTRON_DIR/data/baryon-1 directory
 # test in baryon-1 testnet
-CONTRACT=../../artifacts/client_updater.wasm
+CONTRACT=./artifacts/client_updater.wasm
 CHAINID=baryon-1
 KEYS_HOME=~/.baryon-1
 NEUTROND_BIN=neutrond
@@ -45,7 +45,7 @@ echo $CONTRACT_ADDRESS
 
 echo "Client update"
 RES=$(${NEUTROND_BIN} tx wasm execute $CONTRACT_ADDRESS \
-    '{"submit_client_update_proposal":{"title": "update baryon-1 client", description: "update client", subject_client_id: "07-tendermint-19", substitute_client_id: "07-tendermint-24"}}' \
+    '{"submit_client_update_proposal":{"title": "update baryon-1 client", "description": "update client", "subject_client_id": "07-tendermint-19", "substitute_client_id": "07-tendermint-24"}}' \
     --amount "500untrn" \
     --from ${TEST_ADDR}  -y \
     --chain-id ${CHAINID} \

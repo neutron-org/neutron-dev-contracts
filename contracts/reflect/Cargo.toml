@@ -37,6 +37,6 @@ cosmwasm-std = { version = "1.0.0", features = ["staking"] }
 cw2 = "0.15.1"
 schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk.git", default-features = false, branch = "main" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk.git", default-features = false, version = "0.4.0" }
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0.0", default-features = false }

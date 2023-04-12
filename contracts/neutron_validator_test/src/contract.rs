@@ -32,7 +32,7 @@ use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
 use neutron_sdk::bindings::query::{
     InterchainQueries, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
 };
-use neutron_sdk::bindings::types::ProtobufAny;
+use neutron_sdk::bindings::types::{Height, ProtobufAny};
 use neutron_sdk::interchain_queries::queries::{get_registered_query, query_balance};
 use neutron_sdk::interchain_queries::types::{
     TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
@@ -485,7 +485,7 @@ pub fn sudo_tx_query_result(
     deps: DepsMut<InterchainQueries>,
     _env: Env,
     query_id: u64,
-    _height: u64,
+    _height: Height,
     data: Binary,
 ) -> NeutronResult<Response> {
     // Decode the transaction data

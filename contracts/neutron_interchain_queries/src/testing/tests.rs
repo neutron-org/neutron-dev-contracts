@@ -29,28 +29,31 @@ use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, Coin, Decimal, Delegation, Env, MessageInfo, OwnedDeps,
     StdError, Uint128,
 };
-use neutron_sdk::bindings::query::{
-    InterchainQueries, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
-};
-use neutron_sdk::bindings::types::{
-    decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
-};
-use neutron_sdk::interchain_queries::helpers::{
-    create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
-    create_total_denom_key, create_validator_key, decode_and_convert,
-};
-use neutron_sdk::interchain_queries::types::{
-    Balances, FeePool, GovernmentProposal, Proposal, QueryType, StakingValidator, TallyResult,
-    TotalSupply, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue, Validator,
-    RECIPIENT_FIELD,
+use neutron_sdk::{
+    bindings::{
+        query::{NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse},
+        types::{
+            decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
+        },
+    },
+    interchain_queries::{
+        helpers::{
+            create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
+            create_total_denom_key, create_validator_key, decode_and_convert,
+        },
+        queries::{
+            BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
+            TotalSupplyResponse, ValidatorResponse,
+        },
+        types::{
+            Balances, FeePool, GovernmentProposal, Proposal, QueryType, StakingValidator,
+            TallyResult, TotalSupply, TransactionFilterItem, TransactionFilterOp,
+            TransactionFilterValue, Validator, RECIPIENT_FIELD,
+        },
+    },
+    NeutronError,
 };
 use prost::Message as ProstMessage;
-
-use neutron_sdk::interchain_queries::queries::{
-    BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
-    TotalSupplyResponse, ValidatorResponse,
-};
-use neutron_sdk::NeutronError;
 use schemars::_serde_json::to_string;
 
 enum QueryParam {
@@ -223,7 +226,7 @@ fn build_interchain_query_balance_response(addr: Addr, denom: String, amount: St
 
 // registers an interchain query
 fn register_query(
-    deps: &mut OwnedDeps<MockStorage, MockApi, WasmMockQuerier, InterchainQueries>,
+    deps: &mut OwnedDeps<MockStorage, MockApi, WasmMockQuerier, NeutronQuery>,
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,

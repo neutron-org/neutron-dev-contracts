@@ -29,14 +29,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::integration_tests_mock_handlers::{set_sudo_failure_mock, unset_sudo_failure_mock};
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
-use neutron_sdk::bindings::query::{InterchainQueries, QueryInterchainAccountAddressResponse};
-use neutron_sdk::bindings::types::ProtobufAny;
-use neutron_sdk::interchain_txs::helpers::{
-    decode_acknowledgement_response, decode_message_response, get_port_id,
+use neutron_sdk::{
+    bindings::{
+        msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg},
+        query::{NeutronQuery, QueryInterchainAccountAddressResponse},
+        types::ProtobufAny,
+    },
+    interchain_txs::helpers::{
+        decode_acknowledgement_response, decode_message_response, get_port_id,
+    },
+    sudo::msg::{RequestPacket, SudoMsg},
+    NeutronResult,
 };
-use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
-use neutron_sdk::NeutronResult;
 
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
@@ -134,7 +138,7 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
+pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
         QueryMsg::InterchainAccountAddress {
             interchain_account_id,
@@ -152,12 +156,12 @@ pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> NeutronR
 }
 
 pub fn query_interchain_address(
-    deps: Deps<InterchainQueries>,
+    deps: Deps<NeutronQuery>,
     env: Env,
     interchain_account_id: String,
     connection_id: String,
 ) -> NeutronResult<Binary> {
-    let query = InterchainQueries::InterchainAccountAddress {
+    let query = NeutronQuery::InterchainAccountAddress {
         owner_address: env.contract.address.to_string(),
         interchain_account_id,
         connection_id,
@@ -168,7 +172,7 @@ pub fn query_interchain_address(
 }
 
 pub fn query_interchain_address_contract(
-    deps: Deps<InterchainQueries>,
+    deps: Deps<NeutronQuery>,
     env: Env,
     interchain_account_id: String,
 ) -> NeutronResult<Binary> {
@@ -176,7 +180,7 @@ pub fn query_interchain_address_contract(
 }
 
 pub fn query_acknowledgement_result(
-    deps: Deps<InterchainQueries>,
+    deps: Deps<NeutronQuery>,
     env: Env,
     interchain_account_id: String,
     sequence_id: u64,
@@ -186,7 +190,7 @@ pub fn query_acknowledgement_result(
     Ok(to_binary(&res)?)
 }
 
-pub fn query_errors_queue(deps: Deps<InterchainQueries>) -> NeutronResult<Binary> {
+pub fn query_errors_queue(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
     let res = read_errors_from_queue(deps.storage)?;
     Ok(to_binary(&res)?)
 }

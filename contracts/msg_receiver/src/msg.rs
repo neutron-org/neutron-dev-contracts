@@ -10,6 +10,8 @@ pub struct InstantiateMsg {}
 pub enum ExecuteMsg {
     // This message is for checking result fields in integration tests
     TestMsg { return_err: bool, arg: String },
+    // This message calls staking related query that must fail on neutron since no staking module exists
+    CallStaking {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

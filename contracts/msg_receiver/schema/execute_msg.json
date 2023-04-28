@@ -25,6 +25,18 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "call_staking"
+      ],
+      "properties": {
+        "call_staking": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }

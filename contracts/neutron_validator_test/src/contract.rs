@@ -28,22 +28,26 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
-use neutron_sdk::bindings::query::{
-    InterchainQueries, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
+use neutron_sdk::{
+    bindings::{
+        msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg},
+        query::{
+            NeutronQuery, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
+        },
+        types::{Height, ProtobufAny},
+    },
+    interchain_queries::{
+        new_register_balance_query_msg, new_register_transfers_query_msg,
+        queries::{get_registered_query, query_balance},
+        types::{
+            TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
+            COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD,
+        },
+    },
+    interchain_txs::helpers::{decode_acknowledgement_response, get_port_id},
+    sudo::msg::{RequestPacket, SudoMsg},
+    NeutronError, NeutronResult,
 };
-use neutron_sdk::bindings::types::{Height, ProtobufAny};
-use neutron_sdk::interchain_queries::queries::{get_registered_query, query_balance};
-use neutron_sdk::interchain_queries::types::{
-    TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
-    COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD,
-};
-use neutron_sdk::interchain_queries::{
-    new_register_balance_query_msg, new_register_transfers_query_msg,
-};
-use neutron_sdk::interchain_txs::helpers::{decode_acknowledgement_response, get_port_id};
-use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
-use neutron_sdk::{NeutronError, NeutronResult};
 
 use crate::storage::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload,
@@ -149,7 +153,7 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
+pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
         QueryMsg::InterchainAccountAddress {
             interchain_account_id,
@@ -169,12 +173,12 @@ pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> NeutronR
 }
 
 pub fn query_interchain_address(
-    deps: Deps<InterchainQueries>,
+    deps: Deps<NeutronQuery>,
     env: Env,
     interchain_account_id: String,
     connection_id: String,
 ) -> NeutronResult<Binary> {
-    let query = InterchainQueries::InterchainAccountAddress {
+    let query = NeutronQuery::InterchainAccountAddress {
         owner_address: env.contract.address.to_string(),
         interchain_account_id,
         connection_id,
@@ -185,7 +189,7 @@ pub fn query_interchain_address(
 }
 
 pub fn query_interchain_address_contract(
-    deps: Deps<InterchainQueries>,
+    deps: Deps<NeutronQuery>,
     env: Env,
     interchain_account_id: String,
 ) -> NeutronResult<Binary> {
@@ -193,7 +197,7 @@ pub fn query_interchain_address_contract(
 }
 
 pub fn query_acknowledgement_result(
-    deps: Deps<InterchainQueries>,
+    deps: Deps<NeutronQuery>,
     env: Env,
     interchain_account_id: String,
     sequence_id: u64,
@@ -203,12 +207,12 @@ pub fn query_acknowledgement_result(
     Ok(to_binary(&res)?)
 }
 
-pub fn query_last_ack_seq_id(deps: Deps<InterchainQueries>) -> NeutronResult<Binary> {
+pub fn query_last_ack_seq_id(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
     let res = LAST_SEQ_ID.may_load(deps.storage)?;
     Ok(to_binary(&res)?)
 }
 
-fn query_recipient_txs(deps: Deps<InterchainQueries>, recipient: String) -> NeutronResult<Binary> {
+fn query_recipient_txs(deps: Deps<NeutronQuery>, recipient: String) -> NeutronResult<Binary> {
     let txs = RECIPIENT_TXS
         .load(deps.storage, &recipient)
         .unwrap_or_default();
@@ -426,7 +430,7 @@ pub fn remove_interchain_query(query_id: u64) -> NeutronResult<Response<NeutronM
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut<InterchainQueries>, env: Env, msg: SudoMsg) -> NeutronResult<Response> {
+pub fn sudo(deps: DepsMut<NeutronQuery>, env: Env, msg: SudoMsg) -> NeutronResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
     match msg {
@@ -456,7 +460,7 @@ pub fn sudo(deps: DepsMut<InterchainQueries>, env: Env, msg: SudoMsg) -> Neutron
 }
 
 fn sudo_open_ack(
-    deps: DepsMut<InterchainQueries>,
+    deps: DepsMut<NeutronQuery>,
     _env: Env,
     port_id: String,
     _channel_id: String,
@@ -482,7 +486,7 @@ fn sudo_open_ack(
 }
 
 pub fn sudo_tx_query_result(
-    deps: DepsMut<InterchainQueries>,
+    deps: DepsMut<NeutronQuery>,
     _env: Env,
     query_id: u64,
     _height: Height,
@@ -569,7 +573,7 @@ fn recipient_deposits_from_tx_body(
 }
 
 fn sudo_response(
-    deps: DepsMut<InterchainQueries>,
+    deps: DepsMut<NeutronQuery>,
     request: RequestPacket,
     data: Binary,
 ) -> NeutronResult<Response> {
@@ -623,7 +627,7 @@ fn sudo_response(
 }
 
 fn sudo_timeout(
-    deps: DepsMut<InterchainQueries>,
+    deps: DepsMut<NeutronQuery>,
     _env: Env,
     request: RequestPacket,
 ) -> NeutronResult<Response> {
@@ -655,7 +659,7 @@ fn sudo_timeout(
 }
 
 fn sudo_error(
-    deps: DepsMut<InterchainQueries>,
+    deps: DepsMut<NeutronQuery>,
     request: RequestPacket,
     details: String,
 ) -> NeutronResult<Response> {

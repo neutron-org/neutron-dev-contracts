@@ -1,13 +1,13 @@
 [package]
-name = "ibc_transfer"
+name = "tokenfactory"
 version = "0.1.0"
 edition = "2021"
 
 
 exclude = [
-  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
-  "contract.wasm",
-  "hash.txt",
+    # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+    "contract.wasm",
+    "hash.txt",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -34,13 +34,9 @@ library = []
 
 [dependencies]
 cosmwasm-std = "1.2.5"
-cw2 = "1.0.1"
-schemars = "0.8.10"
-serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-serde-json-wasm = { version = "0.4.1" }
-cw-storage-plus = "1.0.1"
+serde = { version = "1.0.160", default-features = false, features = ["derive"] }
+schemars = "0.8.12"
 neutron-sdk = "0.5.0"
-protobuf = { version = "3.2.0", features = ["with-bytes"] }
 
 [dev-dependencies]
-cosmwasm-schema = { version = "1.0.0", default-features = false }
+cosmwasm-schema = { version = "1.2.4", default-features = false }

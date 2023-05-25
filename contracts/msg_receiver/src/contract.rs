@@ -33,6 +33,7 @@ pub fn execute(
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
         ExecuteMsg::TestMsg { return_err, arg } => execute_test_arg(deps, info, return_err, arg),
+        ExecuteMsg::CallStaking {} => execute_call_staking(deps),
     }
 }
 
@@ -70,7 +71,12 @@ fn execute_test_arg(
         }),
     })?;
 
-    Ok(Response::new().add_attribute("arg", arg))
+    Ok(Response::default().add_attribute("arg", arg))
+}
+
+fn execute_call_staking(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+    deps.querier.query_bonded_denom()?; // should fail since Neutron does not have staking module
+    Ok(Response::default())
 }
 
 #[entry_point]

@@ -22,6 +22,7 @@ pub fn instantiate(
         dao: msg.dao,
         description: msg.description,
         info: msg.info,
+        name: msg.name,
     };
     CONFIG.save(deps.storage, &config)?;
     Ok(Response::default())
@@ -45,6 +46,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Dao {} => to_binary(&query_dao(deps)?),
         QueryMsg::Description {} => to_binary(&query_description(deps)?),
         QueryMsg::Info {} => to_binary(&query_info(deps)?),
+        QueryMsg::Name {} => to_binary(&query_name(deps)?),
         QueryMsg::VotingPowerAtHeight { height, address } => {
             to_binary(&query_voting_power_at_height(deps, env, height, address)?)
         }
@@ -67,6 +69,10 @@ fn query_info(deps: Deps) -> StdResult<String> {
 fn query_description(deps: Deps) -> StdResult<String> {
     let config = CONFIG.load(deps.storage)?;
     Ok(config.description)
+}
+fn query_name(deps: Deps) -> StdResult<String> {
+    let config = CONFIG.load(deps.storage)?;
+    Ok(config.name)
 }
 
 fn query_voting_power_at_height(

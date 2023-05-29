@@ -5,7 +5,8 @@
   "required": [
     "dao",
     "description",
-    "info"
+    "info",
+    "name"
   ],
   "properties": {
     "dao": {
@@ -15,6 +16,9 @@
       "type": "string"
     },
     "info": {
+      "type": "string"
+    },
+    "name": {
       "type": "string"
     }
   }

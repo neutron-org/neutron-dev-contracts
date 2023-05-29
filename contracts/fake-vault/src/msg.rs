@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum QueryMsg {
     Dao {},
     Description {},
+    Name {},
     VotingPowerAtHeight {
         height: Option<u64>,
         address: String,
@@ -30,4 +31,5 @@ pub struct InstantiateMsg {
     pub dao: String,
     pub description: String,
     pub info: String,
+    pub name: String,
 }

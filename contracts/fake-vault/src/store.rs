@@ -10,6 +10,7 @@ pub struct Config {
     pub dao: String,
     pub description: String,
     pub info: String,
+    pub name: String,
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");

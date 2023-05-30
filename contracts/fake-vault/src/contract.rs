@@ -1,9 +1,10 @@
 use crate::{
-    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, PowerResponse, QueryMsg},
     store::{Config, CONFIG, USERS},
 };
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult,
+    Uint128,
 };
 use cw2::set_contract_version;
 
@@ -77,21 +78,31 @@ fn query_name(deps: Deps) -> StdResult<String> {
 
 fn query_voting_power_at_height(
     deps: Deps,
-    _env: Env,
-    _height: Option<u64>,
+    env: Env,
+    height: Option<u64>,
     address: String,
-) -> StdResult<u64> {
+) -> StdResult<PowerResponse> {
     let power = USERS.may_load(deps.storage, address)?.unwrap_or(0);
-    Ok(power)
+    Ok(PowerResponse {
+        power: Uint128::from(power),
+        height: height.unwrap_or(env.block.height),
+    })
 }
 
-fn query_total_power_at_height(deps: Deps, _env: Env, _height: Option<u64>) -> StdResult<u64> {
+fn query_total_power_at_height(
+    deps: Deps,
+    env: Env,
+    height: Option<u64>,
+) -> StdResult<PowerResponse> {
     let mut total_power: u64 = 0;
     for user in USERS.range(deps.storage, None, None, Order::Ascending) {
         let (_, power) = user?;
         total_power += power;
     }
-    Ok(total_power)
+    Ok(PowerResponse {
+        power: Uint128::from(total_power),
+        height: height.unwrap_or(env.block.height),
+    })
 }
 
 #[entry_point]

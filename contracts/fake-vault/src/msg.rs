@@ -1,3 +1,4 @@
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -32,4 +33,9 @@ pub struct InstantiateMsg {
     pub description: String,
     pub info: String,
     pub name: String,
+}
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct PowerResponse {
+    pub power: Uint128,
+    pub height: u64,
 }

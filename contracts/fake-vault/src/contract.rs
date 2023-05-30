@@ -81,7 +81,7 @@ fn query_voting_power_at_height(
     _height: Option<u64>,
     address: String,
 ) -> StdResult<u64> {
-    let power = USERS.may_load(deps.storage, address)?.unwrap_or_default();
+    let power = USERS.may_load(deps.storage, address)?.unwrap_or(0);
     Ok(power)
 }
 

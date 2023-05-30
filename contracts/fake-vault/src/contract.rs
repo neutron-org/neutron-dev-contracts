@@ -48,6 +48,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Description {} => to_binary(&query_description(deps)?),
         QueryMsg::Info {} => to_binary(&query_info(deps)?),
         QueryMsg::Name {} => to_binary(&query_name(deps)?),
+        QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::VotingPowerAtHeight { height, address } => {
             to_binary(&query_voting_power_at_height(deps, env, height, address)?)
         }
@@ -74,6 +75,11 @@ fn query_description(deps: Deps) -> StdResult<String> {
 fn query_name(deps: Deps) -> StdResult<String> {
     let config = CONFIG.load(deps.storage)?;
     Ok(config.name)
+}
+
+fn query_config(deps: Deps) -> StdResult<Config> {
+    let config = CONFIG.load(deps.storage)?;
+    Ok(config)
 }
 
 fn query_voting_power_at_height(

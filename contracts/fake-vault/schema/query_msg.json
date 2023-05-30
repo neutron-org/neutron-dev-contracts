@@ -41,6 +41,18 @@
     {
       "type": "object",
       "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "voting_power_at_height"
       ],
       "properties": {

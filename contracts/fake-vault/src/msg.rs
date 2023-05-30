@@ -8,6 +8,7 @@ pub enum QueryMsg {
     Dao {},
     Description {},
     Name {},
+    Config {},
     VotingPowerAtHeight {
         height: Option<u64>,
         address: String,

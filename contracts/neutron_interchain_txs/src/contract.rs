@@ -20,14 +20,17 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::{
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env, MessageInfo,
-    Reply, Response, StdError, StdResult, SubMsg, Uint128,
+    Reply, ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
 use prost::Message;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::integration_tests_mock_handlers::{set_sudo_failure_mock, unset_sudo_failure_mock};
+use crate::integration_tests_mock_handlers::{
+    set_sudo_failure_mock, set_sudo_submsg_failure_in_reply_mock, set_sudo_submsg_failure_mock,
+    unset_sudo_failure_mock,
+};
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use neutron_sdk::{
     bindings::{
@@ -45,8 +48,9 @@ use neutron_sdk::{
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
     save_reply_payload, save_sudo_payload, AcknowledgementResult, IntegrationTestsSudoMock,
-    SudoPayload, ACKNOWLEDGEMENT_RESULTS, IBC_FEE, INTEGRATION_TESTS_SUDO_MOCK,
-    INTERCHAIN_ACCOUNTS, SUDO_PAYLOAD_REPLY_ID,
+    IntegrationTestsSudoSubmsgMock, SudoPayload, ACKNOWLEDGEMENT_RESULTS, IBC_FEE,
+    INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
+    INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -129,11 +133,17 @@ pub fn execute(
             timeout_fee,
         } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
-        // Used only in integration tests framework to simulate failures.
-        // After executing this message, contract fail, all of this happening
-        // in sudo callback handler.
+
+        // The section below is used only in integration tests framework to simulate failures.
         ExecuteMsg::IntegrationTestsSetSudoFailureMock {} => set_sudo_failure_mock(deps),
+        ExecuteMsg::IntegrationTestsSetSudoSubmsgFailureMock {} => {
+            set_sudo_submsg_failure_mock(deps)
+        }
+        ExecuteMsg::IntegrationTestsSetSudoSubmsgReplyFailureMock {} => {
+            set_sudo_submsg_failure_in_reply_mock(deps)
+        }
         ExecuteMsg::IntegrationTestsUnsetSudoFailureMock {} => unset_sudo_failure_mock(deps),
+        ExecuteMsg::IntegrationTestsSudoSubmsg {} => integration_tests_sudo_submsg(deps),
     }
 }
 
@@ -358,27 +368,38 @@ fn execute_clean_ack_results(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
     Ok(Response::default())
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
-    deps.api
-        .debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
-
-    if let Some(IntegrationTestsSudoMock::Enabled {}) =
-        INTEGRATION_TESTS_SUDO_MOCK.may_load(deps.storage)?
+fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+    if let Some(IntegrationTestsSudoSubmsgMock::Enabled {}) =
+        INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
     {
         // Used only in integration tests framework to simulate failures.
         deps.api
-            .debug("WASMDEBUG: sudo: mocked failure on the handler");
+            .debug("WASMDEBUG: sudo: mocked submsg failure on the handler");
 
         return Err(StdError::GenericErr {
-            msg: "Integations test mock error".to_string(),
+            msg: "Integations test mock submsg error".to_string(),
         });
     }
+    Ok(Response::default())
+}
 
-    match msg {
-        SudoMsg::Response { request, data } => sudo_response(deps, request, data),
-        SudoMsg::Error { request, details } => sudo_error(deps, request, details),
-        SudoMsg::Timeout { request } => sudo_timeout(deps, env, request),
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
+    let api = deps.api;
+    api.debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
+
+    let failure_mock_enabled = Some(IntegrationTestsSudoMock::Enabled {})
+        == INTEGRATION_TESTS_SUDO_FAILURE_MOCK.may_load(deps.storage)?;
+    let failure_submsg_mock_enabled = {
+        let m = INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?;
+        m == Some(IntegrationTestsSudoSubmsgMock::Enabled {})
+            || m == Some(IntegrationTestsSudoSubmsgMock::EnabledInReply {})
+    };
+
+    let mut resp: Response = match msg {
+        SudoMsg::Response { request, data } => sudo_response(deps, request, data)?,
+        SudoMsg::Error { request, details } => sudo_error(deps, request, details)?,
+        SudoMsg::Timeout { request } => sudo_timeout(deps, env.clone(), request)?,
         SudoMsg::OpenAck {
             port_id,
             channel_id,
@@ -386,14 +407,38 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
             counterparty_version,
         } => sudo_open_ack(
             deps,
-            env,
+            env.clone(),
             port_id,
             channel_id,
             counterparty_channel_id,
             counterparty_version,
-        ),
-        _ => Ok(Response::default()),
+        )?,
+        _ => Response::default(),
+    };
+
+    if failure_mock_enabled {
+        // Used only in integration tests framework to simulate failures.
+        api.debug("WASMDEBUG: sudo: mocked failure on the handler");
+
+        return Err(StdError::GenericErr {
+            msg: "Integations test mock error".to_string(),
+        });
     }
+
+    if failure_submsg_mock_enabled {
+        resp = resp.add_submessage(SubMsg {
+            id: SUDO_FAILING_SUBMSG_REPLY_ID,
+            msg: CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+                contract_addr: env.contract.address.to_string(),
+                msg: to_binary(&ExecuteMsg::IntegrationTestsSudoSubmsg {})?,
+                funds: vec![],
+            }),
+            gas_limit: None,
+            reply_on: ReplyOn::Success,
+        })
+    };
+
+    Ok(resp)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -677,6 +722,20 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
         .debug(format!("WASMDEBUG: reply msg: {:?}", msg).as_str());
     match msg.id {
         SUDO_PAYLOAD_REPLY_ID => prepare_sudo_payload(deps, env, msg),
+        SUDO_FAILING_SUBMSG_REPLY_ID => {
+            if let Some(IntegrationTestsSudoSubmsgMock::EnabledInReply {}) =
+                INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
+            {
+                // Used only in integration tests framework to simulate failures.
+                deps.api
+                    .debug("WASMDEBUG: sudo: mocked reply failure on the handler");
+
+                return Err(StdError::GenericErr {
+                    msg: "Integations test mock reply error".to_string(),
+                });
+            }
+            Ok(Response::default())
+        }
         _ => Err(StdError::generic_err(format!(
             "unsupported reply message id {}",
             msg.id

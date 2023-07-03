@@ -12,6 +12,7 @@ pub struct SudoPayload {
 }
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
+pub const SUDO_FAILING_SUBMSG_REPLY_ID: u64 = 2;
 
 pub const IBC_FEE: Item<IbcFee> = Item::new("ibc_fee");
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
@@ -68,6 +69,7 @@ pub fn read_sudo_payload(
     channel_id: String,
     seq_id: u64,
 ) -> StdResult<SudoPayload> {
+    println!("read_sudo_payload: {:?}, {:?}", channel_id, seq_id);
     let data = SUDO_PAYLOAD.load(store, (channel_id, seq_id))?;
     from_binary(&Binary(data))
 }
@@ -78,15 +80,27 @@ pub fn save_sudo_payload(
     seq_id: u64,
     payload: SudoPayload,
 ) -> StdResult<()> {
+    println!("save_sudo_payload: {:?}, {:?}", channel_id, seq_id);
     SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_vec(&payload)?)
 }
 
-/// Used only in integration tests framework to simulate failures.
-pub const INTEGRATION_TESTS_SUDO_MOCK: Item<IntegrationTestsSudoMock> =
-    Item::new("integration_tests_sudo_mock");
+/// Used only in integration tests framework to simulate failures in sudo handler.
+pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoMock> =
+    Item::new("integration_tests_sudo_failure_mock");
+/// Used only in integration tests framework to simulate failures in submessages created in
+/// sudo handler.
+pub const INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK: Item<IntegrationTestsSudoSubmsgMock> =
+    Item::new("integration_tests_sudo_submsg_failure_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub enum IntegrationTestsSudoMock {
     Enabled,
+    Disabled,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub enum IntegrationTestsSudoSubmsgMock {
+    Enabled,
+    EnabledInReply,
     Disabled,
 }

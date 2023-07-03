@@ -57,10 +57,20 @@ pub enum ExecuteMsg {
     },
     CleanAckResults {},
     /// Used only in integration tests framework to simulate failures.
-    /// After executing this message, contract will fail, all of this happening
-    /// in sudo callback handler.
+    /// After executing this message, any sudo call to the contract will result in an error.
     IntegrationTestsSetSudoFailureMock {},
+    /// Used only in integration tests framework to simulate failures.
+    /// After executing this message, any sudo call to the contract will result in an submessage
+    /// processing error.
+    IntegrationTestsSetSudoSubmsgFailureMock {},
+    /// Used only in integration tests framework to simulate failures.
+    /// After executing this message, any sudo call to the contract will result in an submessage
+    /// reply processing error.
+    IntegrationTestsSetSudoSubmsgReplyFailureMock {},
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will revert back to normal behaviour.
     IntegrationTestsUnsetSudoFailureMock {},
+    /// Used only in integration tests framework to simulate failures.
+    /// If the IntegrationTestsSetSudoSubmsgFailureMock has been called, this message will fail.
+    IntegrationTestsSudoSubmsg {},
 }

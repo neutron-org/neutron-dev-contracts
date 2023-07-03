@@ -31,7 +31,9 @@ use crate::integration_tests_mock_handlers::{
     set_sudo_failure_mock, set_sudo_submsg_failure_in_reply_mock, set_sudo_submsg_failure_mock,
     unset_sudo_failure_mock,
 };
-use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use crate::msg::{
+    AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+};
 use neutron_sdk::{
     bindings::{
         msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg},
@@ -161,6 +163,7 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
             interchain_account_id,
             sequence_id,
         } => query_acknowledgement_result(deps, env, interchain_account_id, sequence_id),
+        QueryMsg::AcknowledgementResults {} => query_acknowledgement_results(deps),
         QueryMsg::ErrorsQueue {} => query_errors_queue(deps),
     }
 }
@@ -198,6 +201,22 @@ pub fn query_acknowledgement_result(
     let port_id = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     let res = ACKNOWLEDGEMENT_RESULTS.may_load(deps.storage, (port_id, sequence_id))?;
     Ok(to_binary(&res)?)
+}
+
+pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
+    let results: Vec<AcknowledgementResultsResponse> = ACKNOWLEDGEMENT_RESULTS
+        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .take(100)
+        .map(|p| {
+            p.map(|(key_pair, ack_result)| AcknowledgementResultsResponse {
+                ack_result,
+                port_id: key_pair.0,
+                sequence_id: key_pair.1,
+            })
+        })
+        .collect::<StdResult<Vec<AcknowledgementResultsResponse>>>()?;
+
+    Ok(to_binary(&results)?)
 }
 
 pub fn query_errors_queue(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {

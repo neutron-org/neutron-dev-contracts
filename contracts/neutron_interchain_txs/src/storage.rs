@@ -69,7 +69,6 @@ pub fn read_sudo_payload(
     channel_id: String,
     seq_id: u64,
 ) -> StdResult<SudoPayload> {
-    println!("read_sudo_payload: {:?}, {:?}", channel_id, seq_id);
     let data = SUDO_PAYLOAD.load(store, (channel_id, seq_id))?;
     from_binary(&Binary(data))
 }
@@ -80,7 +79,6 @@ pub fn save_sudo_payload(
     seq_id: u64,
     payload: SudoPayload,
 ) -> StdResult<()> {
-    println!("save_sudo_payload: {:?}, {:?}", channel_id, seq_id);
     SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_vec(&payload)?)
 }
 

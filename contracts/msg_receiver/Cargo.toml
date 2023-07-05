@@ -34,6 +34,7 @@ library = []
 
 [dependencies]
 cosmwasm-std = "1.2.5"
+cosmos-sdk-proto = { version = "0.14.0", default-features = false }
 cw2 = "1.0.1"
 schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }

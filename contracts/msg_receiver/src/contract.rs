@@ -39,7 +39,7 @@ pub fn execute(
         ExecuteMsg::CallStaking {} => execute_call_staking(deps),
         ExecuteMsg::StargateMsg { address, denom } => {
             execute_stargate_msg(deps, info, address, denom)
-        },
+        }
     }
 }
 

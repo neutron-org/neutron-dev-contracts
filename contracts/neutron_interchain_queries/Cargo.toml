@@ -45,6 +45,3 @@ serde-json-wasm = "0.4.1"
 
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0.0", default-features = false }
-
-
-

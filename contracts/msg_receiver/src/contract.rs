@@ -1,9 +1,14 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, TestArg};
-use cosmwasm_std::{entry_point, to_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, SubMsg, Reply};
+use cosmos_sdk_proto::cosmos::bank;
+use cosmwasm_std::{
+    entry_point, to_binary, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, SystemResult,
+};
 use cw2::set_contract_version;
 use neutron_sdk::bindings::msg::NeutronMsg;
+use serde_json_wasm::to_vec;
 
-use crate::state::{STARGATE_QUERY_ID, STARGATE_REPLIES, TEST_ARGS};
+use crate::state::TEST_ARGS;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -17,7 +22,6 @@ pub fn instantiate(
 ) -> StdResult<Response> {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    STARGATE_QUERY_ID.save(deps.storage, &0)?;
     Ok(Response::default())
 }
 
@@ -33,8 +37,8 @@ pub fn execute(
     match msg {
         ExecuteMsg::TestMsg { return_err, arg } => execute_test_arg(deps, info, return_err, arg),
         ExecuteMsg::CallStaking {} => execute_call_staking(deps),
-        ExecuteMsg::StargateMsg { type_url, value } => {
-            execute_stargate_msg(deps, info, type_url, value)
+        ExecuteMsg::StargateMsg { address, denom } => {
+            execute_stargate_msg(deps, info, address, denom)
         },
     }
 }
@@ -84,29 +88,20 @@ fn execute_call_staking(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
 fn execute_stargate_msg(
     deps: DepsMut,
     _: MessageInfo,
-    type_url: String,
-    value: String,
+    address: String,
+    denom: String,
 ) -> StdResult<Response<NeutronMsg>> {
-    // let msg = bank::v1beta1::QueryBalanceRequest{
-    //     address: "todo",
-    //     denom: "abcd"
-    // };
-    //
-    // let msg = CosmosMsg::Stargate{
-    //     type_url: "/cosmos.bank.v1beta1.Query/Balance".to_string(),
-    //     value: to_binary(&msg)?,
-    // };
-    let id = STARGATE_QUERY_ID.load(deps.storage)?;
-    STARGATE_QUERY_ID.update(deps.storage, |c| -> StdResult<u64> { Ok(c + 1) })?;
-    let msg = CosmosMsg::Stargate {
-        type_url,
-        value: Binary::from(value.as_bytes()),
-    };
-    let submsg = SubMsg::reply_always(msg, id);
+    let msg = bank::v1beta1::QueryBalanceRequest { address, denom };
+    let resp: bank::v1beta1::QueryBalanceResponse =
+        make_stargate_query::<bank::v1beta1::QueryBalanceResponse>(
+            deps.as_ref(),
+            "/cosmos.bank.v1beta1.Query/Balance".to_string(),
+            ::prost::Message::encode_to_vec(&msg),
+        )?;
 
-    Ok(Response::new()
-        .add_submessage(submsg)
-        .add_attribute("stargate_query_id", id.to_string()))
+    let balance = resp.balance.map(|b| b.amount).unwrap_or("0".to_string());
+
+    Ok(Response::new().add_attribute("result", balance))
 }
 
 #[entry_point]
@@ -115,16 +110,29 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
     Ok(Response::default())
 }
 
-#[entry_point]
-pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
-    let result_str = if msg.result.is_err() {
-        msg.result.unwrap_err()
-    } else {
-        let result = msg.result.unwrap();
-        result.data.map(|res| Binary::to_base64(&res)).unwrap_or_else(|| "kekw".to_string())
-    };
-
-    STARGATE_REPLIES.save(deps.storage, msg.id, &result_str)?;
-
-    Ok(Response::default())
+pub fn make_stargate_query<T: ::prost::Message + Default>(
+    deps: Deps,
+    path: String,
+    encoded_query_data: Vec<u8>,
+) -> StdResult<T> {
+    let raw = to_vec::<QueryRequest<Empty>>(&QueryRequest::Stargate {
+        path,
+        data: Binary::from(encoded_query_data),
+    })
+    .map_err(|serialize_err| {
+        StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
+    })?;
+    match deps.querier.raw_query(&raw) {
+        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+            "Querier system error: {}",
+            system_err
+        ))),
+        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
+            "Querier contract error: {}",
+            contract_err
+        ))),
+        // response(value) is base64 encoded bytes
+        SystemResult::Ok(ContractResult::Ok(value)) => T::decode(value.as_slice())
+            .map_err(|e| StdError::generic_err(format!("Protobuf parsing error: {}", e))),
+    }
 }

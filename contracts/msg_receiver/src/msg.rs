@@ -10,10 +10,7 @@ pub struct InstantiateMsg {}
 pub enum ExecuteMsg {
     // This message is for checking result fields in integration tests
     TestMsg { return_err: bool, arg: String },
-    ExecuteMsg::StargateMsg { type_url, value } => {
-      execute_stargate_msg(deps, info, type_url, value)
-    },
-    StargateMsg { type_url: String, value: String },
+    StargateMsg { address: String, denom: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

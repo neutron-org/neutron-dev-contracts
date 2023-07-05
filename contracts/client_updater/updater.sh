@@ -1,10 +1,10 @@
 # before execution: create baryon_testwallet in keyring-backend test in NEUTRON_DIR/data/baryon-1 directory
-# test in baryon-1 testnet
+# test in pion-1 testnet
 CONTRACT=./artifacts/client_updater.wasm
-CHAINID=baryon-1
+CHAINID=pion-1
 KEYS_HOME=~/.baryon-1
 NEUTROND_BIN=neutrond
-NODE=https://rpc.baryon.ntrn.info:443
+NODE=https://rpc-palvus.pion-1.ntrn.tech:443
 TEST_WALLET=baryon_testwallet
 TEST_ADDR=$(${NEUTROND_BIN} keys show ${TEST_WALLET} --keyring-backend test -a --home ${KEYS_HOME})
 GAS_PRICES=0.0025untrn
@@ -45,7 +45,22 @@ echo $CONTRACT_ADDRESS
 
 echo "Client update"
 RES=$(${NEUTROND_BIN} tx wasm execute $CONTRACT_ADDRESS \
-    '{"submit_client_update_proposal":{"title": "update baryon-1 client", "description": "update client", "subject_client_id": "07-tendermint-19", "substitute_client_id": "07-tendermint-24"}}' \
+    '{"submit_client_update_proposal":{"title": "update pion-1 client 07-tendermint-4 to new one", "description": "update client", "subject_client_id": "07-tendermint-4", "substitute_client_id": "07-tendermint-9"}}' \
+    --amount "500untrn" \
+    --from ${TEST_ADDR}  -y \
+    --chain-id ${CHAINID} \
+    --output json \
+    --broadcast-mode=block \
+    --gas-prices ${GAS_PRICES} \
+    --gas 1000000 \
+    --keyring-backend test \
+    --home ${KEYS_HOME} \
+    --node ${NODE})
+echo $RES | jq
+
+echo "Client update 2"
+RES=$(${NEUTROND_BIN} tx wasm execute $CONTRACT_ADDRESS \
+    '{"submit_client_update_proposal":{"title": "update pion-1 client 07-tendermint-5 to new one", "description": "update client 2", "subject_client_id": "07-tendermint-5", "substitute_client_id": "07-tendermint-10"}}' \
     --amount "500untrn" \
     --from ${TEST_ADDR}  -y \
     --chain-id ${CHAINID} \

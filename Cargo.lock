@@ -580,6 +580,7 @@ checksum = "3304a64d199bb964be99741b7a14d26972741915b3649639149b2479bb46f4b5"
 name = "msg_receiver"
 version = "0.1.0"
 dependencies = [
+ "cosmos-sdk-proto 0.14.0",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus",

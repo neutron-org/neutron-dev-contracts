@@ -1,11 +1,9 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, TestArg};
-use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-};
+use cosmwasm_std::{entry_point, to_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, SubMsg, Reply};
 use cw2::set_contract_version;
 use neutron_sdk::bindings::msg::NeutronMsg;
 
-use crate::state::TEST_ARGS;
+use crate::state::{STARGATE_QUERY_ID, STARGATE_REPLIES, TEST_ARGS};
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -19,6 +17,7 @@ pub fn instantiate(
 ) -> StdResult<Response> {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    STARGATE_QUERY_ID.save(deps.storage, &0)?;
     Ok(Response::default())
 }
 
@@ -34,6 +33,9 @@ pub fn execute(
     match msg {
         ExecuteMsg::TestMsg { return_err, arg } => execute_test_arg(deps, info, return_err, arg),
         ExecuteMsg::CallStaking {} => execute_call_staking(deps),
+        ExecuteMsg::StargateMsg { type_url, value } => {
+            execute_stargate_msg(deps, info, type_url, value)
+        },
     }
 }
 
@@ -79,8 +81,50 @@ fn execute_call_staking(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
     Ok(Response::default())
 }
 
+fn execute_stargate_msg(
+    deps: DepsMut,
+    _: MessageInfo,
+    type_url: String,
+    value: String,
+) -> StdResult<Response<NeutronMsg>> {
+    // let msg = bank::v1beta1::QueryBalanceRequest{
+    //     address: "todo",
+    //     denom: "abcd"
+    // };
+    //
+    // let msg = CosmosMsg::Stargate{
+    //     type_url: "/cosmos.bank.v1beta1.Query/Balance".to_string(),
+    //     value: to_binary(&msg)?,
+    // };
+    let id = STARGATE_QUERY_ID.load(deps.storage)?;
+    STARGATE_QUERY_ID.update(deps.storage, |c| -> StdResult<u64> { Ok(c + 1) })?;
+    let msg = CosmosMsg::Stargate {
+        type_url,
+        value: Binary::from(value.as_bytes()),
+    };
+    let submsg = SubMsg::reply_always(msg, id);
+
+    Ok(Response::new()
+        .add_submessage(submsg)
+        .add_attribute("stargate_query_id", id.to_string()))
+}
+
 #[entry_point]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     deps.api.debug("WASMDEBUG: migrate");
+    Ok(Response::default())
+}
+
+#[entry_point]
+pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
+    let result_str = if msg.result.is_err() {
+        msg.result.unwrap_err()
+    } else {
+        let result = msg.result.unwrap();
+        result.data.map(|res| Binary::to_base64(&res)).unwrap_or_else(|| "kekw".to_string())
+    };
+
+    STARGATE_REPLIES.save(deps.storage, msg.id, &result_str)?;
+
     Ok(Response::default())
 }

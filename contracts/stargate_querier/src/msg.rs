@@ -6,34 +6,38 @@ pub struct InstantiateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg {
-    QueryBankBalance {
+pub struct ExecuteMsg {}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum QueryMsg {
+    BankBalance {
         address: String,
         denom: String,
     },
-    QueryBankDenomMetadata {
+    BankDenomMetadata {
         denom: String,
     },
-    QueryBankParams {},
-    QueryBankSupplyOf {
+    BankParams {},
+    BankSupplyOf {
         denom: String,
     },
-    QueryAuthAccount {
+    AuthAccount {
         address: String,
     },
-    QueryTransferDenomTrace {
+    TransferDenomTrace {
         hash: String,
     },
-    QueryIbcClientState {
+    IbcClientState {
         client_id: String,
     },
-    QueryIbcConsensusState {
+    IbcConsensusState {
         client_id: String,
         revision_number: u64,
         revision_height: u64,
         latest_height: bool,
     },
-    QueryIbcConnection {
+    IbcConnection {
         connection_id: String,
     },
     TokenfactoryParams {},
@@ -49,7 +53,7 @@ pub enum ExecuteMsg {
     ContractmanagerFailures {
         address: String,
     },
-    QueryInterchaintxParams {},
-    QueryInterchainqueriesParams {},
-    QueryFeeburnerParams {},
+    InterchaintxParams {},
+    InterchainqueriesParams {},
+    FeeburnerParams {},
 }

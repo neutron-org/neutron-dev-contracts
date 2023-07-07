@@ -1,15 +1,16 @@
-use crate::msg::{ExecuteMsg, InstantiateMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use cosmos_sdk_proto::cosmos::{auth, bank};
 use cosmos_sdk_proto::ibc;
 use cosmwasm_std::{
-    entry_point, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
-    StdError, StdResult, SystemResult,
+    entry_point, to_binary, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, SystemResult,
 };
 use std::str::from_utf8;
 
 use crate::stargate;
 use cw2::set_contract_version;
 use neutron_sdk::bindings::msg::NeutronMsg;
+use neutron_sdk::NeutronResult;
 use prost::Message;
 use serde_json_wasm::to_vec;
 
@@ -30,154 +31,145 @@ pub fn instantiate(
 
 #[entry_point]
 pub fn execute(
-    deps: DepsMut,
+    _: DepsMut,
     _: Env,
     _: MessageInfo,
-    msg: ExecuteMsg,
+    _msg: ExecuteMsg,
 ) -> StdResult<Response<NeutronMsg>> {
+    Ok(Response::default())
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
-        ExecuteMsg::QueryBankBalance { address, denom } => {
-            execute_query_balance(deps, address, denom)
-        }
-        ExecuteMsg::QueryBankDenomMetadata { denom } => execute_query_denom_metadata(deps, denom),
-        ExecuteMsg::QueryBankParams {} => execute_query_bank_params(deps),
-        ExecuteMsg::QueryBankSupplyOf { denom } => execute_query_supply_of(deps, denom),
-        ExecuteMsg::QueryAuthAccount { address } => execute_query_account(deps, address),
-        ExecuteMsg::QueryTransferDenomTrace { hash } => execute_query_denom_trace(deps, hash),
-        ExecuteMsg::QueryIbcClientState { client_id } => {
-            execute_query_client_state(deps, client_id)
-        }
-        ExecuteMsg::QueryIbcConsensusState {
+        QueryMsg::BankBalance { address, denom } => query_balance(deps, address, denom),
+        QueryMsg::BankDenomMetadata { denom } => query_denom_metadata(deps, denom),
+        QueryMsg::BankParams {} => query_bank_params(deps),
+        QueryMsg::BankSupplyOf { denom } => query_supply_of(deps, denom),
+        QueryMsg::AuthAccount { address } => query_account(deps, address),
+        QueryMsg::TransferDenomTrace { hash } => query_denom_trace(deps, hash),
+        QueryMsg::IbcClientState { client_id } => query_client_state(deps, client_id),
+        QueryMsg::IbcConsensusState {
             client_id,
             revision_number,
             revision_height,
             latest_height,
-        } => execute_query_consensus_state(
+        } => query_consensus_state(
             deps,
             client_id,
             revision_number,
             revision_height,
             latest_height,
         ),
-        ExecuteMsg::QueryIbcConnection { connection_id } => {
-            execute_query_connection(deps, connection_id)
+        QueryMsg::IbcConnection { connection_id } => query_connection(deps, connection_id),
+        QueryMsg::TokenfactoryParams {} => query_tokenfactory_params(deps),
+        QueryMsg::TokenfactoryDenomAuthorityMetadata { denom } => {
+            query_tokenfactory_denom_authority_metadata(deps, denom)
         }
-        ExecuteMsg::TokenfactoryParams {} => execute_query_tokenfactory_params(deps),
-        ExecuteMsg::TokenfactoryDenomAuthorityMetadata { denom } => {
-            execute_query_tokenfactory_denom_authority_metadata(deps, denom)
+        QueryMsg::TokenfactoryDenomsFromCreator { creator } => {
+            query_tokenfactory_denoms_from_creator(deps, creator)
         }
-        ExecuteMsg::TokenfactoryDenomsFromCreator { creator } => {
-            execute_query_tokenfactory_denoms_from_creator(deps, creator)
+        QueryMsg::ContractmanagerAddressFailures { address } => {
+            query_contractmanager_query_address_failures(deps, address)
         }
-        ExecuteMsg::ContractmanagerAddressFailures { address } => {
-            execute_query_contractmanager_query_address_failures(deps, address)
+        QueryMsg::ContractmanagerFailures { address } => {
+            query_contractmanager_query_failures(deps, address)
         }
-        ExecuteMsg::ContractmanagerFailures { address } => {
-            execute_query_contractmanager_query_failures(deps, address)
-        }
-        ExecuteMsg::QueryInterchaintxParams {} => execute_query_interchaintx_params(deps),
-        ExecuteMsg::QueryInterchainqueriesParams {} => execute_query_interchainqueries_params(deps),
-        ExecuteMsg::QueryFeeburnerParams {} => execute_query_feeburner_params(deps),
+        QueryMsg::InterchaintxParams {} => query_interchaintx_params(deps),
+        QueryMsg::InterchainqueriesParams {} => query_interchainqueries_params(deps),
+        QueryMsg::FeeburnerParams {} => query_feeburner_params(deps),
     }
 }
 
-fn execute_query_balance(
-    deps: DepsMut,
-    address: String,
-    denom: String,
-) -> StdResult<Response<NeutronMsg>> {
+fn query_balance(deps: Deps, address: String, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryBalanceRequest { address, denom };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/cosmos.bank.v1beta1.Query/Balance".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_denom_metadata(deps: DepsMut, denom: String) -> StdResult<Response<NeutronMsg>> {
+fn query_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryDenomMetadataRequest { denom };
     let mut bytes = Vec::new();
     ::prost::Message::encode(&msg, &mut bytes)
         .map_err(|_| StdError::generic_err("cannot encode proto"))?;
 
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/cosmos.bank.v1beta1.Query/DenomMetadata".to_string(),
         bytes,
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_bank_params(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn query_bank_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryParamsRequest {};
     let mut bytes = Vec::new();
     ::prost::Message::encode(&msg, &mut bytes)
         .map_err(|_| StdError::generic_err("cannot encode proto"))?;
 
-    let resp = make_stargate_query(
-        deps.as_ref(),
-        "/cosmos.bank.v1beta1.Query/Params".to_string(),
-        bytes,
-    )?;
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    let resp = make_stargate_query(deps, "/cosmos.bank.v1beta1.Query/Params".to_string(), bytes)?;
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_supply_of(deps: DepsMut, denom: String) -> StdResult<Response<NeutronMsg>> {
+fn query_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QuerySupplyOfRequest { denom };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/cosmos.bank.v1beta1.Query/SupplyOf".to_string(),
         ::prost::Message::encode_to_vec(&msg),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_account(deps: DepsMut, address: String) -> StdResult<Response<NeutronMsg>> {
+fn query_account(deps: Deps, address: String) -> NeutronResult<Binary> {
     let msg = auth::v1beta1::QueryAccountRequest { address };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/cosmos.auth.v1beta1.Query/Account".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_denom_trace(deps: DepsMut, hash: String) -> StdResult<Response<NeutronMsg>> {
+fn query_denom_trace(deps: Deps, hash: String) -> NeutronResult<Binary> {
     let msg = ibc::applications::transfer::v1::QueryDenomTraceRequest { hash };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/ibc.applications.transfer.v1.Query/DenomTrace".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_client_state(deps: DepsMut, client_id: String) -> StdResult<Response<NeutronMsg>> {
+fn query_client_state(deps: Deps, client_id: String) -> NeutronResult<Binary> {
     let msg = ibc::core::client::v1::QueryClientStateRequest { client_id };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/ibc.core.client.v1.Query/ClientState".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_consensus_state(
-    deps: DepsMut,
+fn query_consensus_state(
+    deps: Deps,
     client_id: String,
     revision_number: u64,
     revision_height: u64,
     latest_height: bool,
-) -> StdResult<Response<NeutronMsg>> {
+) -> NeutronResult<Binary> {
     let msg = ibc::core::client::v1::QueryConsensusStateRequest {
         client_id,
         revision_number,
@@ -185,134 +177,122 @@ fn execute_query_consensus_state(
         latest_height,
     };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/ibc.core.client.v1.Query/ConsensusState".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_connection(
-    deps: DepsMut,
-    connection_id: String,
-) -> StdResult<Response<NeutronMsg>> {
+fn query_connection(deps: Deps, connection_id: String) -> NeutronResult<Binary> {
     let msg = ibc::core::connection::v1::QueryConnectionRequest { connection_id };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/ibc.core.connection.v1.Query/Connection".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_tokenfactory_params(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn query_tokenfactory_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = osmosis_std::types::osmosis::tokenfactory::v1beta1::QueryParamsRequest {};
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/osmosis.tokenfactory.v1beta1.Query/Params".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_tokenfactory_denom_authority_metadata(
-    deps: DepsMut,
-    denom: String,
-) -> StdResult<Response<NeutronMsg>> {
+fn query_tokenfactory_denom_authority_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let msg =
         osmosis_std::types::osmosis::tokenfactory::v1beta1::QueryDenomAuthorityMetadataRequest {
             denom,
         };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/osmosis.tokenfactory.v1beta1.Query/DenomAuthorityMetadata".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_tokenfactory_denoms_from_creator(
-    deps: DepsMut,
-    creator: String,
-) -> StdResult<Response<NeutronMsg>> {
+fn query_tokenfactory_denoms_from_creator(deps: Deps, creator: String) -> NeutronResult<Binary> {
     let msg = osmosis_std::types::osmosis::tokenfactory::v1beta1::QueryDenomsFromCreatorRequest {
         creator,
     };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/osmosis.tokenfactory.v1beta1.Query/DenomsFromCreator".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_contractmanager_query_address_failures(
-    deps: DepsMut,
+fn query_contractmanager_query_address_failures(
+    deps: Deps,
     address: String,
-) -> StdResult<Response<NeutronMsg>> {
+) -> NeutronResult<Binary> {
     let msg = stargate::contractmanager::QueryAddressFailuresRequest { address };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/neutron.contractmanager.Query/AddressFailures".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_contractmanager_query_failures(
-    deps: DepsMut,
-    address: String,
-) -> StdResult<Response<NeutronMsg>> {
+fn query_contractmanager_query_failures(deps: Deps, address: String) -> NeutronResult<Binary> {
     let msg = stargate::contractmanager::QueryFailuresRequest {
         address,
         pagination: None,
     };
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/neutron.contractmanager.Query/Failures".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_interchaintx_params(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn query_interchaintx_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = stargate::interchaintx::QueryParams {};
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/neutron.interchaintxs.Query/Params".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_interchainqueries_params(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn query_interchainqueries_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = stargate::interchainqueries::QueryParams {};
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/neutron.interchainqueries.Query/Params".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
-fn execute_query_feeburner_params(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn query_feeburner_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = stargate::feeburner::QueryParams {};
     let resp = make_stargate_query(
-        deps.as_ref(),
+        deps,
         "/neutron.feeburner.Query/Params".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(Response::new().add_attribute("stargate_response", resp))
+    Ok(to_binary(&resp)?)
 }
 
 pub fn make_stargate_query(

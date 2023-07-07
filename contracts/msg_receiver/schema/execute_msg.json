@@ -37,30 +37,6 @@
         }
       },
       "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "required": [
-        "stargate_msg"
-      ],
-      "properties": {
-        "stargate_msg": {
-          "type": "object",
-          "required": [
-            "address",
-            "denom"
-          ],
-          "properties": {
-            "address": {
-              "type": "string"
-            },
-            "denom": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
     }
   ]
 }

@@ -44,26 +44,26 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
-        QueryMsg::BankBalance { address, denom } => query_balance(deps, address, denom),
-        QueryMsg::BankDenomMetadata { denom } => query_denom_metadata(deps, denom),
+        QueryMsg::BankBalance { address, denom } => query_bank_balance(deps, address, denom),
+        QueryMsg::BankDenomMetadata { denom } => query_bank_denom_metadata(deps, denom),
         QueryMsg::BankParams {} => query_bank_params(deps),
-        QueryMsg::BankSupplyOf { denom } => query_supply_of(deps, denom),
-        QueryMsg::AuthAccount { address } => query_account(deps, address),
-        QueryMsg::TransferDenomTrace { hash } => query_denom_trace(deps, hash),
-        QueryMsg::IbcClientState { client_id } => query_client_state(deps, client_id),
+        QueryMsg::BankSupplyOf { denom } => query_bank_supply_of(deps, denom),
+        QueryMsg::AuthAccount { address } => query_auth_account(deps, address),
+        QueryMsg::TransferDenomTrace { hash } => query_transfer_denom_trace(deps, hash),
+        QueryMsg::IbcClientState { client_id } => query_ibc_client_state(deps, client_id),
         QueryMsg::IbcConsensusState {
             client_id,
             revision_number,
             revision_height,
             latest_height,
-        } => query_consensus_state(
+        } => query_ibc_consensus_state(
             deps,
             client_id,
             revision_number,
             revision_height,
             latest_height,
         ),
-        QueryMsg::IbcConnection { connection_id } => query_connection(deps, connection_id),
+        QueryMsg::IbcConnection { connection_id } => query_ibc_connection(deps, connection_id),
         QueryMsg::TokenfactoryParams {} => query_tokenfactory_params(deps),
         QueryMsg::TokenfactoryDenomAuthorityMetadata { denom } => {
             query_tokenfactory_denom_authority_metadata(deps, denom)
@@ -83,7 +83,7 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     }
 }
 
-fn query_balance(deps: Deps, address: String, denom: String) -> NeutronResult<Binary> {
+fn query_bank_balance(deps: Deps, address: String, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryBalanceRequest { address, denom };
     let resp = make_stargate_query(
         deps,
@@ -94,7 +94,7 @@ fn query_balance(deps: Deps, address: String, denom: String) -> NeutronResult<Bi
     Ok(to_binary(&resp)?)
 }
 
-fn query_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
+fn query_bank_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryDenomMetadataRequest { denom };
     let mut bytes = Vec::new();
     ::prost::Message::encode(&msg, &mut bytes)
@@ -119,7 +119,7 @@ fn query_bank_params(deps: Deps) -> NeutronResult<Binary> {
     Ok(to_binary(&resp)?)
 }
 
-fn query_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
+fn query_bank_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QuerySupplyOfRequest { denom };
     let resp = make_stargate_query(
         deps,
@@ -130,7 +130,7 @@ fn query_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
     Ok(to_binary(&resp)?)
 }
 
-fn query_account(deps: Deps, address: String) -> NeutronResult<Binary> {
+fn query_auth_account(deps: Deps, address: String) -> NeutronResult<Binary> {
     let msg = auth::v1beta1::QueryAccountRequest { address };
     let resp = make_stargate_query(
         deps,
@@ -141,7 +141,7 @@ fn query_account(deps: Deps, address: String) -> NeutronResult<Binary> {
     Ok(to_binary(&resp)?)
 }
 
-fn query_denom_trace(deps: Deps, hash: String) -> NeutronResult<Binary> {
+fn query_transfer_denom_trace(deps: Deps, hash: String) -> NeutronResult<Binary> {
     let msg = ibc::applications::transfer::v1::QueryDenomTraceRequest { hash };
     let resp = make_stargate_query(
         deps,
@@ -152,7 +152,7 @@ fn query_denom_trace(deps: Deps, hash: String) -> NeutronResult<Binary> {
     Ok(to_binary(&resp)?)
 }
 
-fn query_client_state(deps: Deps, client_id: String) -> NeutronResult<Binary> {
+fn query_ibc_client_state(deps: Deps, client_id: String) -> NeutronResult<Binary> {
     let msg = ibc::core::client::v1::QueryClientStateRequest { client_id };
     let resp = make_stargate_query(
         deps,
@@ -163,7 +163,7 @@ fn query_client_state(deps: Deps, client_id: String) -> NeutronResult<Binary> {
     Ok(to_binary(&resp)?)
 }
 
-fn query_consensus_state(
+fn query_ibc_consensus_state(
     deps: Deps,
     client_id: String,
     revision_number: u64,
@@ -185,7 +185,7 @@ fn query_consensus_state(
     Ok(to_binary(&resp)?)
 }
 
-fn query_connection(deps: Deps, connection_id: String) -> NeutronResult<Binary> {
+fn query_ibc_connection(deps: Deps, connection_id: String) -> NeutronResult<Binary> {
     let msg = ibc::core::connection::v1::QueryConnectionRequest { connection_id };
     let resp = make_stargate_query(
         deps,
@@ -323,7 +323,7 @@ pub fn make_stargate_query(
                 .debug(format!("WASMDEBUG: make_stargate_query: {:?}", str).as_str());
             from_utf8(value.as_slice())
                 .map(|s| s.to_string())
-                .map_err(|_e| StdError::generic_err(format!("Unable to encode from utf8")))
+                .map_err(|_e| StdError::generic_err("Unable to encode from utf8"))
         }
     }
 }

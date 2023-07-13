@@ -9,6 +9,15 @@ use serde::{Deserialize, Serialize};
 pub struct SudoPayload {
     pub message: String,
     pub port_id: String,
+    pub ica: Option<ICAInfo>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct ICAInfo {
+    pub interchain_account_id: String,
+    pub validator: String,
+    pub denom: String,
 }
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;

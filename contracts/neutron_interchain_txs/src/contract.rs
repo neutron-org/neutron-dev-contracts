@@ -49,7 +49,7 @@ use neutron_sdk::{
 
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
-    save_reply_payload, save_sudo_payload, AcknowledgementResult, ICAInfo,
+    save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
     IntegrationTestsSudoMock, IntegrationTestsSudoSubmsgMock, SudoPayload, ACKNOWLEDGEMENT_RESULTS,
     IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
     INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID,
@@ -70,6 +70,17 @@ struct OpenAckVersion {
     address: String,
     encoding: String,
     tx_type: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+struct ExecuteDelegateInfo {
+    pub interchain_account_id: String,
+    pub validator: String,
+    pub amount: u128,
+    pub denom: String,
+    pub timeout: Option<u64>,
+    pub info: Option<DoubleDelegateInfo>,
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -107,11 +118,14 @@ pub fn execute(
         } => execute_delegate(
             deps,
             env,
-            interchain_account_id,
-            validator,
-            amount,
-            denom,
-            timeout,
+            ExecuteDelegateInfo {
+                interchain_account_id,
+                validator,
+                amount,
+                denom,
+                timeout,
+                info: None,
+            },
         ),
         ExecuteMsg::DelegateDoubleAck {
             validator,
@@ -122,11 +136,19 @@ pub fn execute(
         } => execute_delegate_double_ack(
             deps,
             env,
-            interchain_account_id,
-            validator,
-            amount,
-            denom,
-            timeout,
+            ExecuteDelegateInfo {
+                interchain_account_id: interchain_account_id.clone(),
+                validator: validator.clone(),
+                amount,
+                denom: denom.clone(),
+                timeout,
+                info: Some(DoubleDelegateInfo {
+                    interchain_account_id,
+                    validator,
+                    denom,
+                    amount,
+                }),
+            },
         ),
         ExecuteMsg::Undelegate {
             validator,
@@ -287,117 +309,11 @@ fn execute_register_ica(
 }
 
 fn execute_delegate(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
-    interchain_account_id: String,
-    validator: String,
-    amount: u128,
-    denom: String,
-    timeout: Option<u64>,
+    info: ExecuteDelegateInfo,
 ) -> StdResult<Response<NeutronMsg>> {
-    let fee = IBC_FEE.load(deps.storage)?;
-    let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
-    let delegate_msg = MsgDelegate {
-        delegator_address: delegator,
-        validator_address: validator,
-        amount: Some(Coin {
-            denom,
-            amount: amount.to_string(),
-        }),
-    };
-    let mut buf = Vec::new();
-    buf.reserve(delegate_msg.encoded_len());
-
-    if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(StdError::generic_err(format!("Encode error: {}", e)));
-    }
-
-    let any_msg = ProtobufAny {
-        type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
-        value: Binary::from(buf),
-    };
-
-    let cosmos_msg = NeutronMsg::submit_tx(
-        connection_id,
-        interchain_account_id.clone(),
-        vec![any_msg],
-        "".to_string(),
-        timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
-        fee,
-    );
-
-    // We use a submessage here because we need the process message reply to save
-    // the outgoing IBC packet identifier for later.
-    let submsg = msg_with_sudo_callback(
-        deps.branch(),
-        cosmos_msg,
-        SudoPayload {
-            port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-            message: "message".to_string(),
-            ica: None,
-        },
-    )?;
-
-    Ok(Response::default().add_submessages(vec![submsg]))
-}
-
-fn execute_delegate_double_ack(
-    mut deps: DepsMut,
-    env: Env,
-    interchain_account_id: String,
-    validator: String,
-    amount: u128,
-    denom: String,
-    timeout: Option<u64>,
-) -> StdResult<Response<NeutronMsg>> {
-    let fee = IBC_FEE.load(deps.storage)?;
-    let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
-    let delegate_msg = MsgDelegate {
-        delegator_address: delegator,
-        validator_address: validator.clone(),
-        amount: Some(Coin {
-            denom: denom.clone(),
-            amount: amount.to_string(),
-        }),
-    };
-    let mut buf = Vec::new();
-    buf.reserve(delegate_msg.encoded_len());
-
-    if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(StdError::generic_err(format!("Encode error: {}", e)));
-    }
-
-    let any_msg = ProtobufAny {
-        type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
-        value: Binary::from(buf),
-    };
-
-    let cosmos_msg = NeutronMsg::submit_tx(
-        connection_id,
-        interchain_account_id.clone(),
-        vec![any_msg],
-        "".to_string(),
-        timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
-        fee,
-    );
-
-    // We use a submessage here because we need the process message reply to save
-    // the outgoing IBC packet identifier for later.
-    let submsg = msg_with_sudo_callback(
-        deps.branch(),
-        cosmos_msg,
-        SudoPayload {
-            port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-            message: "double_ack__message".to_string(),
-            ica: Some(ICAInfo {
-                interchain_account_id,
-                validator,
-                denom,
-            }),
-        },
-    )?;
-
-    Ok(Response::default().add_submessages(vec![submsg]))
+    do_delegate(deps, env, info)
 }
 
 fn execute_undelegate(
@@ -446,29 +362,34 @@ fn execute_undelegate(
         SudoPayload {
             port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
             message: "message".to_string(),
-            ica: None,
+            info: None,
         },
     )?;
 
     Ok(Response::default().add_submessages(vec![submsg]))
 }
 
-fn delegate_from_sudo(
+fn execute_delegate_double_ack(
+    deps: DepsMut,
+    env: Env,
+    info: ExecuteDelegateInfo,
+) -> StdResult<Response<NeutronMsg>> {
+    do_delegate(deps, env, info)
+}
+
+fn do_delegate(
     mut deps: DepsMut,
     env: Env,
-    interchain_account_id: String,
-    validator: String,
-    amount: u128,
-    denom: String,
+    info: ExecuteDelegateInfo,
 ) -> StdResult<Response<NeutronMsg>> {
     let fee = IBC_FEE.load(deps.storage)?;
-    let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
+    let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &info.interchain_account_id)?;
     let delegate_msg = MsgDelegate {
         delegator_address: delegator,
-        validator_address: validator,
+        validator_address: info.validator,
         amount: Some(Coin {
-            denom,
-            amount: amount.to_string(),
+            denom: info.denom,
+            amount: info.amount.to_string(),
         }),
     };
     let mut buf = Vec::new();
@@ -485,10 +406,10 @@ fn delegate_from_sudo(
 
     let cosmos_msg = NeutronMsg::submit_tx(
         connection_id,
-        interchain_account_id.clone(),
+        info.interchain_account_id.clone(),
         vec![any_msg],
         "".to_string(),
-        DEFAULT_TIMEOUT_SECONDS,
+        info.timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
         fee,
     );
 
@@ -498,9 +419,9 @@ fn delegate_from_sudo(
         deps.branch(),
         cosmos_msg,
         SudoPayload {
-            port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-            message: "double_ack__message_ack".to_string(),
-            ica: None,
+            port_id: get_port_id(env.contract.address.as_str(), &info.interchain_account_id),
+            message: "message".to_string(),
+            info: info.info,
         },
     )?;
 
@@ -525,9 +446,9 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
         deps.api
             .debug("WASMDEBUG: sudo: mocked submsg failure on the handler");
 
-        return Err(StdError::GenericErr {
-            msg: "Integations test mock submsg error".to_string(),
-        });
+        return Err(StdError::generic_err(
+            "Integations test mock submsg error".to_string(),
+        ));
     }
     Ok(Response::default())
 }
@@ -569,9 +490,9 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neutron
         // Used only in integration tests framework to simulate failures.
         api.debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-        return Err(StdError::GenericErr {
-            msg: "Integations test mock error".to_string(),
-        });
+        return Err(StdError::generic_err(
+            "Integations test mock error".to_string(),
+        ));
     }
 
     if failure_submsg_mock_enabled {
@@ -736,51 +657,36 @@ fn sudo_response(
             },
         )?;
 
-        if payload.message == "double_ack__message" {
-            deps.api.debug(
-                format!("WASMDEBUG: double_ack_message ack received: {:?}", payload).as_str(),
-            );
+        deps.api
+            .debug(format!("WASMDEBUG: payload received: {:?}", payload).as_str());
 
-            if let Some(info) = payload.ica.clone() {
-                let res = {
-                    delegate_from_sudo(
-                        deps.branch(),
-                        env,
-                        info.interchain_account_id,
-                        info.validator,
-                        100,
-                        info.denom,
-                    )
-                };
-
-                if let Err(err) = res {
-                    deps.api.debug(
-                        format!(
-                            "WASMDEBUG: error constructing delegate from sudo: {:?}",
-                            err.to_string()
-                        )
-                        .as_str(),
-                    );
-                } else {
-                    return res;
-                }
-            }
-
-            deps.api
-                .debug(format!("WASMDEBUG: no ica info in payload!!!!: {:?}", payload).as_str());
-        }
-
-        if payload.message == "double_ack__message_ack" {
-            deps.api.debug(
-                format!(
-                    "WASMDEBUG: SUCCESS! double_ack__message_ack received: {:?}",
-                    payload
+        if let Some(info) = payload.info {
+            let res = {
+                do_delegate(
+                    deps.branch(),
+                    env,
+                    ExecuteDelegateInfo {
+                        interchain_account_id: info.interchain_account_id,
+                        validator: info.validator,
+                        amount: info.amount,
+                        denom: info.denom,
+                        timeout: None,
+                        info: None,
+                    },
                 )
-                .as_str(),
-            );
+            };
 
-            // TODO: save state?
-            // ACKNOWLEDGEMENT_RESULTS
+            if let Err(err) = res {
+                deps.api.debug(
+                    format!(
+                        "WASMDEBUG: error constructing delegate from sudo: {:?}",
+                        err.to_string()
+                    )
+                    .as_str(),
+                );
+            } else {
+                return res;
+            }
         }
     }
 

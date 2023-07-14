@@ -499,7 +499,7 @@ fn delegate_from_sudo(
         cosmos_msg,
         SudoPayload {
             port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-            message: "double_ack_message_ack".to_string(),
+            message: "double_ack__message_ack".to_string(),
             ica: None,
         },
     )?;
@@ -737,8 +737,9 @@ fn sudo_response(
         )?;
 
         if payload.message == "double_ack__message" {
-            deps.api
-                .debug(format!("double_ack_message ack received: {:?}", payload).as_str());
+            deps.api.debug(
+                format!("WASMDEBUG: double_ack_message ack received: {:?}", payload).as_str(),
+            );
 
             if let Some(info) = payload.ica.clone() {
                 let res = {
@@ -752,11 +753,11 @@ fn sudo_response(
                     )
                 };
 
-                if res.is_err() {
+                if let Err(err) = res {
                     deps.api.debug(
                         format!(
                             "WASMDEBUG: error constructing delegate from sudo: {:?}",
-                            res.unwrap_err().to_string()
+                            err.to_string()
                         )
                         .as_str(),
                     );
@@ -776,9 +777,10 @@ fn sudo_response(
                     payload
                 )
                 .as_str(),
-            )
+            );
 
             // TODO: save state?
+            // ACKNOWLEDGEMENT_RESULTS
         }
     }
 

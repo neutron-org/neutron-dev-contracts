@@ -33,6 +33,8 @@ pub const INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =
 pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =
     Map::new("acknowledgement_results");
 
+// pub const ACKNOWLEDGEMENT_RESULTS_2: Map<(String, u64), AcknowledgementResult> = Map::new("acknowledgement_result_2")
+
 pub const ERRORS_QUEUE: Map<u32, String> = Map::new("errors_queue");
 
 /// Serves for storing acknowledgement calls for interchain transactions

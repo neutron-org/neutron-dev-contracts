@@ -109,6 +109,48 @@
     {
       "type": "object",
       "required": [
+        "delegate_double_ack"
+      ],
+      "properties": {
+        "delegate_double_ack": {
+          "type": "object",
+          "required": [
+            "amount",
+            "denom",
+            "interchain_account_id",
+            "validator"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "denom": {
+              "type": "string"
+            },
+            "interchain_account_id": {
+              "type": "string"
+            },
+            "timeout": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "validator": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "undelegate"
       ],
       "properties": {
@@ -161,13 +203,39 @@
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, contract will fail, all of this happening in sudo callback handler.",
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an error.",
       "type": "object",
       "required": [
         "integration_tests_set_sudo_failure_mock"
       ],
       "properties": {
         "integration_tests_set_sudo_failure_mock": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage processing error.",
+      "type": "object",
+      "required": [
+        "integration_tests_set_sudo_submsg_failure_mock"
+      ],
+      "properties": {
+        "integration_tests_set_sudo_submsg_failure_mock": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage reply processing error.",
+      "type": "object",
+      "required": [
+        "integration_tests_set_sudo_submsg_reply_failure_mock"
+      ],
+      "properties": {
+        "integration_tests_set_sudo_submsg_reply_failure_mock": {
           "type": "object"
         }
       },
@@ -181,6 +249,19 @@
       ],
       "properties": {
         "integration_tests_unset_sudo_failure_mock": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Used only in integration tests framework to simulate failures. If the IntegrationTestsSetSudoSubmsgFailureMock has been called, this message will fail.",
+      "type": "object",
+      "required": [
+        "integration_tests_sudo_submsg"
+      ],
+      "properties": {
+        "integration_tests_sudo_submsg": {
           "type": "object"
         }
       },

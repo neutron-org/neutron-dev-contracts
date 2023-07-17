@@ -447,7 +447,7 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
             .debug("WASMDEBUG: sudo: mocked submsg failure on the handler");
 
         return Err(StdError::generic_err(
-            "Integations test mock submsg error".to_string(),
+            "Integrations test mock submsg error".to_string(),
         ));
     }
     Ok(Response::default())

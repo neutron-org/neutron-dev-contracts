@@ -15,7 +15,8 @@
 use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
+    StdResult, SubMsg,
 };
 use cw2::set_contract_version;
 use neutron_sdk::interchain_queries::register_queries::new_register_interchain_query_msg;
@@ -26,15 +27,16 @@ use crate::msg::{
     KvCallbackStatsResponse, MigrateMsg, QueryMsg,
 };
 use crate::state::{
-    IntegrationTestsKvMock, Transfer, INTEGRATION_TESTS_KV_MOCK, KV_CALLBACK_STATS, RECIPIENT_TXS,
-    TRANSFERS,
+    IntegrationTestsKvMock, QueryKind, Transfer, INTEGRATION_TESTS_KV_MOCK, KV_CALLBACK_STATS,
+    KV_QUERY_ID_TO_CALLBACKS, RECIPIENT_TXS, TRANSFERS,
 };
-use neutron_sdk::bindings::msg::NeutronMsg;
+use neutron_sdk::bindings::msg::{MsgRegisterInterchainQueryResponse, NeutronMsg};
 use neutron_sdk::bindings::query::{InterchainQueries, QueryRegisteredQueryResponse};
 use neutron_sdk::bindings::types::KVKey;
 use neutron_sdk::interchain_queries::queries::{
     get_registered_query, query_balance, query_bank_total, query_delegations,
-    query_distribution_fee_pool, query_government_proposals, query_staking_validators,
+    query_distribution_fee_pool, query_government_proposals, query_kv_result,
+    query_staking_validators,
 };
 use neutron_sdk::interchain_queries::{
     new_register_balance_query_msg, new_register_bank_total_supply_query_msg,
@@ -47,7 +49,7 @@ use neutron_sdk::{NeutronError, NeutronResult};
 
 use crate::integration_tests_mock_handlers::{set_kv_query_mock, unset_kv_query_mock};
 use neutron_sdk::interchain_queries::types::{
-    QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
+    Balances, QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
     COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD,
 };
 use serde_json_wasm;
@@ -58,6 +60,8 @@ const MAX_ALLOWED_MESSAGES: usize = 20;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+const BALANCES_REPLY_ID: u64 = 1;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -122,7 +126,7 @@ pub fn execute(
             new_update_period,
             new_recipient,
         } => update_interchain_query(query_id, new_keys, new_update_period, new_recipient),
-        ExecuteMsg::RemoveInterchainQuery { query_id } => remove_interchain_query(query_id),
+        ExecuteMsg::RemoveInterchainQuery { query_id } => remove_interchain_query(deps, query_id),
         ExecuteMsg::IntegrationTestsSetKvQueryMock {} => set_kv_query_mock(deps),
         ExecuteMsg::IntegrationTestsUnsetKvQueryMock {} => unset_kv_query_mock(deps),
         ExecuteMsg::IntegrationTestsRegisterQueryEmptyId { connection_id } => {
@@ -144,8 +148,10 @@ pub fn register_balance_query(
     update_period: u64,
 ) -> NeutronResult<Response<NeutronMsg>> {
     let msg = new_register_balance_query_msg(connection_id, addr, denom, update_period)?;
+    // wrap into submessage to save {query_id, query_type} on reply that'll later be used to handle sudo kv callback
+    let submsg = SubMsg::reply_on_success(msg, BALANCES_REPLY_ID);
 
-    Ok(Response::new().add_message(msg))
+    Ok(Response::default().add_submessage(submsg))
 }
 
 pub fn register_bank_total_supply_query(
@@ -293,8 +299,12 @@ pub fn update_interchain_query(
     Ok(Response::new().add_message(update_msg))
 }
 
-pub fn remove_interchain_query(query_id: u64) -> NeutronResult<Response<NeutronMsg>> {
+pub fn remove_interchain_query(
+    deps: DepsMut<InterchainQueries>,
+    query_id: u64,
+) -> NeutronResult<Response<NeutronMsg>> {
     let remove_msg = NeutronMsg::remove_interchain_query(query_id);
+    KV_QUERY_ID_TO_CALLBACKS.remove(deps.storage, query_id);
     Ok(Response::new().add_message(remove_msg))
 }
 
@@ -355,6 +365,37 @@ pub fn query_kv_callback_stats(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     deps.api.debug("WASMDEBUG: migrate");
+    Ok(Response::default())
+}
+
+#[entry_point]
+pub fn reply(deps: DepsMut, _: Env, msg: Reply) -> StdResult<Response> {
+    deps.api
+        .debug(format!("WASMDEBUG: reply msg: {:?}", msg).as_str());
+    match msg.id {
+        BALANCES_REPLY_ID => write_balance_query_id_to_reply_id(deps, msg),
+        _ => Err(StdError::generic_err(format!(
+            "unsupported reply message id {}",
+            msg.id
+        ))),
+    }
+}
+
+fn write_balance_query_id_to_reply_id(deps: DepsMut, reply: Reply) -> StdResult<Response> {
+    let resp: MsgRegisterInterchainQueryResponse = serde_json_wasm::from_slice(
+        reply
+            .result
+            .into_result()
+            .map_err(StdError::generic_err)?
+            .data
+            .ok_or_else(|| StdError::generic_err("no result"))?
+            .as_slice(),
+    )
+    .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
+
+    // then in success reply handler we do this
+    KV_QUERY_ID_TO_CALLBACKS.save(deps.storage, resp.id, &QueryKind::Balance)?;
+
     Ok(Response::default())
 }
 
@@ -517,8 +558,28 @@ pub fn sudo_kv_query_result(
     // store last KV callback update time
     KV_CALLBACK_STATS.save(deps.storage, query_id, &env.block.height)?;
 
-    // TODO: provide an actual example. Currently to many things are going to change
-    // after @pro0n00gler's PRs to implement this.
-
+    let query_kind = KV_QUERY_ID_TO_CALLBACKS.may_load(deps.storage, query_id)?;
+    match query_kind {
+        Some(QueryKind::Balance) => {
+            let balances: Balances = query_kv_result(deps.as_ref(), query_id)?;
+            let balances_str = balances
+                .coins
+                .iter()
+                .map(|c| c.amount.to_string() + c.denom.as_str())
+                .collect::<Vec<String>>()
+                .join(", ");
+            deps.api
+                .debug(format!("WASMDEBUG: sudo callback; balances: {:?}", balances_str).as_str());
+        }
+        None => {
+            deps.api.debug(
+                format!(
+                    "WASMDEBUG: sudo callback without query kind assigned; query_id: {:?}",
+                    query_id
+                )
+                .as_str(),
+            );
+        }
+    }
     Ok(Response::default())
 }

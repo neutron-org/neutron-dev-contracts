@@ -44,6 +44,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
 
 [[package]]
+name = "base64"
+version = "0.21.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "604178f6c5c21f02dc555784810edfb88d34ac2c73b2eae109655649ee73ce3d"
+
+[[package]]
 name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -489,11 +495,11 @@ checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
 
 [[package]]
 name = "neutron-sdk"
-version = "0.1.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e48b0fe1882e00f244da9a05937a6f0d7f9f82bb2539d35ea2a06507f78418af"
+checksum = "adfc6f92cae61b5af9014c09b7bac25ac95b7442be38441a7103377a8edfd37c"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.2",
  "bech32",
  "cosmos-sdk-proto",
  "cosmwasm-schema",
@@ -503,7 +509,7 @@ dependencies = [
  "protobuf",
  "schemars",
  "serde",
- "serde-json-wasm 0.4.1",
+ "serde-json-wasm 0.5.1",
  "serde_json",
  "thiserror",
 ]

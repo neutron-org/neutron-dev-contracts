@@ -36,7 +36,7 @@ cosmwasm-std = { version = "1.0.0", features = ["staking"] }
 cw2 = "1.0.1"
 schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-neutron-sdk = "0.1.0"
+neutron-sdk = { package = "neutron-sdk", version = "0.6.1" }
 base64 = "0.20.0"
 cosmos-sdk-proto = { version = "0.16.0", default-features = false }
 cw-storage-plus = { version = "1.0.1", features = ["iterator"]}

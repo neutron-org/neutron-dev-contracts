@@ -39,7 +39,7 @@ schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 serde-json-wasm = { version = "0.4.1" }
 cw-storage-plus = { version = "1.0.1", features = ["iterator"]}
-neutron-sdk = "0.1.0"
+neutron-sdk = { package = "neutron-sdk", version = "0.6.1" }
 protobuf = { version = "3.2.0", features = ["with-bytes"] }
 
 [dev-dependencies]

@@ -32,9 +32,7 @@ use cosmwasm_std::{
 use neutron_sdk::bindings::query::{
     InterchainQueries, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
 };
-use neutron_sdk::bindings::types::{
-    decode_hex, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
-};
+use neutron_sdk::bindings::types::{decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue};
 use neutron_sdk::interchain_queries::helpers::{
     create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
     create_total_denom_key, create_validator_key, decode_and_convert,
@@ -50,6 +48,7 @@ use neutron_sdk::interchain_queries::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
     TotalSupplyResponse, ValidatorResponse,
 };
+use neutron_sdk::interchain_queries::v045::types::RECIPIENT_FIELD;
 use neutron_sdk::NeutronError;
 use schemars::_serde_json::to_string;
 
@@ -691,7 +690,7 @@ fn test_sudo_tx_query_result_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height: u64 = 1u64;
+    let height = Height{ revision_number: 0u64, revision_height: 1u64 };
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
@@ -717,7 +716,7 @@ fn test_sudo_tx_query_result_callback() {
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
     let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
-    sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height, data).unwrap();
+    sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data).unwrap();
 
     // ensure the callback has worked and contract's state has changed
     let txs = RECIPIENT_TXS.load(&deps.storage, &watched_addr).unwrap();
@@ -734,7 +733,7 @@ fn test_sudo_tx_query_result_callback() {
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to another addr of 10000 stake
     let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xNHV4dnUyMmxocmF6eXhhZGFxdjVkNmxzd3UwcDI3NmxsN2hya2waDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkBEv2CW/0gIrankNl4aGs9LXy2BKA6kAWyl4MUxmXnbnjRpgaNbQIyo4i7nUgVsuOpqzAdudM2M53OSU0Dmo5tF").unwrap());
-    let res = sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height, data);
+    let res = sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data);
 
     // ensure the callback has returned an error and contract's state hasn't changed
     assert_eq!(
@@ -786,7 +785,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height: u64 = 1u64;
+    let height = Height{ revision_number: 0u64, revision_height: 1u64 };
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
@@ -812,7 +811,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
     let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
-    sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height, data).unwrap();
+    sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data).unwrap();
 
     // ensure the callback has worked and contract's state has changed
     let txs = RECIPIENT_TXS.load(&deps.storage, &watched_addr).unwrap();
@@ -829,7 +828,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to another addr of 10000 stake
     let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xNHV4dnUyMmxocmF6eXhhZGFxdjVkNmxzd3UwcDI3NmxsN2hya2waDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkBEv2CW/0gIrankNl4aGs9LXy2BKA6kAWyl4MUxmXnbnjRpgaNbQIyo4i7nUgVsuOpqzAdudM2M53OSU0Dmo5tF").unwrap());
-    let res = sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height, data);
+    let res = sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data);
 
     // ensure the callback has returned an error and contract's state hasn't changed
     assert_eq!(

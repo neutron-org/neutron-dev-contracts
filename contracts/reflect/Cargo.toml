@@ -37,7 +37,7 @@ cosmwasm-std = { version = "1.0.0", features = ["staking"] }
 cw2 = "1.0.1"
 schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-neutron-sdk = "0.1.0"
+neutron-sdk = { package = "neutron-sdk", version = "0.6.1" }
 
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0.0", default-features = false }

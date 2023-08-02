@@ -30,27 +30,31 @@ use cosmwasm_std::{
     StdError, Uint128,
 };
 use neutron_sdk::bindings::query::{
-    InterchainQueries, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
+    NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
 };
-use neutron_sdk::bindings::types::{decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue};
-use neutron_sdk::interchain_queries::helpers::{
-    create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
-    create_total_denom_key, create_validator_key, decode_and_convert,
+use neutron_sdk::bindings::types::{
+    decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
 };
+use neutron_sdk::interchain_queries::helpers::decode_and_convert;
 use neutron_sdk::interchain_queries::types::{
-    Balances, FeePool, GovernmentProposal, Proposal, QueryType, StakingValidator, TallyResult,
-    TotalSupply, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue, Validator,
-    RECIPIENT_FIELD,
+    QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
-use prost::Message as ProstMessage;
-
-use neutron_sdk::interchain_queries::queries::{
+use neutron_sdk::interchain_queries::v045::helpers::{
+    create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
+    create_total_denom_key, create_validator_key,
+};
+use neutron_sdk::interchain_queries::v045::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
     TotalSupplyResponse, ValidatorResponse,
 };
-use neutron_sdk::interchain_queries::v045::types::RECIPIENT_FIELD;
+use neutron_sdk::interchain_queries::v045::types::{
+    Balances, FeePool, GovernmentProposal, Proposal, StakingValidator, TallyResult, TotalSupply,
+    Validator, DECIMAL_PLACES, RECIPIENT_FIELD,
+};
 use neutron_sdk::NeutronError;
+use prost::Message as ProstMessage;
 use schemars::_serde_json::to_string;
+use std::ops::Mul;
 
 enum QueryParam {
     Keys(Vec<KVKey>),
@@ -73,12 +77,16 @@ fn build_registered_query_response(
             connection_id: "".to_string(),
             update_period: 0,
             last_submitted_result_local_height,
-            last_submitted_result_remote_height: 0,
+            last_submitted_result_remote_height: Height {
+                revision_height: 0u64,
+                revision_number: 0u64,
+            },
             deposit: Vec::from([Coin {
                 denom: "stake".to_string(),
                 amount: Uint128::from_str("100").unwrap(),
             }]),
             submit_timeout: 0,
+            registered_at_height: 0,
         },
     };
     match param {
@@ -106,6 +114,12 @@ fn build_interchain_query_bank_total_denom_value(denom: String, amount: String) 
 fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: String) -> Binary {
     let fee_pool_key = create_fee_pool_key().unwrap();
 
+    let adjust: Uint128 = Uint128::one().mul(Uint128::from(10u64).pow(DECIMAL_PLACES));
+    let amount = Uint128::from_str(&amount)
+        .unwrap()
+        .mul(adjust) // adjust to Dec gogo proto format
+        .to_string();
+
     let community_pool_amount = CosmosDecCoin { denom, amount };
 
     let fee_pool = CosmosFeePool {
@@ -122,7 +136,7 @@ fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: 
             result: InterchainQueryResult {
                 kv_results: vec![s],
                 height: 123456,
-                revision: 2,
+                revision: 1,
             },
         })
         .unwrap()
@@ -218,7 +232,7 @@ fn build_interchain_query_balance_response(addr: Addr, denom: String, amount: St
 
 // registers an interchain query
 fn register_query(
-    deps: &mut OwnedDeps<MockStorage, MockApi, WasmMockQuerier, InterchainQueries>,
+    deps: &mut OwnedDeps<MockStorage, MockApi, WasmMockQuerier, NeutronQuery>,
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
@@ -249,7 +263,7 @@ fn test_query_balance() {
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
         1,
         build_interchain_query_balance_response(
@@ -305,7 +319,7 @@ fn test_bank_total_supply_query() {
         },
     };
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier
         .add_query_response(1, to_binary(&total_supply_response).unwrap());
     let bank_total_balance = QueryMsg::BankTotalSupply { query_id: 1 };
@@ -340,7 +354,7 @@ fn test_distribution_fee_pool_query() {
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
         1,
         build_interchain_query_distribution_fee_pool_response(
@@ -394,7 +408,7 @@ fn test_gov_proposals_query() {
         },
     };
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier
         .add_query_response(1, to_binary(&proposals_response).unwrap());
 
@@ -504,7 +518,7 @@ fn test_staking_validators_query() {
         },
     };
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier
         .add_query_response(1, to_binary(&validators_response).unwrap());
     let staking_validators = QueryMsg::StakingValidators { query_id: 1 };
@@ -653,7 +667,7 @@ fn test_query_delegator_delegations() {
 
     deps.querier
         .add_query_response(1, to_binary(&delegations_response).unwrap());
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
 
     let query_delegations = QueryMsg::GetDelegations { query_id: 1 };
     let resp: DelegatorDelegationsResponse =
@@ -690,7 +704,10 @@ fn test_sudo_tx_query_result_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height = Height{ revision_number: 0u64, revision_height: 1u64 };
+    let height = Height {
+        revision_number: 0u64,
+        revision_height: 1u64,
+    };
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
@@ -711,7 +728,7 @@ fn test_sudo_tx_query_result_callback() {
         QueryType::TX,
         0,
     );
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
@@ -785,7 +802,10 @@ fn test_sudo_tx_query_result_min_height_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height = Height{ revision_number: 0u64, revision_height: 1u64 };
+    let height = Height {
+        revision_number: 0u64,
+        revision_height: 1u64,
+    };
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
@@ -806,7 +826,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
         QueryType::TX,
         0,
     );
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake

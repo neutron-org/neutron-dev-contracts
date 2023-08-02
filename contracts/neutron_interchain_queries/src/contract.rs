@@ -31,17 +31,25 @@ use crate::state::{
 use neutron_sdk::bindings::msg::NeutronMsg;
 use neutron_sdk::bindings::query::{NeutronQuery, QueryRegisteredQueryResponse};
 use neutron_sdk::bindings::types::{Height, KVKey};
-use neutron_sdk::interchain_queries::queries::{
-    get_registered_query,
-};
+use neutron_sdk::interchain_queries::queries::get_registered_query;
 use neutron_sdk::sudo::msg::SudoMsg;
 use neutron_sdk::{NeutronError, NeutronResult};
 
 use crate::integration_tests_mock_handlers::{set_kv_query_mock, unset_kv_query_mock};
-use neutron_sdk::interchain_queries::types::{TransactionFilterItem, TransactionFilterOp, TransactionFilterValue, QueryPayload};
-use neutron_sdk::interchain_queries::v045::{new_register_balance_query_msg, new_register_bank_total_supply_query_msg, new_register_delegator_delegations_query_msg, new_register_distribution_fee_pool_query_msg, new_register_gov_proposal_query_msg, new_register_staking_validators_query_msg, new_register_transfers_query_msg};
-use neutron_sdk::interchain_queries::v045::queries::{query_balance, query_bank_total, query_delegations, query_distribution_fee_pool, query_government_proposals, query_staking_validators};
+use neutron_sdk::interchain_queries::types::{
+    QueryPayload, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
+};
+use neutron_sdk::interchain_queries::v045::queries::{
+    query_balance, query_bank_total, query_delegations, query_distribution_fee_pool,
+    query_government_proposals, query_staking_validators,
+};
 use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
+use neutron_sdk::interchain_queries::v045::{
+    new_register_balance_query_msg, new_register_bank_total_supply_query_msg,
+    new_register_delegator_delegations_query_msg, new_register_distribution_fee_pool_query_msg,
+    new_register_gov_proposal_query_msg, new_register_staking_validators_query_msg,
+    new_register_transfers_query_msg,
+};
 use serde_json_wasm;
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
@@ -65,7 +73,7 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
-    deps: DepsMut,
+    deps: DepsMut<NeutronQuery>,
     env: Env,
     _: MessageInfo,
     msg: ExecuteMsg,
@@ -216,17 +224,14 @@ pub fn register_query_empty_id(
         path: "test".to_string(),
         key: Binary(vec![]),
     };
-    let msg = NeutronMsg::register_interchain_query(
-        QueryPayload::KV(vec![kv_key]),
-        connection_id,
-        10,
-    );
+    let msg =
+        NeutronMsg::register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
 
     Ok(Response::new().add_message(msg))
 }
 
 pub fn register_query_empty_path(
-    _: DepsMut,
+    _: DepsMut<NeutronQuery>,
     _: Env,
     connection_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
@@ -234,24 +239,17 @@ pub fn register_query_empty_path(
         path: "".to_string(),
         key: Binary("test".as_bytes().to_vec()),
     };
-    let msg = NeutronMsg::register_interchain_query(
-        QueryPayload::KV(vec![kv_key]),
-        connection_id,
-        10,
-    );
+    let msg =
+        NeutronMsg::register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
     Ok(Response::new().add_message(msg))
 }
 
 pub fn register_query_empty_keys(
-    deps: DepsMut,
-    env: Env,
+    _: DepsMut<NeutronQuery>,
+    _: Env,
     connection_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg = NeutronMsg::register_interchain_query(
-        QueryPayload::KV(vec![]),
-        connection_id,
-        10,
-    );
+    let msg = NeutronMsg::register_interchain_query(QueryPayload::KV(vec![]), connection_id, 10)?;
     Ok(Response::new().add_message(msg))
 }
 
@@ -322,10 +320,7 @@ fn query_transfers_number(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
 }
 
 /// Returns block height of last KV query callback execution
-pub fn query_kv_callback_stats(
-    deps: Deps<NeutronQuery>,
-    query_id: u64,
-) -> NeutronResult<Binary> {
+pub fn query_kv_callback_stats(deps: Deps<NeutronQuery>, query_id: u64) -> NeutronResult<Binary> {
     Ok(to_binary(&KvCallbackStatsResponse {
         last_update_height: KV_CALLBACK_STATS
             .may_load(deps.storage, query_id)?
@@ -380,7 +375,9 @@ pub fn sudo_tx_query_result(
         _ => {
             // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =
-                serde_json_wasm::from_str(transactions_filter.as_str())?;
+                serde_json_wasm::from_str(transactions_filter.as_str()).map_err(|e| {
+                    StdError::generic_err(format!("failed to parse transactions_filter: {:?}", e))
+                })?;
 
             let recipient = query_data
                 .iter()

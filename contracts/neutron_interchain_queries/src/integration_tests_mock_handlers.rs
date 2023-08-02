@@ -9,9 +9,7 @@ pub fn set_kv_query_mock(deps: DepsMut<NeutronQuery>) -> NeutronResult<Response<
     Ok(Response::default())
 }
 
-pub fn unset_kv_query_mock(
-    deps: DepsMut<NeutronQuery>,
-) -> NeutronResult<Response<NeutronMsg>> {
+pub fn unset_kv_query_mock(deps: DepsMut<NeutronQuery>) -> NeutronResult<Response<NeutronMsg>> {
     INTEGRATION_TESTS_KV_MOCK.save(deps.storage, &IntegrationTestsKvMock::Disabled)?;
     Ok(Response::default())
 }

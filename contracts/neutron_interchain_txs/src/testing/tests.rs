@@ -22,10 +22,9 @@ use cosmwasm_std::{
     testing::{MockApi, MockQuerier, MockStorage},
     OwnedDeps,
 };
+use neutron_sdk::bindings::query::NeutronQuery;
 
-use neutron_sdk::bindings::query::InterchainQueries;
-
-pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, MockQuerier, InterchainQueries> {
+pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, MockQuerier, NeutronQuery> {
     OwnedDeps {
         storage: MockStorage::default(),
         api: MockApi::default(),

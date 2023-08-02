@@ -12,30 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::integration_tests_mock_handlers::{set_query_mock, unset_query_mock};
+use crate::msg::{
+    ExecuteMsg, GetRecipientTxsResponse, GetTransfersAmountResponse, InstantiateMsg,
+    KvCallbackStatsResponse, MigrateMsg, QueryMsg,
+};
+use crate::state::{
+    IntegrationTestsQueryMock, Transfer, INTEGRATION_TESTS_QUERY_MOCK, KV_CALLBACK_STATS,
+    RECIPIENT_TXS, TRANSFERS,
+};
 use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
-use prost::Message as ProstMessage;
-
-use crate::msg::{
-    ExecuteMsg, GetRecipientTxsResponse, GetTransfersAmountResponse, InstantiateMsg,
-    KvCallbackStatsResponse, MigrateMsg, QueryMsg,
-};
-use crate::state::{
-    IntegrationTestsKvMock, Transfer, INTEGRATION_TESTS_KV_MOCK, KV_CALLBACK_STATS, RECIPIENT_TXS,
-    TRANSFERS,
-};
 use neutron_sdk::bindings::msg::NeutronMsg;
 use neutron_sdk::bindings::query::{NeutronQuery, QueryRegisteredQueryResponse};
 use neutron_sdk::bindings::types::{Height, KVKey};
-use neutron_sdk::interchain_queries::queries::get_registered_query;
-use neutron_sdk::sudo::msg::SudoMsg;
-use neutron_sdk::{NeutronError, NeutronResult};
-
-use crate::integration_tests_mock_handlers::{set_kv_query_mock, unset_kv_query_mock};
+use neutron_sdk::interchain_queries::get_registered_query;
 use neutron_sdk::interchain_queries::types::{
     QueryPayload, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -50,6 +45,9 @@ use neutron_sdk::interchain_queries::v045::{
     new_register_gov_proposal_query_msg, new_register_staking_validators_query_msg,
     new_register_transfers_query_msg,
 };
+use neutron_sdk::sudo::msg::SudoMsg;
+use neutron_sdk::{NeutronError, NeutronResult};
+use prost::Message as ProstMessage;
 use serde_json_wasm;
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
@@ -123,8 +121,8 @@ pub fn execute(
             new_recipient,
         } => update_interchain_query(query_id, new_keys, new_update_period, new_recipient),
         ExecuteMsg::RemoveInterchainQuery { query_id } => remove_interchain_query(query_id),
-        ExecuteMsg::IntegrationTestsSetKvQueryMock {} => set_kv_query_mock(deps),
-        ExecuteMsg::IntegrationTestsUnsetKvQueryMock {} => unset_kv_query_mock(deps),
+        ExecuteMsg::IntegrationTestsSetQueryMock {} => set_query_mock(deps),
+        ExecuteMsg::IntegrationTestsUnsetQueryMock {} => unset_query_mock(deps),
         ExecuteMsg::IntegrationTestsRegisterQueryEmptyId { connection_id } => {
             register_query_empty_id(deps, env, connection_id)
         }
@@ -356,6 +354,12 @@ pub fn sudo_tx_query_result(
     _height: Height,
     data: Binary,
 ) -> NeutronResult<Response> {
+    if let Some(IntegrationTestsQueryMock::Enabled {}) =
+        INTEGRATION_TESTS_QUERY_MOCK.may_load(deps.storage)?
+    {
+        // simulate error on tx query submit for integration tests
+        return Err(NeutronError::IntegrationTestsMock {});
+    }
     // Decode the transaction data
     let tx: TxRaw = TxRaw::decode(data.as_slice())?;
     let body: TxBody = TxBody::decode(tx.body_bytes.as_slice())?;
@@ -482,8 +486,8 @@ pub fn sudo_kv_query_result(
         .as_str(),
     );
 
-    if let Some(IntegrationTestsKvMock::Enabled {}) =
-        INTEGRATION_TESTS_KV_MOCK.may_load(deps.storage)?
+    if let Some(IntegrationTestsQueryMock::Enabled {}) =
+        INTEGRATION_TESTS_QUERY_MOCK.may_load(deps.storage)?
     {
         // doesn't really matter whatever data we try to save here, it should all be reverted
         // since we return an error in this branch anyway. in fact, this branch exists for the

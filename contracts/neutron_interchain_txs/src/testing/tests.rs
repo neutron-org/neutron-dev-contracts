@@ -10,19 +10,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::marker::PhantomData;
-
+use crate::contract::sudo;
+use crate::msg::ExecuteMsg;
 use crate::{
-    contract::query_errors_queue,
+    contract::{execute, query_errors_queue},
     storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE},
 };
-
 use cosmwasm_std::{
     from_binary,
-    testing::{MockApi, MockQuerier, MockStorage},
-    OwnedDeps,
+    testing::{
+        mock_dependencies as cw_mock_dependencies, mock_env, mock_info, MockApi, MockQuerier,
+        MockStorage,
+    },
+    OwnedDeps, StdError,
 };
 use neutron_sdk::bindings::query::NeutronQuery;
+use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
+use std::marker::PhantomData;
 
 pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, MockQuerier, NeutronQuery> {
     OwnedDeps {
@@ -88,4 +92,36 @@ fn test_errors_queue() {
             (2u32.to_be_bytes().to_vec(), error)
         ]
     );
+}
+
+#[test]
+fn test_failure_mocks() {
+    let mut deps = cw_mock_dependencies();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("", &[]),
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock {},
+    )
+    .unwrap();
+
+    let src_port = String::from("src_port");
+    let src_channel = String::from("src_channel");
+    let dst_port = String::from("dst_port");
+    let dst_channel = String::from("dst_channel");
+    let sudo_resp = SudoMsg::Timeout {
+        request: RequestPacket {
+            sequence: Some(1u64),
+            source_port: Some(src_port),
+            source_channel: Some(src_channel),
+            destination_port: Some(dst_port),
+            destination_channel: Some(dst_channel),
+            data: None,
+            timeout_height: None,
+            timeout_timestamp: None,
+        },
+    };
+
+    let err = sudo(deps.as_mut(), mock_env(), sudo_resp).unwrap_err();
+    assert_eq!(err, StdError::generic_err("Integations test mock error"));
 }

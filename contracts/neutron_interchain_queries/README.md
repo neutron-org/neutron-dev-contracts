@@ -68,7 +68,7 @@ make build && make init && make start-rly
 
 Clone the relayer repo next to the demo contracts:
 ```
-git@github.com:neutron-org/cosmos-query-relayer.git
+git@github.com:neutron-org/neutron-query-relayer.git
 ```
 
 and run it (note that you have to use the absolute path to `neutron/data`):

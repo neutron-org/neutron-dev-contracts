@@ -1,3 +1,4 @@
+use crate::storage::AcknowledgementResult;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +19,8 @@ pub enum QueryMsg {
         interchain_account_id: String,
         sequence_id: u64,
     },
+    // this query returns all acknowledgements stored in the contract's state
+    AcknowledgementResults {},
     // this query returns non-critical errors list
     ErrorsQueue {},
 }
@@ -57,10 +60,27 @@ pub enum ExecuteMsg {
     },
     CleanAckResults {},
     /// Used only in integration tests framework to simulate failures.
-    /// After executing this message, contract will fail, all of this happening
-    /// in sudo callback handler.
+    /// After executing this message, any sudo call to the contract will result in an error.
     IntegrationTestsSetSudoFailureMock {},
+    /// Used only in integration tests framework to simulate failures.
+    /// After executing this message, any sudo call to the contract will result in an submessage
+    /// processing error.
+    IntegrationTestsSetSudoSubmsgFailureMock {},
+    /// Used only in integration tests framework to simulate failures.
+    /// After executing this message, any sudo call to the contract will result in an submessage
+    /// reply processing error.
+    IntegrationTestsSetSudoSubmsgReplyFailureMock {},
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will revert back to normal behaviour.
     IntegrationTestsUnsetSudoFailureMock {},
+    /// Used only in integration tests framework to simulate failures.
+    /// If the IntegrationTestsSetSudoSubmsgFailureMock has been called, this message will fail.
+    IntegrationTestsSudoSubmsg {},
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct AcknowledgementResultsResponse {
+    pub ack_result: AcknowledgementResult,
+    pub port_id: String,
+    pub sequence_id: u64,
 }

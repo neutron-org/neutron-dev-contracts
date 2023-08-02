@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "submit_client_update_proposal"
+      ],
+      "properties": {
+        "submit_client_update_proposal": {
+          "type": "object",
+          "required": [
+            "description",
+            "subject_client_id",
+            "substitute_client_id",
+            "title"
+          ],
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "subject_client_id": {
+              "type": "string"
+            },
+            "substitute_client_id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

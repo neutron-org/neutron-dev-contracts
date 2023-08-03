@@ -60,13 +60,13 @@ pub fn save_reply_payload(store: &mut dyn Storage, payload: SudoPayload) -> StdR
     REPLY_ID_STORAGE.save(store, &to_vec(&payload)?)
 }
 
-pub fn read_reply_payload(store: &mut dyn Storage) -> StdResult<SudoPayload> {
+pub fn read_reply_payload(store: &dyn Storage) -> StdResult<SudoPayload> {
     let data = REPLY_ID_STORAGE.load(store)?;
     from_binary(&Binary(data))
 }
 
 pub fn read_sudo_payload(
-    store: &mut dyn Storage,
+    store: &dyn Storage,
     channel_id: String,
     seq_id: u64,
 ) -> StdResult<SudoPayload> {

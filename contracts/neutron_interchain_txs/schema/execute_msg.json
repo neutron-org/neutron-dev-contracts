@@ -161,13 +161,39 @@
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, contract will fail, all of this happening in sudo callback handler.",
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an error.",
       "type": "object",
       "required": [
         "integration_tests_set_sudo_failure_mock"
       ],
       "properties": {
         "integration_tests_set_sudo_failure_mock": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage processing error.",
+      "type": "object",
+      "required": [
+        "integration_tests_set_sudo_submsg_failure_mock"
+      ],
+      "properties": {
+        "integration_tests_set_sudo_submsg_failure_mock": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage reply processing error.",
+      "type": "object",
+      "required": [
+        "integration_tests_set_sudo_submsg_reply_failure_mock"
+      ],
+      "properties": {
+        "integration_tests_set_sudo_submsg_reply_failure_mock": {
           "type": "object"
         }
       },
@@ -181,6 +207,19 @@
       ],
       "properties": {
         "integration_tests_unset_sudo_failure_mock": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Used only in integration tests framework to simulate failures. If the IntegrationTestsSetSudoSubmsgFailureMock has been called, this message will fail.",
+      "type": "object",
+      "required": [
+        "integration_tests_sudo_submsg"
+      ],
+      "properties": {
+        "integration_tests_sudo_submsg": {
           "type": "object"
         }
       },

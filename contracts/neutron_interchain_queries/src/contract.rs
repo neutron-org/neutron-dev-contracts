@@ -27,30 +27,26 @@ use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
-use neutron_sdk::{
-    bindings::{
-        msg::NeutronMsg,
-        query::{NeutronQuery, QueryRegisteredQueryResponse},
-        types::{Height, KVKey},
-    },
-    interchain_queries::{
-        new_register_balance_query_msg, new_register_bank_total_supply_query_msg,
-        new_register_delegator_delegations_query_msg, new_register_distribution_fee_pool_query_msg,
-        new_register_gov_proposal_query_msg, new_register_staking_validators_query_msg,
-        new_register_transfers_query_msg,
-        queries::{
-            get_registered_query, query_balance, query_bank_total, query_delegations,
-            query_distribution_fee_pool, query_government_proposals, query_staking_validators,
-        },
-        register_queries::new_register_interchain_query_msg,
-        types::{
-            QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
-            COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD,
-        },
-    },
-    sudo::msg::SudoMsg,
-    NeutronError, NeutronResult,
+use neutron_sdk::bindings::msg::NeutronMsg;
+use neutron_sdk::bindings::query::{NeutronQuery, QueryRegisteredQueryResponse};
+use neutron_sdk::bindings::types::{Height, KVKey};
+use neutron_sdk::interchain_queries::get_registered_query;
+use neutron_sdk::interchain_queries::types::{
+    QueryPayload, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
+use neutron_sdk::interchain_queries::v045::queries::{
+    query_balance, query_bank_total, query_delegations, query_distribution_fee_pool,
+    query_government_proposals, query_staking_validators,
+};
+use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
+use neutron_sdk::interchain_queries::v045::{
+    new_register_balance_query_msg, new_register_bank_total_supply_query_msg,
+    new_register_delegator_delegations_query_msg, new_register_distribution_fee_pool_query_msg,
+    new_register_gov_proposal_query_msg, new_register_staking_validators_query_msg,
+    new_register_transfers_query_msg,
+};
+use neutron_sdk::sudo::msg::SudoMsg;
+use neutron_sdk::{NeutronError, NeutronResult};
 use prost::Message as ProstMessage;
 use serde_json_wasm;
 
@@ -218,61 +214,40 @@ pub fn register_transfers_query(
 }
 
 pub fn register_query_empty_id(
-    deps: DepsMut<NeutronQuery>,
-    env: Env,
+    _: DepsMut<NeutronQuery>,
+    _: Env,
     connection_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
     let kv_key = KVKey {
         path: "test".to_string(),
         key: Binary(vec![]),
     };
-    let msg = new_register_interchain_query_msg(
-        deps,
-        env,
-        connection_id,
-        QueryType::KV,
-        vec![kv_key],
-        vec![],
-        10,
-    )?;
+    let msg =
+        NeutronMsg::register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
+
     Ok(Response::new().add_message(msg))
 }
 
 pub fn register_query_empty_path(
-    deps: DepsMut<NeutronQuery>,
-    env: Env,
+    _: DepsMut<NeutronQuery>,
+    _: Env,
     connection_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
     let kv_key = KVKey {
         path: "".to_string(),
         key: Binary("test".as_bytes().to_vec()),
     };
-    let msg = new_register_interchain_query_msg(
-        deps,
-        env,
-        connection_id,
-        QueryType::KV,
-        vec![kv_key],
-        vec![],
-        10,
-    )?;
+    let msg =
+        NeutronMsg::register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
     Ok(Response::new().add_message(msg))
 }
 
 pub fn register_query_empty_keys(
-    deps: DepsMut<NeutronQuery>,
-    env: Env,
+    _: DepsMut<NeutronQuery>,
+    _: Env,
     connection_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg = new_register_interchain_query_msg(
-        deps,
-        env,
-        connection_id,
-        QueryType::KV,
-        vec![],
-        vec![],
-        10,
-    )?;
+    let msg = NeutronMsg::register_interchain_query(QueryPayload::KV(vec![]), connection_id, 10)?;
     Ok(Response::new().add_message(msg))
 }
 
@@ -404,7 +379,9 @@ pub fn sudo_tx_query_result(
         _ => {
             // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =
-                serde_json_wasm::from_str(transactions_filter.as_str())?;
+                serde_json_wasm::from_str(transactions_filter.as_str()).map_err(|e| {
+                    StdError::generic_err(format!("failed to parse transactions_filter: {:?}", e))
+                })?;
 
             let recipient = query_data
                 .iter()

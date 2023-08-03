@@ -34,18 +34,14 @@ use crate::integration_tests_mock_handlers::{
 use crate::msg::{
     AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use neutron_sdk::{
-    bindings::{
-        msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg},
-        query::{NeutronQuery, QueryInterchainAccountAddressResponse},
-        types::ProtobufAny,
-    },
-    interchain_txs::helpers::{
-        decode_acknowledgement_response, decode_message_response, get_port_id,
-    },
-    sudo::msg::{RequestPacket, SudoMsg},
-    NeutronResult,
+use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
+use neutron_sdk::bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse};
+use neutron_sdk::bindings::types::ProtobufAny;
+use neutron_sdk::interchain_txs::helpers::{
+    decode_acknowledgement_response, decode_message_response, get_port_id,
 };
+use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
+use neutron_sdk::NeutronResult;
 
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
@@ -395,9 +391,9 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
         deps.api
             .debug("WASMDEBUG: sudo: mocked submsg failure on the handler");
 
-        return Err(StdError::GenericErr {
-            msg: "Integations test mock submsg error".to_string(),
-        });
+        return Err(StdError::generic_err(
+            "Integrations test mock submsg error".to_string(),
+        ));
     }
     Ok(Response::default())
 }
@@ -439,9 +435,9 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
         // Used only in integration tests framework to simulate failures.
         api.debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-        return Err(StdError::GenericErr {
-            msg: "Integations test mock error".to_string(),
-        });
+        return Err(StdError::generic_err(
+            "Integations test mock error".to_string(),
+        ));
     }
 
     if failure_submsg_mock_enabled {

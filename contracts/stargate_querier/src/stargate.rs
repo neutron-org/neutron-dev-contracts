@@ -11,6 +11,9 @@ pub mod interchainqueries {
 pub mod feeburner {
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct QueryParams {}
+
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct QueryTotalBurnedNeutronsAmountRequest {}
 }
 
 pub mod contractmanager {

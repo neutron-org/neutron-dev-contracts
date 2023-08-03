@@ -28,26 +28,23 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use neutron_sdk::{
-    bindings::{
-        msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg},
-        query::{
-            NeutronQuery, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
-        },
-        types::{Height, ProtobufAny},
-    },
-    interchain_queries::{
-        new_register_balance_query_msg, new_register_transfers_query_msg,
-        queries::{get_registered_query, query_balance},
-        types::{
-            TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
-            COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD,
-        },
-    },
-    interchain_txs::helpers::{decode_acknowledgement_response, get_port_id},
-    sudo::msg::{RequestPacket, SudoMsg},
-    NeutronError, NeutronResult,
+use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
+use neutron_sdk::bindings::query::{
+    NeutronQuery, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
 };
+use neutron_sdk::bindings::types::{Height, ProtobufAny};
+use neutron_sdk::interchain_queries::queries::get_registered_query;
+use neutron_sdk::interchain_queries::types::{
+    TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
+};
+use neutron_sdk::interchain_queries::v045::queries::query_balance;
+use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
+use neutron_sdk::interchain_queries::v045::{
+    new_register_balance_query_msg, new_register_transfers_query_msg,
+};
+use neutron_sdk::interchain_txs::helpers::{decode_acknowledgement_response, get_port_id};
+use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
+use neutron_sdk::{NeutronError, NeutronResult};
 
 use crate::storage::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload,
@@ -511,7 +508,9 @@ pub fn sudo_tx_query_result(
         _ => {
             // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =
-                serde_json_wasm::from_str(transactions_filter.as_str())?;
+                serde_json_wasm::from_str(transactions_filter.as_str()).map_err(|e| {
+                    StdError::generic_err(format!("failed to parse transactions_filter: {:?}", e))
+                })?;
 
             let recipient = query_data
                 .iter()

@@ -56,4 +56,5 @@ pub enum QueryMsg {
     InterchaintxParams {},
     InterchainqueriesParams {},
     FeeburnerParams {},
+    FeeburnerTotalBurnedNeutronsAmount {},
 }

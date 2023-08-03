@@ -80,6 +80,9 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> NeutronResult<Binary> {
         QueryMsg::InterchaintxParams {} => query_interchaintx_params(deps),
         QueryMsg::InterchainqueriesParams {} => query_interchainqueries_params(deps),
         QueryMsg::FeeburnerParams {} => query_feeburner_params(deps),
+        QueryMsg::FeeburnerTotalBurnedNeutronsAmount {} => {
+            query_feeburner_total_burned_neutrons_amount(deps)
+        }
     }
 }
 
@@ -289,6 +292,19 @@ fn query_feeburner_params(deps: Deps) -> NeutronResult<Binary> {
     let resp = make_stargate_query(
         deps,
         "/neutron.feeburner.Query/Params".to_string(),
+        msg.encode_to_vec(),
+    )?;
+
+    Ok(to_binary(&resp)?)
+}
+
+// WARN: should not work since we did not allowlist it
+// exists here only for testing purposes
+fn query_feeburner_total_burned_neutrons_amount(deps: Deps) -> NeutronResult<Binary> {
+    let msg = stargate::feeburner::QueryTotalBurnedNeutronsAmountRequest {};
+    let resp = make_stargate_query(
+        deps,
+        "/neutron.feeburner.Query/TotalBurnedNeutronsAmount".to_string(),
         msg.encode_to_vec(),
     )?;
 

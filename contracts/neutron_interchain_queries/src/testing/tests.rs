@@ -17,6 +17,7 @@ use crate::contract::{execute, query, sudo_tx_query_result};
 use crate::msg::{ExecuteMsg, QueryMsg};
 use crate::state::{Transfer, RECIPIENT_TXS};
 use crate::testing::mock_querier::WasmMockQuerier;
+use base64::prelude::*;
 use cosmos_sdk_proto::cosmos::base::v1beta1::{Coin as CosmosCoin, DecCoin as CosmosDecCoin};
 use cosmos_sdk_proto::cosmos::distribution::v1beta1::FeePool as CosmosFeePool;
 use cosmos_sdk_proto::cosmos::gov::v1beta1::{
@@ -29,32 +30,32 @@ use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, Coin, Decimal, Delegation, Env, MessageInfo, OwnedDeps,
     StdError, Uint128,
 };
-use neutron_sdk::{
-    bindings::{
-        query::{NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse},
-        types::{
-            decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
-        },
-    },
-    interchain_queries::{
-        helpers::{
-            create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
-            create_total_denom_key, create_validator_key, decode_and_convert,
-        },
-        queries::{
-            BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
-            TotalSupplyResponse, ValidatorResponse,
-        },
-        types::{
-            Balances, FeePool, GovernmentProposal, Proposal, QueryType, StakingValidator,
-            TallyResult, TotalSupply, TransactionFilterItem, TransactionFilterOp,
-            TransactionFilterValue, Validator, RECIPIENT_FIELD,
-        },
-    },
-    NeutronError,
+use neutron_sdk::bindings::query::{
+    NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
 };
+use neutron_sdk::bindings::types::{
+    decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
+};
+use neutron_sdk::interchain_queries::helpers::decode_and_convert;
+use neutron_sdk::interchain_queries::types::{
+    QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
+};
+use neutron_sdk::interchain_queries::v045::helpers::{
+    create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
+    create_total_denom_key, create_validator_key,
+};
+use neutron_sdk::interchain_queries::v045::queries::{
+    BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
+    TotalSupplyResponse, ValidatorResponse,
+};
+use neutron_sdk::interchain_queries::v045::types::{
+    Balances, FeePool, GovernmentProposal, Proposal, StakingValidator, TallyResult, TotalSupply,
+    Validator, DECIMAL_PLACES, RECIPIENT_FIELD,
+};
+use neutron_sdk::NeutronError;
 use prost::Message as ProstMessage;
 use schemars::_serde_json::to_string;
+use std::ops::Mul;
 
 enum QueryParam {
     Keys(Vec<KVKey>),
@@ -114,6 +115,12 @@ fn build_interchain_query_bank_total_denom_value(denom: String, amount: String) 
 fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: String) -> Binary {
     let fee_pool_key = create_fee_pool_key().unwrap();
 
+    let adjust: Uint128 = Uint128::one().mul(Uint128::from(10u64).pow(DECIMAL_PLACES));
+    let amount = Uint128::from_str(&amount)
+        .unwrap()
+        .mul(adjust) // adjust to Dec gogo proto format
+        .to_string();
+
     let community_pool_amount = CosmosDecCoin { denom, amount };
 
     let fee_pool = CosmosFeePool {
@@ -130,7 +137,7 @@ fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: 
             result: InterchainQueryResult {
                 kv_results: vec![s],
                 height: 123456,
-                revision: 2,
+                revision: 1,
             },
         })
         .unwrap()
@@ -257,7 +264,7 @@ fn test_query_balance() {
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
         1,
         build_interchain_query_balance_response(
@@ -313,7 +320,7 @@ fn test_bank_total_supply_query() {
         },
     };
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier
         .add_query_response(1, to_binary(&total_supply_response).unwrap());
     let bank_total_balance = QueryMsg::BankTotalSupply { query_id: 1 };
@@ -348,7 +355,7 @@ fn test_distribution_fee_pool_query() {
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
         1,
         build_interchain_query_distribution_fee_pool_response(
@@ -402,7 +409,7 @@ fn test_gov_proposals_query() {
         },
     };
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier
         .add_query_response(1, to_binary(&proposals_response).unwrap());
 
@@ -512,7 +519,7 @@ fn test_staking_validators_query() {
         },
     };
 
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
     deps.querier
         .add_query_response(1, to_binary(&validators_response).unwrap());
     let staking_validators = QueryMsg::StakingValidators { query_id: 1 };
@@ -596,8 +603,8 @@ fn test_query_delegator_delegations() {
                 // value: uosmo
                 StorageValue {
                     storage_prefix: "params".to_string(),
-                    key: Binary::from(base64::decode("c3Rha2luZy9Cb25kRGVub20=").unwrap()),
-                    value: Binary::from(base64::decode("InVvc21vIg==").unwrap()),
+                    key: Binary::from(BASE64_STANDARD.decode("c3Rha2luZy9Cb25kRGVub20=").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("InVvc21vIg==").unwrap()),
                 },
                 // delegation
                 // from: osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs
@@ -606,7 +613,7 @@ fn test_query_delegator_delegations() {
                 StorageValue {
                     storage_prefix: "staking".to_string(),
                     key: Binary::from(decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b8141ab940697a73dd080edafeb538ad408b5cae0264").unwrap()),
-                    value: Binary::from(base64::decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxoZNTE3NzYyODAwMDAwMDAwMDAwMDAwMDAwMA==").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxoZNTE3NzYyODAwMDAwMDAwMDAwMDAwMDAwMA==").unwrap()),
                 },
                 // validator: osmovaloper1r2u5q6t6w0wssrk6l66n3t2q3dw2uqny4gj2e3
                 // delegator_shares: "2845862840643000000000000000000"
@@ -614,7 +621,7 @@ fn test_query_delegator_delegations() {
                 StorageValue {
                     storage_prefix: "staking".to_string(),
                     key: Binary::from(decode_hex("21141ab940697a73dd080edafeb538ad408b5cae0264").unwrap()),
-                    value: Binary::from(base64::decode("CjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiCaZhCbacCetQorko3LfUUJX2UEyX38qBGVri8GyH8lcCADKg0yODQ1ODYyODQwNjQzMh8yODQ1ODYyODQwNjQzMDAwMDAwMDAwMDAwMDAwMDAwOqQCChRzdHJhbmdlbG92ZS12ZW50dXJlcxIQRDBEOEI4MEYxQzVDNzBCNRocaHR0cHM6Ly9zdHJhbmdlbG92ZS52ZW50dXJlcyrbAScuLi5iZWNhdXNlIG9mIHRoZSBhdXRvbWF0ZWQgYW5kIGlycmV2b2NhYmxlIGRlY2lzaW9uLW1ha2luZyBwcm9jZXNzIHdoaWNoIHJ1bGVzIG91dCBodW1hbiBtZWRkbGluZywgdGhlIERvb21zZGF5IG1hY2hpbmUgaXMgdGVycmlmeWluZyBhbmQgc2ltcGxlIHRvIHVuZGVyc3RhbmQgYW5kIGNvbXBsZXRlbHkgY3JlZGlibGUgYW5kIGNvbnZpbmNpbmcuJyAtIERyLiBTdHJhbmdlbG92ZUoAUkwKPAoRNTAwMDAwMDAwMDAwMDAwMDASEzEwMDAwMDAwMDAwMDAwMDAwMDAaEjUwMDAwMDAwMDAwMDAwMDAwMBIMCPetyYYGEKPoosUCWgEx").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiCaZhCbacCetQorko3LfUUJX2UEyX38qBGVri8GyH8lcCADKg0yODQ1ODYyODQwNjQzMh8yODQ1ODYyODQwNjQzMDAwMDAwMDAwMDAwMDAwMDAwOqQCChRzdHJhbmdlbG92ZS12ZW50dXJlcxIQRDBEOEI4MEYxQzVDNzBCNRocaHR0cHM6Ly9zdHJhbmdlbG92ZS52ZW50dXJlcyrbAScuLi5iZWNhdXNlIG9mIHRoZSBhdXRvbWF0ZWQgYW5kIGlycmV2b2NhYmxlIGRlY2lzaW9uLW1ha2luZyBwcm9jZXNzIHdoaWNoIHJ1bGVzIG91dCBodW1hbiBtZWRkbGluZywgdGhlIERvb21zZGF5IG1hY2hpbmUgaXMgdGVycmlmeWluZyBhbmQgc2ltcGxlIHRvIHVuZGVyc3RhbmQgYW5kIGNvbXBsZXRlbHkgY3JlZGlibGUgYW5kIGNvbnZpbmNpbmcuJyAtIERyLiBTdHJhbmdlbG92ZUoAUkwKPAoRNTAwMDAwMDAwMDAwMDAwMDASEzEwMDAwMDAwMDAwMDAwMDAwMDAaEjUwMDAwMDAwMDAwMDAwMDAwMBIMCPetyYYGEKPoosUCWgEx").unwrap()),
                 },
                 // delegation
                 // from: osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs
@@ -623,7 +630,7 @@ fn test_query_delegator_delegations() {
                 StorageValue {
                     storage_prefix: "staking".to_string(),
                     key: Binary::from(decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b814cc9598513212c12c36a1775e2233b962e4d5128e").unwrap()),
-                    value: Binary::from(base64::decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBoaMjk2MjAyMjEwMDAwMDAwMDAwMDAwMDAwMDA=").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBoaMjk2MjAyMjEwMDAwMDAwMDAwMDAwMDAwMDA=").unwrap()),
                 },
                 // validator: osmovaloper1ej2es5fjztqjcd4pwa0zyvaevtjd2y5w37wr9t
                 // delegator_shares: "3054477259038000000000000000000"
@@ -631,7 +638,7 @@ fn test_query_delegator_delegations() {
                 StorageValue {
                     storage_prefix: "staking".to_string(),
                     key: Binary::from(decode_hex("2114cc9598513212c12c36a1775e2233b962e4d5128e").unwrap()),
-                    value: Binary::from(base64::decode("CjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiA27dgAuZV/uS9FdsILGWLBw8eYPy+ZEyv1Df2VsrjXDiADKg0zMDU0NDc3MjU5MDM4Mh8zMDU0NDc3MjU5MDM4MDAwMDAwMDAwMDAwMDAwMDAwOoEBChFGcmVucyAo8J+knSzwn6SdKRIQQzQ3ODQ1MjI2NjYyQUY0NxoSaHR0cHM6Ly9mcmVucy5hcm15IhtzZWN1cml0eUBraWRzb250aGVibG9jay54eXoqKVlvdXIgZnJpZW5kbHkgdmFsaWRhdG9yIGZvciBjb3Ntb3MgY2hhaW5zQP3HpQFKCwj3zq6PBhCfrO86UkoKOgoRNTAwMDAwMDAwMDAwMDAwMDASEjUwMDAwMDAwMDAwMDAwMDAwMBoRNTAwMDAwMDAwMDAwMDAwMDASDAjg1rSQBhDkudCDAVoDNTAw").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiA27dgAuZV/uS9FdsILGWLBw8eYPy+ZEyv1Df2VsrjXDiADKg0zMDU0NDc3MjU5MDM4Mh8zMDU0NDc3MjU5MDM4MDAwMDAwMDAwMDAwMDAwMDAwOoEBChFGcmVucyAo8J+knSzwn6SdKRIQQzQ3ODQ1MjI2NjYyQUY0NxoSaHR0cHM6Ly9mcmVucy5hcm15IhtzZWN1cml0eUBraWRzb250aGVibG9jay54eXoqKVlvdXIgZnJpZW5kbHkgdmFsaWRhdG9yIGZvciBjb3Ntb3MgY2hhaW5zQP3HpQFKCwj3zq6PBhCfrO86UkoKOgoRNTAwMDAwMDAwMDAwMDAwMDASEjUwMDAwMDAwMDAwMDAwMDAwMBoRNTAwMDAwMDAwMDAwMDAwMDASDAjg1rSQBhDkudCDAVoDNTAw").unwrap()),
                 },
                 // delegation
                 // from: osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs
@@ -640,7 +647,7 @@ fn test_query_delegator_delegations() {
                 StorageValue {
                     storage_prefix: "staking".to_string(),
                     key: Binary::from(decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b814f8aff987b760a6e4b2b2df48a5a3b7ed2db15006").unwrap()),
-                    value: Binary::from(base64::decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRoYMjE5OTIwMDAwMDAwMDAwMDAwMDAwMDAw").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRoYMjE5OTIwMDAwMDAwMDAwMDAwMDAwMDAw").unwrap()),
                 },
                 // validator: osmovaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxwmj9we
                 // delegator_shares: "3201438898476000000000000000000"
@@ -648,7 +655,7 @@ fn test_query_delegator_delegations() {
                 StorageValue {
                     storage_prefix: "staking".to_string(),
                     key: Binary::from(decode_hex("2114f8aff987b760a6e4b2b2df48a5a3b7ed2db15006").unwrap()),
-                    value: Binary::from(base64::decode("CjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiBPXCnkQvO+pU6oGbp4ZiJBBZ7RNoLYtXYFOEdpXGH+uSADKg0zMjAxNDM4ODk4NDc2Mh8zMjAxNDM4ODk4NDc2MDAwMDAwMDAwMDAwMDAwMDAwOp8CCgtDaXRhZGVsLm9uZRIQRUJCMDNFQjRCQjRDRkNBNxoTaHR0cHM6Ly9jaXRhZGVsLm9uZSroAUNpdGFkZWwub25lIGlzIGEgbXVsdGktYXNzZXQgbm9uLWN1c3RvZGlhbCBzdGFraW5nIHBsYXRmb3JtIHRoYXQgbGV0cyBhbnlvbmUgYmVjb21lIGEgcGFydCBvZiBkZWNlbnRyYWxpemVkIGluZnJhc3RydWN0dXJlIGFuZCBlYXJuIHBhc3NpdmUgaW5jb21lLiBTdGFrZSB3aXRoIG91ciBub2RlcyBvciBhbnkgb3RoZXIgdmFsaWRhdG9yIGFjcm9zcyBtdWx0aXBsZSBuZXR3b3JrcyBpbiBhIGZldyBjbGlja3NKAFJECjoKETUwMDAwMDAwMDAwMDAwMDAwEhIyMDAwMDAwMDAwMDAwMDAwMDAaETMwMDAwMDAwMDAwMDAwMDAwEgYIkKKzhgZaATE=").unwrap()),
+                    value: Binary::from(BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiBPXCnkQvO+pU6oGbp4ZiJBBZ7RNoLYtXYFOEdpXGH+uSADKg0zMjAxNDM4ODk4NDc2Mh8zMjAxNDM4ODk4NDc2MDAwMDAwMDAwMDAwMDAwMDAwOp8CCgtDaXRhZGVsLm9uZRIQRUJCMDNFQjRCQjRDRkNBNxoTaHR0cHM6Ly9jaXRhZGVsLm9uZSroAUNpdGFkZWwub25lIGlzIGEgbXVsdGktYXNzZXQgbm9uLWN1c3RvZGlhbCBzdGFraW5nIHBsYXRmb3JtIHRoYXQgbGV0cyBhbnlvbmUgYmVjb21lIGEgcGFydCBvZiBkZWNlbnRyYWxpemVkIGluZnJhc3RydWN0dXJlIGFuZCBlYXJuIHBhc3NpdmUgaW5jb21lLiBTdGFrZSB3aXRoIG91ciBub2RlcyBvciBhbnkgb3RoZXIgdmFsaWRhdG9yIGFjcm9zcyBtdWx0aXBsZSBuZXR3b3JrcyBpbiBhIGZldyBjbGlja3NKAFJECjoKETUwMDAwMDAwMDAwMDAwMDAwEhIyMDAwMDAwMDAwMDAwMDAwMDAaETMwMDAwMDAwMDAwMDAwMDAwEgYIkKKzhgZaATE=").unwrap()),
                 }
             ],
             height: 0,
@@ -661,7 +668,7 @@ fn test_query_delegator_delegations() {
 
     deps.querier
         .add_query_response(1, to_binary(&delegations_response).unwrap());
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
 
     let query_delegations = QueryMsg::GetDelegations { query_id: 1 };
     let resp: DelegatorDelegationsResponse =
@@ -698,7 +705,10 @@ fn test_sudo_tx_query_result_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height: u64 = 1u64;
+    let height = Height {
+        revision_number: 0u64,
+        revision_height: 1u64,
+    };
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
@@ -719,22 +729,12 @@ fn test_sudo_tx_query_result_callback() {
         QueryType::TX,
         0,
     );
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
-    let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
-    sudo_tx_query_result(
-        deps.as_mut(),
-        env.clone(),
-        query_id,
-        Height {
-            revision_number: 0,
-            revision_height: height,
-        },
-        data,
-    )
-    .unwrap();
+    let data: Binary = Binary::from(BASE64_STANDARD.decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
+    sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data).unwrap();
 
     // ensure the callback has worked and contract's state has changed
     let txs = RECIPIENT_TXS.load(&deps.storage, &watched_addr).unwrap();
@@ -750,17 +750,8 @@ fn test_sudo_tx_query_result_callback() {
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to another addr of 10000 stake
-    let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xNHV4dnUyMmxocmF6eXhhZGFxdjVkNmxzd3UwcDI3NmxsN2hya2waDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkBEv2CW/0gIrankNl4aGs9LXy2BKA6kAWyl4MUxmXnbnjRpgaNbQIyo4i7nUgVsuOpqzAdudM2M53OSU0Dmo5tF").unwrap());
-    let res = sudo_tx_query_result(
-        deps.as_mut(),
-        env.clone(),
-        query_id,
-        Height {
-            revision_number: 0,
-            revision_height: height,
-        },
-        data,
-    );
+    let data: Binary = Binary::from(BASE64_STANDARD.decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xNHV4dnUyMmxocmF6eXhhZGFxdjVkNmxzd3UwcDI3NmxsN2hya2waDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkBEv2CW/0gIrankNl4aGs9LXy2BKA6kAWyl4MUxmXnbnjRpgaNbQIyo4i7nUgVsuOpqzAdudM2M53OSU0Dmo5tF").unwrap());
+    let res = sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data);
 
     // ensure the callback has returned an error and contract's state hasn't changed
     assert_eq!(
@@ -782,18 +773,8 @@ fn test_sudo_tx_query_result_callback() {
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
-    let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
-    sudo_tx_query_result(
-        deps.as_mut(),
-        env,
-        query_id,
-        Height {
-            revision_number: 0,
-            revision_height: height,
-        },
-        data,
-    )
-    .unwrap();
+    let data: Binary = Binary::from(BASE64_STANDARD.decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
+    sudo_tx_query_result(deps.as_mut(), env, query_id, height, data).unwrap();
 
     // ensure the callback has worked and contract's state has changed again
     let txs = RECIPIENT_TXS.load(&deps.storage, &watched_addr).unwrap();
@@ -822,7 +803,10 @@ fn test_sudo_tx_query_result_min_height_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height: u64 = 1u64;
+    let height = Height {
+        revision_number: 0u64,
+        revision_height: 1u64,
+    };
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
@@ -843,22 +827,12 @@ fn test_sudo_tx_query_result_min_height_callback() {
         QueryType::TX,
         0,
     );
-    deps.querier.add_registred_queries(1, registered_query);
+    deps.querier.add_registered_queries(1, registered_query);
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
-    let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
-    sudo_tx_query_result(
-        deps.as_mut(),
-        env.clone(),
-        query_id,
-        Height {
-            revision_number: 0,
-            revision_height: height,
-        },
-        data,
-    )
-    .unwrap();
+    let data: Binary = Binary::from(BASE64_STANDARD.decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
+    sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data).unwrap();
 
     // ensure the callback has worked and contract's state has changed
     let txs = RECIPIENT_TXS.load(&deps.storage, &watched_addr).unwrap();
@@ -874,17 +848,8 @@ fn test_sudo_tx_query_result_min_height_callback() {
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to another addr of 10000 stake
-    let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xNHV4dnUyMmxocmF6eXhhZGFxdjVkNmxzd3UwcDI3NmxsN2hya2waDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkBEv2CW/0gIrankNl4aGs9LXy2BKA6kAWyl4MUxmXnbnjRpgaNbQIyo4i7nUgVsuOpqzAdudM2M53OSU0Dmo5tF").unwrap());
-    let res = sudo_tx_query_result(
-        deps.as_mut(),
-        env.clone(),
-        query_id,
-        Height {
-            revision_number: 0,
-            revision_height: height,
-        },
-        data,
-    );
+    let data: Binary = Binary::from(BASE64_STANDARD.decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xNHV4dnUyMmxocmF6eXhhZGFxdjVkNmxzd3UwcDI3NmxsN2hya2waDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkBEv2CW/0gIrankNl4aGs9LXy2BKA6kAWyl4MUxmXnbnjRpgaNbQIyo4i7nUgVsuOpqzAdudM2M53OSU0Dmo5tF").unwrap());
+    let res = sudo_tx_query_result(deps.as_mut(), env.clone(), query_id, height.clone(), data);
 
     // ensure the callback has returned an error and contract's state hasn't changed
     assert_eq!(
@@ -906,18 +871,8 @@ fn test_sudo_tx_query_result_min_height_callback() {
 
     // simulate neutron's SudoTxQueryResult call with the following payload:
     // a sending from neutron10h9stc5v6ntgeygf5xf945njqq5h32r54rf7kf to watched_addr of 10000 stake
-    let data: Binary = Binary::from(base64::decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
-    sudo_tx_query_result(
-        deps.as_mut(),
-        env,
-        query_id,
-        Height {
-            revision_number: 0,
-            revision_height: height,
-        },
-        data,
-    )
-    .unwrap();
+    let data: Binary = Binary::from(BASE64_STANDARD.decode("CpMBCpABChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEnAKLm5ldXRyb24xMGg5c3RjNXY2bnRnZXlnZjV4Zjk0NW5qcXE1aDMycjU0cmY3a2YSLm5ldXRyb24xZmo2eXFya3B3NmZtcDdmN2poajU3ZHVqZnB3YWw0bTI1ZGFmengaDgoFc3Rha2USBTEwMDAwEmcKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQJPYibh+Zef13ZkulPqI27rV5xswZ0H/vh1Tnymp1RHPhIECgIIARgAEhMKDQoFc3Rha2USBDEwMDAQwJoMGkAIiXNJXmA57KhyaWpKcLLr3602A5+hlvv/b4PgcDDm9y0qikC+biNZXin1dEMpHOvX9DwOWJ9utv6EKljiSyfT").unwrap());
+    sudo_tx_query_result(deps.as_mut(), env, query_id, height, data).unwrap();
 
     // ensure the callback has worked and contract's state has changed again
     let txs = RECIPIENT_TXS.load(&deps.storage, &watched_addr).unwrap();

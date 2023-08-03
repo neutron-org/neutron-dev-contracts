@@ -18,7 +18,7 @@ pub struct Transfer {
 }
 
 pub const INTEGRATION_TESTS_QUERY_MOCK: Item<IntegrationTestsQueryMock> =
-    Item::new("integration_tests_kv_mock");
+    Item::new("integration_tests_query_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub enum IntegrationTestsQueryMock {

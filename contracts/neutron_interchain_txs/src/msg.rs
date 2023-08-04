@@ -51,6 +51,13 @@ pub enum ExecuteMsg {
         denom: String,
         timeout: Option<u64>,
     },
+    DelegateDoubleAck {
+        interchain_account_id: String,
+        validator: String,
+        amount: u128,
+        denom: String,
+        timeout: Option<u64>,
+    },
     Undelegate {
         interchain_account_id: String,
         validator: String,

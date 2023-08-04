@@ -45,9 +45,9 @@ use neutron_sdk::NeutronResult;
 
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
-    save_reply_payload, save_sudo_payload, AcknowledgementResult, IntegrationTestsSudoMock,
-    IntegrationTestsSudoSubmsgMock, SudoPayload, ACKNOWLEDGEMENT_RESULTS, IBC_FEE,
-    INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
+    save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
+    IntegrationTestsSudoMock, IntegrationTestsSudoSubmsgMock, SudoPayload, ACKNOWLEDGEMENT_RESULTS,
+    IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
     INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID,
 };
 
@@ -66,6 +66,17 @@ struct OpenAckVersion {
     address: String,
     encoding: String,
     tx_type: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+struct ExecuteDelegateInfo {
+    pub interchain_account_id: String,
+    pub validator: String,
+    pub amount: u128,
+    pub denom: String,
+    pub timeout: Option<u64>,
+    pub info: Option<DoubleDelegateInfo>,
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -103,11 +114,37 @@ pub fn execute(
         } => execute_delegate(
             deps,
             env,
-            interchain_account_id,
+            ExecuteDelegateInfo {
+                interchain_account_id,
+                validator,
+                amount,
+                denom,
+                timeout,
+                info: None,
+            },
+        ),
+        ExecuteMsg::DelegateDoubleAck {
             validator,
+            interchain_account_id,
             amount,
             denom,
             timeout,
+        } => execute_delegate_double_ack(
+            deps,
+            env,
+            ExecuteDelegateInfo {
+                interchain_account_id: interchain_account_id.clone(),
+                validator: validator.clone(),
+                amount,
+                denom: denom.clone(),
+                timeout,
+                info: Some(DoubleDelegateInfo {
+                    interchain_account_id,
+                    validator,
+                    denom,
+                    amount,
+                }),
+            },
         ),
         ExecuteMsg::Undelegate {
             validator,
@@ -268,57 +305,11 @@ fn execute_register_ica(
 }
 
 fn execute_delegate(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
-    interchain_account_id: String,
-    validator: String,
-    amount: u128,
-    denom: String,
-    timeout: Option<u64>,
+    info: ExecuteDelegateInfo,
 ) -> StdResult<Response<NeutronMsg>> {
-    let fee = IBC_FEE.load(deps.storage)?;
-    let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
-    let delegate_msg = MsgDelegate {
-        delegator_address: delegator,
-        validator_address: validator,
-        amount: Some(Coin {
-            denom,
-            amount: amount.to_string(),
-        }),
-    };
-    let mut buf = Vec::new();
-    buf.reserve(delegate_msg.encoded_len());
-
-    if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(StdError::generic_err(format!("Encode error: {}", e)));
-    }
-
-    let any_msg = ProtobufAny {
-        type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
-        value: Binary::from(buf),
-    };
-
-    let cosmos_msg = NeutronMsg::submit_tx(
-        connection_id,
-        interchain_account_id.clone(),
-        vec![any_msg],
-        "".to_string(),
-        timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
-        fee,
-    );
-
-    // We use a submessage here because we need the process message reply to save
-    // the outgoing IBC packet identifier for later.
-    let submsg = msg_with_sudo_callback(
-        deps.branch(),
-        cosmos_msg,
-        SudoPayload {
-            port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
-            message: "message".to_string(),
-        },
-    )?;
-
-    Ok(Response::default().add_submessages(vec![submsg]))
+    do_delegate(deps, env, info)
 }
 
 fn execute_undelegate(
@@ -367,6 +358,66 @@ fn execute_undelegate(
         SudoPayload {
             port_id: get_port_id(env.contract.address.as_str(), &interchain_account_id),
             message: "message".to_string(),
+            info: None,
+        },
+    )?;
+
+    Ok(Response::default().add_submessages(vec![submsg]))
+}
+
+fn execute_delegate_double_ack(
+    deps: DepsMut,
+    env: Env,
+    info: ExecuteDelegateInfo,
+) -> StdResult<Response<NeutronMsg>> {
+    do_delegate(deps, env, info)
+}
+
+fn do_delegate(
+    mut deps: DepsMut,
+    env: Env,
+    info: ExecuteDelegateInfo,
+) -> StdResult<Response<NeutronMsg>> {
+    let fee = IBC_FEE.load(deps.storage)?;
+    let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &info.interchain_account_id)?;
+    let delegate_msg = MsgDelegate {
+        delegator_address: delegator,
+        validator_address: info.validator,
+        amount: Some(Coin {
+            denom: info.denom,
+            amount: info.amount.to_string(),
+        }),
+    };
+    let mut buf = Vec::new();
+    buf.reserve(delegate_msg.encoded_len());
+
+    if let Err(e) = delegate_msg.encode(&mut buf) {
+        return Err(StdError::generic_err(format!("Encode error: {}", e)));
+    }
+
+    let any_msg = ProtobufAny {
+        type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
+        value: Binary::from(buf),
+    };
+
+    let cosmos_msg = NeutronMsg::submit_tx(
+        connection_id,
+        info.interchain_account_id.clone(),
+        vec![any_msg],
+        "".to_string(),
+        info.timeout.unwrap_or(DEFAULT_TIMEOUT_SECONDS),
+        fee,
+    );
+
+    // We use a submessage here because we need the process message reply to save
+    // the outgoing IBC packet identifier for later.
+    let submsg = msg_with_sudo_callback(
+        deps.branch(),
+        cosmos_msg,
+        SudoPayload {
+            port_id: get_port_id(env.contract.address.as_str(), &info.interchain_account_id),
+            message: "message".to_string(),
+            info: info.info,
         },
     )?;
 
@@ -399,7 +450,7 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {
     let api = deps.api;
     api.debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
 
@@ -411,8 +462,8 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
             || m == Some(IntegrationTestsSudoSubmsgMock::EnabledInReply {})
     };
 
-    let mut resp: Response = match msg {
-        SudoMsg::Response { request, data } => sudo_response(deps, request, data)?,
+    let mut resp: Response<NeutronMsg> = match msg {
+        SudoMsg::Response { request, data } => sudo_response(deps, env.clone(), request, data)?,
         SudoMsg::Error { request, details } => sudo_error(deps, request, details)?,
         SudoMsg::Timeout { request } => sudo_timeout(deps, env.clone(), request)?,
         SudoMsg::OpenAck {
@@ -469,7 +520,7 @@ fn sudo_open_ack(
     _channel_id: String,
     _counterparty_channel_id: String,
     counterparty_version: String,
-) -> StdResult<Response> {
+) -> StdResult<Response<NeutronMsg>> {
     let parsed_version: Result<OpenAckVersion, _> =
         serde_json_wasm::from_str(counterparty_version.as_str());
     if let Ok(parsed_version) = parsed_version {
@@ -486,7 +537,12 @@ fn sudo_open_ack(
     Err(StdError::generic_err("Can't parse counterparty_version"))
 }
 
-fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> StdResult<Response> {
+fn sudo_response(
+    mut deps: DepsMut,
+    env: Env,
+    request: RequestPacket,
+    data: Binary,
+) -> StdResult<Response<NeutronMsg>> {
     deps.api.debug(
         format!(
             "WASMDEBUG: sudo_response: sudo received: {:?} {:?}",
@@ -588,7 +644,7 @@ fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> StdResu
         // update but also check that we don't update same seq_id twice
         ACKNOWLEDGEMENT_RESULTS.update(
             deps.storage,
-            (payload.port_id, seq_id),
+            (payload.clone().port_id, seq_id),
             |maybe_ack| -> StdResult<AcknowledgementResult> {
                 match maybe_ack {
                     Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
@@ -596,12 +652,48 @@ fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> StdResu
                 }
             },
         )?;
+
+        deps.api
+            .debug(format!("WASMDEBUG: payload received: {:?}", payload).as_str());
+
+        if let Some(info) = payload.info {
+            let res = {
+                do_delegate(
+                    deps.branch(),
+                    env,
+                    ExecuteDelegateInfo {
+                        interchain_account_id: info.interchain_account_id,
+                        validator: info.validator,
+                        amount: info.amount,
+                        denom: info.denom,
+                        timeout: None,
+                        info: None,
+                    },
+                )
+            };
+
+            if let Err(err) = res {
+                deps.api.debug(
+                    format!(
+                        "WASMDEBUG: error constructing delegate from sudo: {:?}",
+                        err.to_string()
+                    )
+                    .as_str(),
+                );
+            } else {
+                return res;
+            }
+        }
     }
 
     Ok(Response::default())
 }
 
-fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResult<Response> {
+fn sudo_timeout(
+    deps: DepsMut,
+    _env: Env,
+    request: RequestPacket,
+) -> StdResult<Response<NeutronMsg>> {
     deps.api
         .debug(format!("WASMDEBUG: sudo timeout request: {:?}", request).as_str());
 
@@ -654,7 +746,11 @@ fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResult<R
     Ok(Response::default())
 }
 
-fn sudo_error(deps: DepsMut, request: RequestPacket, details: String) -> StdResult<Response> {
+fn sudo_error(
+    deps: DepsMut,
+    request: RequestPacket,
+    details: String,
+) -> StdResult<Response<NeutronMsg>> {
     deps.api
         .debug(format!("WASMDEBUG: sudo error: {}", details).as_str());
     deps.api

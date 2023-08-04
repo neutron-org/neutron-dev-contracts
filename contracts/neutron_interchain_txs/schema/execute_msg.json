@@ -109,6 +109,48 @@
     {
       "type": "object",
       "required": [
+        "delegate_double_ack"
+      ],
+      "properties": {
+        "delegate_double_ack": {
+          "type": "object",
+          "required": [
+            "amount",
+            "denom",
+            "interchain_account_id",
+            "validator"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint128",
+              "minimum": 0.0
+            },
+            "denom": {
+              "type": "string"
+            },
+            "interchain_account_id": {
+              "type": "string"
+            },
+            "timeout": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "validator": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "undelegate"
       ],
       "properties": {

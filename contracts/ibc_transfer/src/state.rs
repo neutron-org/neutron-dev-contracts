@@ -77,3 +77,6 @@ pub enum IntegrationTestsSudoFailureMock {
     EnabledInfiniteLoop,
     Disabled,
 }
+
+// just to do something in infinite loop
+pub const TEST_COUNTER_ITEM: Item<u64> = Item::new("test_counter");

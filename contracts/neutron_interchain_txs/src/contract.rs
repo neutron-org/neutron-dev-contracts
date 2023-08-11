@@ -49,7 +49,7 @@ use crate::storage::{
     IntegrationTestsSudoFailureMock, IntegrationTestsSudoSubmsgFailureMock, SudoPayload,
     ACKNOWLEDGEMENT_RESULTS, IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID,
-    SUDO_PAYLOAD_REPLY_ID,
+    SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -462,7 +462,7 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
 // It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
 #[allow(unreachable_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {
+pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {
     let api = deps.api;
     api.debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
 
@@ -475,16 +475,18 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neutron
     };
 
     let mut resp: Response<NeutronMsg> = match msg {
-        SudoMsg::Response { request, data } => sudo_response(deps, env.clone(), request, data)?,
-        SudoMsg::Error { request, details } => sudo_error(deps, request, details)?,
-        SudoMsg::Timeout { request } => sudo_timeout(deps, env.clone(), request)?,
+        SudoMsg::Response { request, data } => {
+            sudo_response(deps.branch(), env.clone(), request, data)?
+        }
+        SudoMsg::Error { request, details } => sudo_error(deps.branch(), request, details)?,
+        SudoMsg::Timeout { request } => sudo_timeout(deps.branch(), env.clone(), request)?,
         SudoMsg::OpenAck {
             port_id,
             channel_id,
             counterparty_channel_id,
             counterparty_version,
         } => sudo_open_ack(
-            deps,
+            deps.branch(),
             env.clone(),
             port_id,
             channel_id,
@@ -510,7 +512,9 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neutron
             let mut counter: u64 = 0;
             loop {
                 counter = counter.checked_add(1).unwrap_or_default();
+                TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
             }
+            TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
 
             unreachable!()
         }

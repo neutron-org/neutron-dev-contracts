@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload, IBC_FEE,
-    IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START,
+    IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START, TEST_COUNTER_ITEM,
 };
 
 use crate::{
@@ -273,7 +273,6 @@ fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<N
     Ok(Response::default().add_message(msg))
 }
 
-
 // Err result returned from the `sudo()` handler will result in the `Failure` object stored in the chain state.
 // It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
 #[allow(unreachable_code)]
@@ -297,7 +296,9 @@ pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Respons
             let mut counter: u64 = 0;
             loop {
                 counter = counter.checked_add(1).unwrap_or_default();
+                TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
             }
+            TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
 
             unreachable!()
         }

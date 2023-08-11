@@ -101,6 +101,7 @@ pub const INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK: Item<IntegrationTestsSudoS
     Item::new("integration_tests_sudo_submsg_failure_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum IntegrationTestsSudoFailureMock {
     Enabled,
     EnabledInfiniteLoop,
@@ -108,8 +109,12 @@ pub enum IntegrationTestsSudoFailureMock {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum IntegrationTestsSudoSubmsgFailureMock {
     Enabled,
     EnabledInReply,
     Disabled,
 }
+
+// just to do something in infinite loop
+pub const TEST_COUNTER_ITEM: Item<u64> = Item::new("test_counter");

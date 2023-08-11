@@ -68,11 +68,12 @@ pub fn read_sudo_payload(
 }
 
 /// Used only in integration tests framework to simulate failures.
-pub const INTEGRATION_TESTS_SUDO_MOCK: Item<IntegrationTestsSudoMock> =
+pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoFailureMock> =
     Item::new("integration_tests_sudo_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub enum IntegrationTestsSudoMock {
+pub enum IntegrationTestsSudoFailureMock {
     Enabled,
+    EnabledInfiniteLoop,
     Disabled,
 }

@@ -18,7 +18,7 @@ use crate::state::{
 
 use crate::{
     integration_tests_mock_handlers::{set_sudo_failure_mock, unset_sudo_failure_mock},
-    state::{IntegrationTestsSudoMock, INTEGRATION_TESTS_SUDO_MOCK},
+    state::{IntegrationTestsSudoFailureMock, INTEGRATION_TESTS_SUDO_FAILURE_MOCK},
 };
 
 // Default timeout for IbcTransfer is 10000000 blocks
@@ -258,18 +258,32 @@ fn execute_send(
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
 }
 
+#[allow(unreachable_code)]
 #[entry_point]
 pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Response> {
-    if let Some(IntegrationTestsSudoMock::Enabled {}) =
-        INTEGRATION_TESTS_SUDO_MOCK.may_load(deps.storage)?
-    {
-        // Used only in integration tests framework to simulate failures.
-        deps.api
-            .debug("WASMDEBUG: sudo: mocked failure on the handler");
+    match INTEGRATION_TESTS_SUDO_FAILURE_MOCK.may_load(deps.storage)? {
+        Some(IntegrationTestsSudoFailureMock::Enabled) => {
+            // Used only in integration tests framework to simulate failures.
+            deps.api
+                .debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-        return Err(StdError::GenericErr {
-            msg: "Integrations test mock error".to_string(),
-        });
+            return Err(StdError::generic_err(
+                "Integrations test mock error".to_string(),
+            ));
+        }
+        Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
+            // Used only in integration tests framework to simulate failures.
+            deps.api
+                .debug("WASMDEBUG: sudo: mocked failure on the handler");
+
+            let mut counter: u64 = 0;
+            loop {
+                counter = counter.checked_add(1).unwrap_or_default();
+            }
+
+            unreachable!()
+        }
+        _ => {}
     }
 
     match msg {

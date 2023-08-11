@@ -172,7 +172,9 @@ pub fn execute(
         ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
 
         // The section below is used only in integration tests framework to simulate failures.
-        ExecuteMsg::IntegrationTestsSetSudoFailureMock {} => set_sudo_failure_mock(deps),
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock { state } => {
+            set_sudo_failure_mock(deps, state)
+        }
         ExecuteMsg::IntegrationTestsSetSudoSubmsgFailureMock {} => {
             set_sudo_submsg_failure_mock(deps)
         }
@@ -456,6 +458,8 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
     Ok(Response::default())
 }
 
+// Err result returned from the `sudo()` handler will result in the `Failure` object stored in the chain state.
+// It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
 #[allow(unreachable_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {

@@ -112,7 +112,15 @@
       ],
       "properties": {
         "integration_tests_set_sudo_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "$ref": "#/definitions/IntegrationTestsSudoFailureMock"
+            }
+          }
         }
       },
       "additionalProperties": false
@@ -130,5 +138,15 @@
       },
       "additionalProperties": false
     }
-  ]
+  ],
+  "definitions": {
+    "IntegrationTestsSudoFailureMock": {
+      "type": "string",
+      "enum": [
+        "Enabled",
+        "EnabledInfiniteLoop",
+        "Disabled"
+      ]
+    }
+  }
 }

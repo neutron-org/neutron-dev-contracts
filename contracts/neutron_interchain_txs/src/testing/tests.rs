@@ -12,6 +12,7 @@
 
 use crate::contract::sudo;
 use crate::msg::ExecuteMsg;
+use crate::storage::IntegrationTestsSudoFailureMock;
 use crate::{
     contract::{execute, query_errors_queue},
     storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE},
@@ -101,7 +102,9 @@ fn test_failure_mocks() {
         deps.as_mut(),
         mock_env(),
         mock_info("", &[]),
-        ExecuteMsg::IntegrationTestsSetSudoFailureMock {},
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock {
+            state: IntegrationTestsSudoFailureMock::Enabled,
+        },
     )
     .unwrap();
 

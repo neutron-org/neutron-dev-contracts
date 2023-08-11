@@ -64,7 +64,9 @@ pub enum ExecuteMsg {
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will fail, all of this happening
     /// in sudo callback handler.
-    IntegrationTestsSetSudoFailureMock {},
+    IntegrationTestsSetSudoFailureMock {
+        state: IntegrationTestsSudoFailureMock,
+    },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will revert back to normal behaviour.
     IntegrationTestsUnsetSudoFailureMock {},
@@ -103,7 +105,9 @@ pub fn execute(
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
         // in sudo callback handler.
-        ExecuteMsg::IntegrationTestsSetSudoFailureMock {} => set_sudo_failure_mock(deps),
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock { state } => {
+            set_sudo_failure_mock(deps, state)
+        }
         ExecuteMsg::IntegrationTestsUnsetSudoFailureMock {} => unset_sudo_failure_mock(deps),
     }
 }
@@ -269,6 +273,9 @@ fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<N
     Ok(Response::default().add_message(msg))
 }
 
+
+// Err result returned from the `sudo()` handler will result in the `Failure` object stored in the chain state.
+// It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
 #[allow(unreachable_code)]
 #[entry_point]
 pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Response> {

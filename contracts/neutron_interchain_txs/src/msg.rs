@@ -66,6 +66,9 @@ pub enum ExecuteMsg {
         timeout: Option<u64>,
     },
     CleanAckResults {},
+    ResubmitFailure {
+        failure_id: u64,
+    },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, any sudo call to the contract will result in an error.
     IntegrationTestsSetSudoFailureMock {},

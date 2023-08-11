@@ -203,6 +203,28 @@
       "additionalProperties": false
     },
     {
+      "type": "object",
+      "required": [
+        "resubmit_failure"
+      ],
+      "properties": {
+        "resubmit_failure": {
+          "type": "object",
+          "required": [
+            "failure_id"
+          ],
+          "properties": {
+            "failure_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an error.",
       "type": "object",
       "required": [

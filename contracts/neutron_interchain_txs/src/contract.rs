@@ -46,9 +46,10 @@ use neutron_sdk::NeutronResult;
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
     save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
-    IntegrationTestsSudoFailureMock, IntegrationTestsSudoSubmsgFailureMock, SudoPayload, ACKNOWLEDGEMENT_RESULTS,
-    IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
-    INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID,
+    IntegrationTestsSudoFailureMock, IntegrationTestsSudoSubmsgFailureMock, SudoPayload,
+    ACKNOWLEDGEMENT_RESULTS, IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
+    INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID,
+    SUDO_PAYLOAD_REPLY_ID,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -168,6 +169,7 @@ pub fn execute(
             timeout_fee,
         } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
+        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
 
         // The section below is used only in integration tests framework to simulate failures.
         ExecuteMsg::IntegrationTestsSetSudoFailureMock {} => set_sudo_failure_mock(deps),
@@ -432,6 +434,11 @@ fn execute_clean_ack_results(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
         ACKNOWLEDGEMENT_RESULTS.remove(deps.storage, key?);
     }
     Ok(Response::default())
+}
+
+fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
+    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
+    Ok(Response::default().add_message(msg))
 }
 
 fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {

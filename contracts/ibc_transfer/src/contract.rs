@@ -58,6 +58,9 @@ pub enum ExecuteMsg {
         timeout_fee: u128,
         denom: String,
     },
+    ResubmitFailure {
+        failure_id: u64,
+    },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will fail, all of this happening
     /// in sudo callback handler.
@@ -94,6 +97,9 @@ pub fn execute(
             timeout_fee,
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
+
+        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
+
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
         // in sudo callback handler.
@@ -256,6 +262,11 @@ fn execute_send(
         .debug(format!("WASMDEBUG: execute_send: sent submsg2: {:?}", submsg2).as_str());
 
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
+}
+
+fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
+    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
+    Ok(Response::default().add_message(msg))
 }
 
 #[allow(unreachable_code)]

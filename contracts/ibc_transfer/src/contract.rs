@@ -291,16 +291,27 @@ pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Respons
         Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
             // Used only in integration tests framework to simulate failures.
             deps.api
-                .debug("WASMDEBUG: sudo: mocked failure on the handler");
+                .debug("WASMDEBUG: sudo: mocked infinite loop failure on the handler");
+
+            if let TransferSudoMsg::Response { request, data: _ } = msg {
+                deps.api.debug(
+                    format!(
+                        "WASMDEBUG: infinite loop failure response; sequence_id = {:?}",
+                        &request.sequence.unwrap_or_default().to_string()
+                    )
+                    .as_str(),
+                );
+            }
 
             let mut counter: u64 = 0;
-            loop {
+            while counter < 18_446_744_073_709_551_615u64 {
                 counter = counter.checked_add(1).unwrap_or_default();
                 TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
             }
+            deps.api.debug("WASMDEBUG: after infinite loop");
             TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
 
-            unreachable!()
+            return Ok(Response::default());
         }
         _ => {}
     }

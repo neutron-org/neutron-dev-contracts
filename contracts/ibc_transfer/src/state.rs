@@ -72,6 +72,7 @@ pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoFailureM
     Item::new("integration_tests_sudo_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum IntegrationTestsSudoFailureMock {
     Enabled,
     EnabledInfiniteLoop,

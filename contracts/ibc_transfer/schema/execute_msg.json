@@ -143,9 +143,9 @@
     "IntegrationTestsSudoFailureMock": {
       "type": "string",
       "enum": [
-        "Enabled",
-        "EnabledInfiniteLoop",
-        "Disabled"
+        "enabled",
+        "enabled_infinite_loop",
+        "disabled"
       ]
     }
   }

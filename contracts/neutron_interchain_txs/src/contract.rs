@@ -474,7 +474,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
             || m == Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply {})
     };
 
-    let mut resp: Response<NeutronMsg> = match msg {
+    let mut resp: Response<NeutronMsg> = match msg.clone() {
         SudoMsg::Response { request, data } => {
             sudo_response(deps.branch(), env.clone(), request, data)?
         }
@@ -509,6 +509,16 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
             // Used only in integration tests framework to simulate failures.
             api.debug("WASMDEBUG: sudo: mocked failure on the handler");
 
+            if let SudoMsg::Response { request, data: _ } = msg {
+                deps.api.debug(
+                    format!(
+                        "WASMDEBUG: infinite loop failure response; sequence_id = {:?}",
+                        &request.sequence.unwrap_or_default().to_string()
+                    )
+                    .as_str(),
+                );
+            }
+
             let mut counter: u64 = 0;
             loop {
                 counter = counter.checked_add(1).unwrap_or_default();
@@ -516,7 +526,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
             }
             TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
 
-            unreachable!()
+            return Ok(Response::default());
         }
         _ => {}
     }

@@ -218,6 +218,7 @@ fn execute_send(
         },
         timeout_timestamp: 0,
         fee: fee.clone(),
+        memo: "".to_string(),
     };
     let coin2 = coin(2 * amount, denom);
     let msg2 = NeutronMsg::IbcTransfer {
@@ -232,6 +233,7 @@ fn execute_send(
         },
         timeout_timestamp: 0,
         fee,
+        memo: "".to_string(),
     };
     let submsg1 = msg_with_sudo_callback(
         deps.branch(),
@@ -266,7 +268,7 @@ pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Respons
             .debug("WASMDEBUG: sudo: mocked failure on the handler");
 
         return Err(StdError::GenericErr {
-            msg: "Integations test mock error".to_string(),
+            msg: "Integrations test mock error".to_string(),
         });
     }
 

@@ -93,28 +93,22 @@ pub fn save_sudo_payload(
 }
 
 /// Used only in integration tests framework to simulate failures in sudo handler.
-pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoFailureMock> =
+pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoMock> =
     Item::new("integration_tests_sudo_failure_mock");
 /// Used only in integration tests framework to simulate failures in submessages created in
 /// sudo handler.
-pub const INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK: Item<IntegrationTestsSudoSubmsgFailureMock> =
+pub const INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK: Item<IntegrationTestsSudoSubmsgMock> =
     Item::new("integration_tests_sudo_submsg_failure_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum IntegrationTestsSudoFailureMock {
+pub enum IntegrationTestsSudoMock {
     Enabled,
-    EnabledInfiniteLoop,
     Disabled,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum IntegrationTestsSudoSubmsgFailureMock {
+pub enum IntegrationTestsSudoSubmsgMock {
     Enabled,
     EnabledInReply,
     Disabled,
 }
-
-// just to do something in infinite loop
-pub const TEST_COUNTER_ITEM: Item<u64> = Item::new("test_counter");

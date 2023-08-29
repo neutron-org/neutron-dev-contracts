@@ -1,4 +1,4 @@
-use crate::storage::{AcknowledgementResult, IntegrationTestsSudoFailureMock};
+use crate::storage::AcknowledgementResult;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -66,14 +66,9 @@ pub enum ExecuteMsg {
         timeout: Option<u64>,
     },
     CleanAckResults {},
-    ResubmitFailure {
-        failure_id: u64,
-    },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, any sudo call to the contract will result in an error.
-    IntegrationTestsSetSudoFailureMock {
-        state: IntegrationTestsSudoFailureMock,
-    },
+    IntegrationTestsSetSudoFailureMock {},
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, any sudo call to the contract will result in an submessage
     /// processing error.

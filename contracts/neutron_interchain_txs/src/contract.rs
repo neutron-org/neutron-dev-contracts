@@ -46,10 +46,9 @@ use neutron_sdk::NeutronResult;
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
     save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
-    IntegrationTestsSudoFailureMock, IntegrationTestsSudoSubmsgFailureMock, SudoPayload,
-    ACKNOWLEDGEMENT_RESULTS, IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
-    INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID,
-    SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
+    IntegrationTestsSudoMock, IntegrationTestsSudoSubmsgMock, SudoPayload, ACKNOWLEDGEMENT_RESULTS,
+    IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
+    INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -169,12 +168,9 @@ pub fn execute(
             timeout_fee,
         } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
-        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
 
         // The section below is used only in integration tests framework to simulate failures.
-        ExecuteMsg::IntegrationTestsSetSudoFailureMock { state } => {
-            set_sudo_failure_mock(deps, state)
-        }
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock {} => set_sudo_failure_mock(deps),
         ExecuteMsg::IntegrationTestsSetSudoSubmsgFailureMock {} => {
             set_sudo_submsg_failure_mock(deps)
         }
@@ -438,13 +434,8 @@ fn execute_clean_ack_results(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
     Ok(Response::default())
 }
 
-fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
-    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
-    Ok(Response::default().add_message(msg))
-}
-
 fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
-    if let Some(IntegrationTestsSudoSubmsgFailureMock::Enabled {}) =
+    if let Some(IntegrationTestsSudoSubmsgMock::Enabled {}) =
         INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
     {
         // Used only in integration tests framework to simulate failures.
@@ -458,35 +449,30 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
     Ok(Response::default())
 }
 
-// Err result returned from the `sudo()` handler will result in the `Failure` object stored in the chain state.
-// It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
-#[allow(unreachable_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {
     let api = deps.api;
     api.debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
 
-    let mock_res = INTEGRATION_TESTS_SUDO_FAILURE_MOCK.may_load(deps.storage)?;
-
+    let failure_mock_enabled = Some(IntegrationTestsSudoMock::Enabled {})
+        == INTEGRATION_TESTS_SUDO_FAILURE_MOCK.may_load(deps.storage)?;
     let failure_submsg_mock_enabled = {
         let m = INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?;
-        m == Some(IntegrationTestsSudoSubmsgFailureMock::Enabled {})
-            || m == Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply {})
+        m == Some(IntegrationTestsSudoSubmsgMock::Enabled {})
+            || m == Some(IntegrationTestsSudoSubmsgMock::EnabledInReply {})
     };
 
-    let mut resp: Response<NeutronMsg> = match msg.clone() {
-        SudoMsg::Response { request, data } => {
-            sudo_response(deps.branch(), env.clone(), request, data)?
-        }
-        SudoMsg::Error { request, details } => sudo_error(deps.branch(), request, details)?,
-        SudoMsg::Timeout { request } => sudo_timeout(deps.branch(), env.clone(), request)?,
+    let mut resp: Response<NeutronMsg> = match msg {
+        SudoMsg::Response { request, data } => sudo_response(deps, env.clone(), request, data)?,
+        SudoMsg::Error { request, details } => sudo_error(deps, request, details)?,
+        SudoMsg::Timeout { request } => sudo_timeout(deps, env.clone(), request)?,
         SudoMsg::OpenAck {
             port_id,
             channel_id,
             counterparty_channel_id,
             counterparty_version,
         } => sudo_open_ack(
-            deps.branch(),
+            deps,
             env.clone(),
             port_id,
             channel_id,
@@ -496,39 +482,13 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
         _ => Response::default(),
     };
 
-    match mock_res {
-        Some(IntegrationTestsSudoFailureMock::Enabled) => {
-            // Used only in integration tests framework to simulate failures.
-            api.debug("WASMDEBUG: sudo: mocked failure on the handler");
+    if failure_mock_enabled {
+        // Used only in integration tests framework to simulate failures.
+        api.debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-            return Err(StdError::generic_err(
-                "Integrations test mock error".to_string(),
-            ));
-        }
-        Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
-            // Used only in integration tests framework to simulate failures.
-            api.debug("WASMDEBUG: sudo: mocked failure on the handler");
-
-            if let SudoMsg::Response { request, data: _ } = msg {
-                deps.api.debug(
-                    format!(
-                        "WASMDEBUG: infinite loop failure response; sequence_id = {:?}",
-                        &request.sequence.unwrap_or_default().to_string()
-                    )
-                    .as_str(),
-                );
-            }
-
-            let mut counter: u64 = 0;
-            loop {
-                counter = counter.checked_add(1).unwrap_or_default();
-                TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
-            }
-            TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
-
-            return Ok(Response::default());
-        }
-        _ => {}
+        return Err(StdError::generic_err(
+            "Integations test mock error".to_string(),
+        ));
     }
 
     if failure_submsg_mock_enabled {
@@ -591,14 +551,30 @@ fn sudo_response(
         .as_str(),
     );
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not having the sequence id
+    // in the request value implies that a fatal error occurred on Neutron side.
     let seq_id = request
         .sequence
         .ok_or_else(|| StdError::generic_err("sequence not found"))?;
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not having the sequence id
+    // in the request value implies that a fatal error occurred on Neutron side.
     let channel_id = request
         .source_channel
         .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
 
+    // NOTE: NO ERROR IS RETURNED HERE. THE CHANNEL LIVES ON.
+    // In this particular example, this is a matter of developer's choice. Not being able to read
+    // the payload here means that there was a problem with the contract while submitting an
+    // interchain transaction. You can decide that this is not worth killing the channel,
+    // write an error log and / or save the acknowledgement to an errors queue for later manual
+    // processing. The decision is based purely on your application logic.
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id).ok();
     if payload.is_none() {
         let error_msg = "WASMDEBUG: Error: Unable to read sudo payload";
@@ -610,6 +586,12 @@ fn sudo_response(
     deps.api
         .debug(format!("WASMDEBUG: sudo_response: sudo payload: {:?}", payload).as_str());
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not being able to parse this data
+    // that a fatal error occurred on Neutron side, or that the remote chain sent us unexpected data.
+    // Both cases require immediate attention.
     let parsed_data = decode_acknowledgement_response(data)?;
 
     let mut item_types = vec![];
@@ -618,8 +600,16 @@ fn sudo_response(
         item_types.push(item_type.to_string());
         match item_type {
             "/cosmos.staking.v1beta1.MsgUndelegate" => {
+                // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+                // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+                // FOR LATER INSPECTION.
+                // In this particular case, a mismatch between the string message type and the
+                // serialised data layout looks like a fatal error that has to be investigated.
                 let out: MsgUndelegateResponse = decode_message_response(&item.data)?;
 
+                // NOTE: NO ERROR IS RETURNED HERE. THE CHANNEL LIVES ON.
+                // In this particular case, we demonstrate that minor errors should not
+                // close the channel, and should be treated in a forgiving manner.
                 let completion_time = out.completion_time.or_else(|| {
                     let error_msg = "WASMDEBUG: sudo_response: Recoverable error. Failed to get completion time";
                     deps.api
@@ -631,6 +621,11 @@ fn sudo_response(
                     .debug(format!("Undelegation completion time: {:?}", completion_time).as_str());
             }
             "/cosmos.staking.v1beta1.MsgDelegate" => {
+                // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+                // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+                // FOR LATER INSPECTION.
+                // In this particular case, a mismatch between the string message type and the
+                // serialised data layout looks like a fatal error that has to be investigated.
                 let _out: MsgDelegateResponse = decode_message_response(&item.data)?;
             }
             _ => {
@@ -702,15 +697,33 @@ fn sudo_timeout(
     deps.api
         .debug(format!("WASMDEBUG: sudo timeout request: {:?}", request).as_str());
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not having the sequence id
+    // in the request value implies that a fatal error occurred on Neutron side.
     let seq_id = request
         .sequence
         .ok_or_else(|| StdError::generic_err("sequence not found"))?;
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not having the sequence id
+    // in the request value implies that a fatal error occurred on Neutron side.
     let channel_id = request
         .source_channel
         .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
 
     // update but also check that we don't update same seq_id twice
+    // NOTE: NO ERROR IS RETURNED HERE. THE CHANNEL LIVES ON.
+    // In this particular example, this is a matter of developer's choice. Not being able to read
+    // the payload here means that there was a problem with the contract while submitting an
+    // interchain transaction. You can decide that this is not worth killing the channel,
+    // write an error log and / or save the acknowledgement to an errors queue for later manual
+    // processing. The decision is based purely on your application logic.
+    // Please be careful because it may lead to an unexpected state changes because state might
+    // has been changed before this call and will not be reverted because of supressed error.
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id).ok();
     if let Some(payload) = payload {
         // update but also check that we don't update same seq_id twice
@@ -743,10 +756,20 @@ fn sudo_error(
     deps.api
         .debug(format!("WASMDEBUG: request packet: {:?}", request).as_str());
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not having the sequence id
+    // in the request value implies that a fatal error occurred on Neutron side.
     let seq_id = request
         .sequence
         .ok_or_else(|| StdError::generic_err("sequence not found"))?;
 
+    // WARNING: RETURNING THIS ERROR CLOSES THE CHANNEL.
+    // AN ALTERNATIVE IS TO MAINTAIN AN ERRORS QUEUE AND PUT THE FAILED REQUEST THERE
+    // FOR LATER INSPECTION.
+    // In this particular case, we return an error because not having the sequence id
+    // in the request value implies that a fatal error occurred on Neutron side.
     let channel_id = request
         .source_channel
         .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
@@ -811,7 +834,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         SUDO_PAYLOAD_REPLY_ID => prepare_sudo_payload(deps, env, msg),
         SUDO_FAILING_SUBMSG_REPLY_ID => {
-            if let Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply {}) =
+            if let Some(IntegrationTestsSudoSubmsgMock::EnabledInReply {}) =
                 INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
             {
                 // Used only in integration tests framework to simulate failures.
@@ -819,7 +842,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
                     .debug("WASMDEBUG: sudo: mocked reply failure on the handler");
 
                 return Err(StdError::GenericErr {
-                    msg: "Integrations test mock reply error".to_string(),
+                    msg: "Integations test mock reply error".to_string(),
                 });
             }
             Ok(Response::default())

@@ -13,12 +13,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload, IBC_FEE,
-    IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START,
+    IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START, TEST_COUNTER_ITEM,
 };
 
 use crate::{
     integration_tests_mock_handlers::{set_sudo_failure_mock, unset_sudo_failure_mock},
-    state::{IntegrationTestsSudoMock, INTEGRATION_TESTS_SUDO_MOCK},
+    state::{IntegrationTestsSudoFailureMock, INTEGRATION_TESTS_SUDO_FAILURE_MOCK},
 };
 
 // Default timeout for IbcTransfer is 10000000 blocks
@@ -58,10 +58,15 @@ pub enum ExecuteMsg {
         timeout_fee: u128,
         denom: String,
     },
+    ResubmitFailure {
+        failure_id: u64,
+    },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will fail, all of this happening
     /// in sudo callback handler.
-    IntegrationTestsSetSudoFailureMock {},
+    IntegrationTestsSetSudoFailureMock {
+        state: IntegrationTestsSudoFailureMock,
+    },
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will revert back to normal behaviour.
     IntegrationTestsUnsetSudoFailureMock {},
@@ -94,10 +99,15 @@ pub fn execute(
             timeout_fee,
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
+
+        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
+
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
         // in sudo callback handler.
-        ExecuteMsg::IntegrationTestsSetSudoFailureMock {} => set_sudo_failure_mock(deps),
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock { state } => {
+            set_sudo_failure_mock(deps, state)
+        }
         ExecuteMsg::IntegrationTestsUnsetSudoFailureMock {} => unset_sudo_failure_mock(deps),
     }
 }
@@ -258,18 +268,52 @@ fn execute_send(
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
 }
 
+fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
+    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
+    Ok(Response::default().add_message(msg))
+}
+
+// Err result returned from the `sudo()` handler will result in the `Failure` object stored in the chain state.
+// It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
+#[allow(unreachable_code)]
 #[entry_point]
 pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Response> {
-    if let Some(IntegrationTestsSudoMock::Enabled {}) =
-        INTEGRATION_TESTS_SUDO_MOCK.may_load(deps.storage)?
-    {
-        // Used only in integration tests framework to simulate failures.
-        deps.api
-            .debug("WASMDEBUG: sudo: mocked failure on the handler");
+    match INTEGRATION_TESTS_SUDO_FAILURE_MOCK.may_load(deps.storage)? {
+        Some(IntegrationTestsSudoFailureMock::Enabled) => {
+            // Used only in integration tests framework to simulate failures.
+            deps.api
+                .debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-        return Err(StdError::GenericErr {
-            msg: "Integrations test mock error".to_string(),
-        });
+            return Err(StdError::generic_err(
+                "Integrations test mock error".to_string(),
+            ));
+        }
+        Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
+            // Used only in integration tests framework to simulate failures.
+            deps.api
+                .debug("WASMDEBUG: sudo: mocked infinite loop failure on the handler");
+
+            if let TransferSudoMsg::Response { request, data: _ } = msg {
+                deps.api.debug(
+                    format!(
+                        "WASMDEBUG: infinite loop failure response; sequence_id = {:?}",
+                        &request.sequence.unwrap_or_default().to_string()
+                    )
+                    .as_str(),
+                );
+            }
+
+            let mut counter: u64 = 0;
+            while counter < 18_446_744_073_709_551_615u64 {
+                counter = counter.checked_add(1).unwrap_or_default();
+                TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
+            }
+            deps.api.debug("WASMDEBUG: after infinite loop");
+            TEST_COUNTER_ITEM.save(deps.storage, &counter)?;
+
+            return Ok(Response::default());
+        }
+        _ => {}
     }
 
     match msg {

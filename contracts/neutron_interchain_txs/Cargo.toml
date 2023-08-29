@@ -39,7 +39,7 @@ serde = { version = "1.0.180", default-features = false, features = ["derive"] }
 serde-json-wasm = { version = "0.5.1" }
 cw-storage-plus = { version = "1.1.0", features = ["iterator"]}
 cosmos-sdk-proto = { version = "0.16.0", default-features = false }
-neutron-sdk = { package = "neutron-sdk", version = "0.6.1" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", rev = "bb2188561a30d0a7fb293ff05f73907724eb2020" }
 base64 = "0.21.2"
 protobuf = { version = "3.2.0", features = ["with-bytes"] }
 prost = "0.11"

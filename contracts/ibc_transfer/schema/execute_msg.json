@@ -83,6 +83,28 @@
       "additionalProperties": false
     },
     {
+      "type": "object",
+      "required": [
+        "resubmit_failure"
+      ],
+      "properties": {
+        "resubmit_failure": {
+          "type": "object",
+          "required": [
+            "failure_id"
+          ],
+          "properties": {
+            "failure_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Used only in integration tests framework to simulate failures. After executing this message, contract will fail, all of this happening in sudo callback handler.",
       "type": "object",
       "required": [
@@ -90,7 +112,15 @@
       ],
       "properties": {
         "integration_tests_set_sudo_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "$ref": "#/definitions/IntegrationTestsSudoFailureMock"
+            }
+          }
         }
       },
       "additionalProperties": false
@@ -108,5 +138,15 @@
       },
       "additionalProperties": false
     }
-  ]
+  ],
+  "definitions": {
+    "IntegrationTestsSudoFailureMock": {
+      "type": "string",
+      "enum": [
+        "enabled",
+        "enabled_infinite_loop",
+        "disabled"
+      ]
+    }
+  }
 }

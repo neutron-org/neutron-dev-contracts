@@ -47,6 +47,12 @@ pub enum QueryMsg {
     TokenfactoryDenomsFromCreator {
         creator: String,
     },
+    ContractmanagerAddressFailures {
+        address: String,
+    },
+    ContractmanagerFailures {
+        address: String,
+    },
     InterchaintxParams {},
     InterchainqueriesParams {},
     FeeburnerParams {},

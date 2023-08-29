@@ -71,6 +71,12 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> NeutronResult<Binary> {
         QueryMsg::TokenfactoryDenomsFromCreator { creator } => {
             query_tokenfactory_denoms_from_creator(deps, creator)
         }
+        QueryMsg::ContractmanagerAddressFailures { address } => {
+            query_contractmanager_query_address_failures(deps, address)
+        }
+        QueryMsg::ContractmanagerFailures { address } => {
+            query_contractmanager_query_failures(deps, address)
+        }
         QueryMsg::InterchaintxParams {} => query_interchaintx_params(deps),
         QueryMsg::InterchainqueriesParams {} => query_interchainqueries_params(deps),
         QueryMsg::FeeburnerParams {} => query_feeburner_params(deps),
@@ -225,6 +231,34 @@ fn query_tokenfactory_denoms_from_creator(deps: Deps, creator: String) -> Neutro
     let resp = make_stargate_query(
         deps,
         "/osmosis.tokenfactory.v1beta1.Query/DenomsFromCreator".to_string(),
+        msg.encode_to_vec(),
+    )?;
+
+    Ok(to_binary(&resp)?)
+}
+
+fn query_contractmanager_query_address_failures(
+    deps: Deps,
+    address: String,
+) -> NeutronResult<Binary> {
+    let msg = stargate::contractmanager::QueryAddressFailuresRequest { address };
+    let resp = make_stargate_query(
+        deps,
+        "/neutron.contractmanager.Query/AddressFailures".to_string(),
+        msg.encode_to_vec(),
+    )?;
+
+    Ok(to_binary(&resp)?)
+}
+
+fn query_contractmanager_query_failures(deps: Deps, address: String) -> NeutronResult<Binary> {
+    let msg = stargate::contractmanager::QueryFailuresRequest {
+        address,
+        pagination: None,
+    };
+    let resp = make_stargate_query(
+        deps,
+        "/neutron.contractmanager.Query/Failures".to_string(),
         msg.encode_to_vec(),
     )?;
 

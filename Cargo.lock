@@ -750,7 +750,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.6.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/tokenfactory-update#09b603e3a1024231f09398a6fd93af56519f312d"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/tokenfactory-update#116125798a35f07881efce402d28574574d5ab6b"
 dependencies = [
  "base64",
  "bech32",

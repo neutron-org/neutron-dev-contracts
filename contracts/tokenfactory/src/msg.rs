@@ -44,6 +44,9 @@ pub enum QueryMsg {
     DenomAdmin {
         subdenom: String,
     },
+    BeforeSendHook {
+        denom: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

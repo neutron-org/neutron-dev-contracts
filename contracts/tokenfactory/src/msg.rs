@@ -31,7 +31,7 @@ pub enum ExecuteMsg {
     SetBeforeSendHook {
         denom: String,
         cosm_wasm_addr: String,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

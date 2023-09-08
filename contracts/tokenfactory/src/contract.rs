@@ -38,6 +38,9 @@ pub fn execute(
         ExecuteMsg::BurnTokens { denom, amount } => {
             NeutronMsg::submit_burn_tokens(denom, amount).into()
         }
+        ExecuteMsg::SetBeforeSendHook { denom, cosm_wasm_addr } => {
+            NeutronMsg::submit_set_before_send_hoook(denom, cosm_wasm_addr).into()
+        }
         ExecuteMsg::SendTokens {
             recipient,
             denom,

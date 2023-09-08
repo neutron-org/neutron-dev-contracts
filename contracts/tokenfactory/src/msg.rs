@@ -28,6 +28,10 @@ pub enum ExecuteMsg {
         denom: String,
         amount: Uint128,
     },
+    SetBeforeSendHook {
+        denom: String,
+        cosm_wasm_addr: String,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

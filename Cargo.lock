@@ -665,6 +665,26 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.6.1"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/tokenfactory-update#2c9e8e63086600b7d232aa858d13fd34037ae056"
+dependencies = [
+ "base64 0.21.2",
+ "bech32",
+ "cosmos-sdk-proto 0.16.0",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "prost 0.11.9",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde-json-wasm",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "neutron-sdk"
+version = "0.6.1"
 source = "git+https://github.com/neutron-org/neutron-sdk?rev=bb2188561a30d0a7fb293ff05f73907724eb2020#bb2188561a30d0a7fb293ff05f73907724eb2020"
 dependencies = [
  "base64 0.21.2",
@@ -1395,7 +1415,7 @@ version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "neutron-sdk 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "neutron-sdk 0.6.1 (git+https://github.com/neutron-org/neutron-sdk?branch=feat/tokenfactory-update)",
  "schemars",
  "serde",
 ]

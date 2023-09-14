@@ -20,10 +20,10 @@ pub enum QueryMsg {
 #[serde(rename_all = "snake_case")]
 pub enum SudoMsg {
     BlockBeforeSendSudoMsg {
-        block_before_send_msg: BlockBeforeSendMsg,
+        block_before_send: BlockBeforeSendMsg,
     },
     TrackBeforeSendSudoMsg {
-        track_before_send_msg: TrackBeforeSendMsg,
+        track_before_send: TrackBeforeSendMsg,
     },
 }
 

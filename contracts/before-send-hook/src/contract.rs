@@ -42,11 +42,11 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn sudo(deps: DepsMut, _env: Env, msg: SudoMsg) -> StdResult<Response> {
     match msg {
         SudoMsg::TrackBeforeSendSudoMsg {
-            track_before_send_msg,
-        } => sudo_result_track_before(deps, track_before_send_msg),
+            track_before_send,
+        } => sudo_result_track_before(deps, track_before_send),
         SudoMsg::BlockBeforeSendSudoMsg {
-            block_before_send_msg,
-        } => sudo_result_block_before(deps, block_before_send_msg),
+            block_before_send,
+        } => sudo_result_block_before(deps, block_before_send),
     }
 }
 

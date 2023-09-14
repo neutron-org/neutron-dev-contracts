@@ -63,7 +63,7 @@ fn query_sudo_result_block_before(deps: Deps) -> StdResult<SudoResResponse> {
 
 fn query_sudo_result_track_before(deps: Deps) -> StdResult<SudoResResponse> {
     let res = SUDO_RES_TRACK.load(deps.storage)?;
-    let resp = SudoResResponse::Block { received: res };
+    let resp = SudoResResponse::Track { received: res };
     Ok(resp)
 }
 

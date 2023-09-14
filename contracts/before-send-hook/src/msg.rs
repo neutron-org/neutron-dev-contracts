@@ -1,4 +1,4 @@
-use cosmwasm_std:: Coin;
+use cosmwasm_std::Coin;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -7,14 +7,13 @@ pub struct InstantiateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg {
-}
+pub enum ExecuteMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     SudoResultBlockBefore {},
-    SudoResultTrackBefore {}
+    SudoResultTrackBefore {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -23,9 +22,9 @@ pub enum SudoMsg {
     BlockBeforeSendSudoMsg {
         block_before_send_msg: BlockBeforeSendMsg,
     },
-    TrackBeforeSendSudoMsg  {
-        track_before_send_msg: TrackBeforeSendMsg
-    }
+    TrackBeforeSendSudoMsg {
+        track_before_send_msg: TrackBeforeSendMsg,
+    },
 }
 
 /// Information about if the contract is currently paused.
@@ -38,18 +37,18 @@ pub enum SudoResResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct  TrackBeforeSendMsg  {
-    from:  String,
-    to:    String,
-    amount: Coin
+pub struct TrackBeforeSendMsg {
+    from: String,
+    to: String,
+    amount: Coin,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct  BlockBeforeSendMsg {
-    from:   String,
-    to:     String,
-    amount: Coin
+pub struct BlockBeforeSendMsg {
+    from: String,
+    to: String,
+    amount: Coin,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

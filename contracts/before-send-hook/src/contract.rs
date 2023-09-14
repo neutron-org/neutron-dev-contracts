@@ -1,9 +1,9 @@
-use crate::msg::{BlockBeforeSendMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg, SudoResResponse, TrackBeforeSendMsg};
-use cosmwasm_std::{
-    entry_point, Deps, DepsMut, Env, MessageInfo,
-    Response, StdResult,
+use crate::msg::{
+    BlockBeforeSendMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg, SudoResResponse,
+    TrackBeforeSendMsg,
 };
 use crate::state::{SUDO_RES_BLOCK, SUDO_RES_TRACK};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 #[entry_point]
 pub fn instantiate(
@@ -12,7 +12,6 @@ pub fn instantiate(
     _info: MessageInfo,
     _msg: InstantiateMsg,
 ) -> StdResult<Response> {
-
     SUDO_RES_TRACK.save(deps.storage, &false)?;
     SUDO_RES_BLOCK.save(deps.storage, &false)?;
 
@@ -32,23 +31,20 @@ pub fn execute(
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<SudoResResponse> {
     match msg {
-        QueryMsg::SudoResultBlockBefore {
-        } => query_sudo_result_block_before(deps),
-        QueryMsg::SudoResultTrackBefore {
-        } => query_sudo_result_track_before(deps),
+        QueryMsg::SudoResultBlockBefore {} => query_sudo_result_block_before(deps),
+        QueryMsg::SudoResultTrackBefore {} => query_sudo_result_track_before(deps),
     }
 }
 
 #[entry_point]
-pub fn sudo(
-    deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    msg: SudoMsg,
-) -> StdResult<Response> {
+pub fn sudo(deps: DepsMut, _env: Env, _info: MessageInfo, msg: SudoMsg) -> StdResult<Response> {
     match msg {
-        SudoMsg::TrackBeforeSendSudoMsg {track_before_send_msg } => sudo_result_track_before(deps, track_before_send_msg),
-        SudoMsg::BlockBeforeSendSudoMsg {block_before_send_msg} => sudo_result_block_before(deps, block_before_send_msg),
+        SudoMsg::TrackBeforeSendSudoMsg {
+            track_before_send_msg,
+        } => sudo_result_track_before(deps, track_before_send_msg),
+        SudoMsg::BlockBeforeSendSudoMsg {
+            block_before_send_msg,
+        } => sudo_result_block_before(deps, block_before_send_msg),
     }
 }
 

@@ -3,7 +3,9 @@ use crate::msg::{
     TrackBeforeSendMsg,
 };
 use crate::state::{SUDO_RES_BLOCK, SUDO_RES_TRACK};
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+};
 
 #[entry_point]
 pub fn instantiate(
@@ -29,15 +31,15 @@ pub fn execute(
 }
 
 #[entry_point]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<SudoResResponse> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::SudoResultBlockBefore {} => query_sudo_result_block_before(deps),
-        QueryMsg::SudoResultTrackBefore {} => query_sudo_result_track_before(deps),
+        QueryMsg::SudoResultBlockBefore {} => to_binary(&query_sudo_result_block_before(deps)?),
+        QueryMsg::SudoResultTrackBefore {} => to_binary(&query_sudo_result_track_before(deps)?),
     }
 }
 
 #[entry_point]
-pub fn sudo(deps: DepsMut, _env: Env, _info: MessageInfo, msg: SudoMsg) -> StdResult<Response> {
+pub fn sudo(deps: DepsMut, _env: Env, msg: SudoMsg) -> StdResult<Response> {
     match msg {
         SudoMsg::TrackBeforeSendSudoMsg {
             track_before_send_msg,

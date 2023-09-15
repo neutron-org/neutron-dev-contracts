@@ -19,11 +19,15 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum SudoMsg {
-    BlockBeforeSendSudoMsg {
-        block_before_send: BlockBeforeSendMsg,
+    TrackBeforeSend {
+        from: String,
+        to: String,
+        amount: Coin,
     },
-    TrackBeforeSendSudoMsg {
-        track_before_send: TrackBeforeSendMsg,
+    BlockBeforeSend {
+        from: String,
+        to: String,
+        amount: Coin,
     },
 }
 

@@ -19,8 +19,8 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::{
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env, MessageInfo,
-    Reply, ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
+    coins, to_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
+    MessageInfo, Reply, ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
 use prost::Message;
@@ -48,8 +48,8 @@ use crate::storage::{
     save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
     IntegrationTestsSudoFailureMock, IntegrationTestsSudoSubmsgFailureMock, SudoPayload,
     ACKNOWLEDGEMENT_RESULTS, IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
-    INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, SUDO_FAILING_SUBMSG_REPLY_ID,
-    SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
+    INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, REGISTER_FEE,
+    SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -89,6 +89,7 @@ pub fn instantiate(
 ) -> NeutronResult<Response<NeutronMsg>> {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    REGISTER_FEE.save(deps.storage, &coins(1000, "untrn"))?;
     Ok(Response::default())
 }
 
@@ -301,8 +302,12 @@ fn execute_register_ica(
     connection_id: String,
     interchain_account_id: String,
 ) -> StdResult<Response<NeutronMsg>> {
-    let register =
-        NeutronMsg::register_interchain_account(connection_id, interchain_account_id.clone());
+    let register_fee = REGISTER_FEE.load(deps.storage)?;
+    let register = NeutronMsg::register_interchain_account(
+        connection_id,
+        interchain_account_id.clone(),
+        register_fee,
+    );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
     Ok(Response::new().add_message(register))

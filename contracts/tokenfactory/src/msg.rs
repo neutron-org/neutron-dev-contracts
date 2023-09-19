@@ -30,7 +30,7 @@ pub enum ExecuteMsg {
     },
     SetBeforeSendHook {
         denom: String,
-        cosm_wasm_addr: String,
+        contract_addr: String,
     },
 }
 

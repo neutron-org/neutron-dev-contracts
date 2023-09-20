@@ -28,6 +28,10 @@ pub enum ExecuteMsg {
         denom: String,
         amount: Uint128,
     },
+    SetBeforeSendHook {
+        denom: String,
+        contract_addr: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -39,6 +43,9 @@ pub enum QueryMsg {
     },
     DenomAdmin {
         subdenom: String,
+    },
+    BeforeSendHook {
+        denom: String,
     },
 }
 

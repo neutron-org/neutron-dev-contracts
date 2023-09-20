@@ -3,6 +3,7 @@ use cosmwasm_std::{
     coins, entry_point, to_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
     Response, StdResult,
 };
+use neutron_sdk::query::token_factory::query_before_send_hook;
 use neutron_sdk::{
     bindings::{msg::NeutronMsg, query::NeutronQuery},
     query::token_factory::{query_denom_admin, query_full_denom},
@@ -38,6 +39,10 @@ pub fn execute(
         ExecuteMsg::BurnTokens { denom, amount } => {
             NeutronMsg::submit_burn_tokens(denom, amount).into()
         }
+        ExecuteMsg::SetBeforeSendHook {
+            denom,
+            contract_addr,
+        } => NeutronMsg::submit_set_before_send_hook(denom, contract_addr).into(),
         ExecuteMsg::SendTokens {
             recipient,
             denom,
@@ -59,6 +64,7 @@ pub fn query(deps: Deps<NeutronQuery>, _env: Env, msg: QueryMsg) -> NeutronResul
             subdenom,
         } => to_binary(&query_full_denom(deps, creator_addr, subdenom)?)?,
         QueryMsg::DenomAdmin { subdenom } => to_binary(&query_denom_admin(deps, subdenom)?)?,
+        QueryMsg::BeforeSendHook { denom } => to_binary(&query_before_send_hook(deps, denom)?)?,
     })
 }
 

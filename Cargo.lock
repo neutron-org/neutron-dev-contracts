@@ -783,7 +783,7 @@ name = "neutron-sdk"
 version = "0.6.1"
 source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=8f8865870b91cb4c072c42934a621572c2634712#8f8865870b91cb4c072c42934a621572c2634712"
 dependencies = [
- "base64 0.21.2",
+ "base64",
  "bech32",
  "cosmos-sdk-proto 0.16.0",
  "cosmwasm-schema",

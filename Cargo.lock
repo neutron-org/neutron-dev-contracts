@@ -761,7 +761,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.6.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/tokenfactory-update#549595cceb2aecce1b970d76cc32e9de6439a1d1"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=sdk/47#9626f3086418a04b61b6ef0af8f1721810cf5eba"
 dependencies = [
  "base64",
  "bech32",
@@ -1585,7 +1585,7 @@ version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "neutron-sdk 0.6.1 (git+https://github.com/neutron-org/neutron-sdk?branch=feat/tokenfactory-update)",
+ "neutron-sdk 0.6.1 (git+https://github.com/neutron-org/neutron-sdk?branch=sdk/47)",
  "schemars",
  "serde",
 ]

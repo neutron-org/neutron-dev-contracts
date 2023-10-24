@@ -306,7 +306,7 @@ fn execute_register_ica(
     let register = NeutronMsg::register_interchain_account(
         connection_id,
         interchain_account_id.clone(),
-        register_fee,
+        Option::from(register_fee),
     );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;

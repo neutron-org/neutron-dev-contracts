@@ -1,0 +1,53 @@
+[package]
+name = "neutron_incentives"
+version = "0.1.0"
+authors = ["ratik <sergey.r@p2p.org>"]
+edition = "2021"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+library = []
+
+[dependencies]
+cosmwasm-std = "1.3.1"
+cw2 = "1.1.0"
+schemars = "0.8.10"
+serde = { version = "1.0.180", default-features = false, features = ["derive"] }
+serde-json-wasm = { version = "0.5.1" }
+cw-storage-plus = { version = "1.1.0", features = ["iterator"]}
+cosmos-sdk-proto = { version = "0.16.0", default-features = false }
+neutron-sdk = { package = "neutron-sdk",git = "https://github.com/neutron-org/neutron-sdk.git", rev  = "3c1861118cdc3899bb3a6d81e7eb00163eb28b84" }
+
+base64 = "0.21.2"
+protobuf = { version = "3.2.0", features = ["with-bytes"] }
+prost = "0.11"
+prost-types = "0.11"
+bech32 = "0.9.0"
+thiserror = { version = "1.0" }
+
+
+[dev-dependencies]
+cosmwasm-schema = { version = "1.3.1", default-features = false }

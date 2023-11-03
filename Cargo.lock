@@ -819,6 +819,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "neutron-sdk"
+version = "0.7.0"
+source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=3c1861118cdc3899bb3a6d81e7eb00163eb28b84#3c1861118cdc3899bb3a6d81e7eb00163eb28b84"
+dependencies = [
+ "base64",
+ "bech32",
+ "cosmos-sdk-proto 0.16.0",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "prost 0.11.9",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde-json-wasm",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "neutron_incentives"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "bech32",
+ "cosmos-sdk-proto 0.16.0",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw2",
+ "neutron-sdk 0.7.0",
+ "prost 0.11.9",
+ "prost-types",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde-json-wasm",
+ "thiserror",
+]
+
+[[package]]
 name = "neutron_interchain_queries"
 version = "0.1.0"
 dependencies = [

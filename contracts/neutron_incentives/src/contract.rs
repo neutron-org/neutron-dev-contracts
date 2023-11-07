@@ -14,12 +14,14 @@
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult};
+use cosmwasm_std::{
+    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult,
+};
 use cw2::set_contract_version;
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use neutron_sdk::bindings::msg::NeutronMsg;
-use neutron_sdk::bindings::query::NeutronQuery;
+use neutron_sdk::bindings::msg::{NeutronMsg, Unstake, UnstakeDescriptor};
+use neutron_sdk::bindings::query::{IncentivesQuery, ModuleStatusResponse, NeutronQuery};
 use neutron_sdk::NeutronResult;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
@@ -46,7 +48,9 @@ pub fn execute(
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
-        ExecuteMsg::AddToGauge { gauge_id, rewards } => execute_add_to_gauge(deps, env, gauge_id, rewards),
+        ExecuteMsg::AddToGauge { gauge_id, rewards } => {
+            execute_add_to_gauge(deps, env, gauge_id, rewards)
+        }
         ExecuteMsg::Stake { coins } => execute_stake(deps, env, coins),
         ExecuteMsg::Unstake { unstakes } => execute_unstake(deps, env, unstakes),
     }
@@ -55,23 +59,31 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
-        QueryMsg::ModuleState {} => query_module_state(deps, env),
+        QueryMsg::ModuleStatus {} => query_module_status(deps, env),
         QueryMsg::GaugeByID { id } => query_gauge_by_id(deps, env, id),
         QueryMsg::Gauges { status, denom } => query_gauges(deps, env, status, denom),
         QueryMsg::StakeByID { stake_id } => query_stake_by_id(deps, env, stake_id),
-        QueryMsg::Stakes { owner } => query_stakes(deps, env),
+        QueryMsg::Stakes { owner } => query_stakes(deps, env, owner),
     }
 }
 
-fn query_module_state(deps: Deps<NeutronQuery>, env: Env) -> NeutronResult<Binary> {
-    todo!()
+fn query_module_status(deps: Deps<NeutronQuery>, env: Env) -> NeutronResult<Binary> {
+    let query = NeutronQuery::Incentives(IncentivesQuery::ModuleStatus {});
+
+    let res: ModuleStatusResponse = deps.querier.query(&query.into())?;
+    Ok(to_binary(&res)?)
 }
 
 fn query_gauge_by_id(deps: Deps<NeutronQuery>, env: Env, gauge_id: u64) -> NeutronResult<Binary> {
     todo!()
 }
 
-fn query_gauges(deps: Deps<NeutronQuery>, env: Env, status: String, denom: String) -> NeutronResult<Binary> {
+fn query_gauges(
+    deps: Deps<NeutronQuery>,
+    env: Env,
+    status: String,
+    denom: String,
+) -> NeutronResult<Binary> {
     todo!()
 }
 
@@ -79,14 +91,7 @@ fn query_stake_by_id(deps: Deps<NeutronQuery>, env: Env, stake_id: u64) -> Neutr
     todo!()
 }
 
-pub fn query_stakes(_deps: Deps<NeutronQuery>, _env: Env) -> NeutronResult<Binary> {
-    // let query = NeutronQuery::InterchainAccountAddress {
-    //     owner_address: env.contract.address.to_string(),
-    //     interchain_account_id,
-    //     connection_id,
-    // };
-
-    // Ok(to_binary(&res)?)
+pub fn query_stakes(_deps: Deps<NeutronQuery>, _env: Env, owner: String) -> NeutronResult<Binary> {
     todo!()
 }
 
@@ -96,10 +101,23 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
     Ok(Response::default())
 }
 
-fn execute_add_to_gauge(_deps: DepsMut, _env: Env, gauge_id: u64, rewards: Vec<Coin>) -> StdResult<Response<NeutronMsg>> {
+fn execute_add_to_gauge(
+    _deps: DepsMut,
+    _env: Env,
+    gauge_id: u64,
+    rewards: Vec<Coin>,
+) -> StdResult<Response<NeutronMsg>> {
     todo!()
 }
-fn execute_add_to_stake(_deps: DepsMut, _env: Env) -> StdResult<Response<NeutronMsg>> {
+fn execute_stake(_deps: DepsMut, _env: Env, coins: Vec<Coin>) -> StdResult<Response<NeutronMsg>> {
+    todo!()
+}
+
+fn execute_unstake(
+    _deps: DepsMut,
+    _env: Env,
+    unstakes: Vec<UnstakeDescriptor>,
+) -> StdResult<Response<NeutronMsg>> {
     todo!()
 }
 

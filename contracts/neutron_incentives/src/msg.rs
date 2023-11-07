@@ -10,22 +10,15 @@ pub struct InstantiateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    AddToGauge {
-        gauge_id: u64,
-        rewards: Vec<Coin>,
-    },
-    Stake {
-        coins: Vec<Coin>,
-    },
-    Unstake {
-        unstakes: Vec<UnstakeDescriptor>
-    },
+    AddToGauge { gauge_id: u64, rewards: Vec<Coin> },
+    Stake { coins: Vec<Coin> },
+    Unstake { unstakes: Vec<UnstakeDescriptor> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    ModuleState {},
+    ModuleStatus {},
     GaugeByID { id: u64 },
     Gauges { status: String, denom: String },
     StakeByID { stake_id: u64 },

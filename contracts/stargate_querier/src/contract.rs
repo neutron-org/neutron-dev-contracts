@@ -1,6 +1,8 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use cosmos_sdk_proto::cosmos::{auth, bank};
-use cosmos_sdk_proto::ibc;
+use cosmos_sdk_proto::{
+    cosmos::{auth, bank},
+    ibc,
+};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
     QueryRequest, Response, StdError, StdResult, SystemResult,
@@ -100,8 +102,7 @@ fn query_bank_balance(deps: Deps, address: String, denom: String) -> NeutronResu
 fn query_bank_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryDenomMetadataRequest { denom };
     let mut bytes = Vec::new();
-    ::prost::Message::encode(&msg, &mut bytes)
-        .map_err(|_| StdError::generic_err("cannot encode proto"))?;
+    Message::encode(&msg, &mut bytes).map_err(|_| StdError::generic_err("cannot encode proto"))?;
 
     let resp = make_stargate_query(
         deps,
@@ -115,8 +116,7 @@ fn query_bank_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary>
 fn query_bank_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = bank::v1beta1::QueryParamsRequest {};
     let mut bytes = Vec::new();
-    ::prost::Message::encode(&msg, &mut bytes)
-        .map_err(|_| StdError::generic_err("cannot encode proto"))?;
+    Message::encode(&msg, &mut bytes).map_err(|_| StdError::generic_err("cannot encode proto"))?;
 
     let resp = make_stargate_query(deps, "/cosmos.bank.v1beta1.Query/Params".to_string(), bytes)?;
     Ok(to_binary(&resp)?)
@@ -127,7 +127,7 @@ fn query_bank_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
     let resp = make_stargate_query(
         deps,
         "/cosmos.bank.v1beta1.Query/SupplyOf".to_string(),
-        ::prost::Message::encode_to_vec(&msg),
+        Message::encode_to_vec(&msg),
     )?;
 
     Ok(to_binary(&resp)?)

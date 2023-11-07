@@ -48,7 +48,6 @@ use neutron_sdk::interchain_queries::v045::{
 use neutron_sdk::sudo::msg::SudoMsg;
 use neutron_sdk::{NeutronError, NeutronResult};
 use prost::Message as ProstMessage;
-use serde_json_wasm;
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
 const MAX_ALLOWED_TRANSFER: u64 = 20000;

@@ -12,10 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
-use cosmos_sdk_proto::cosmos::base::v1beta1::Coin;
-use cosmos_sdk_proto::cosmos::staking::v1beta1::{MsgDelegate, MsgUndelegate};
-use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
+use cosmos_sdk_proto::{
+    cosmos::{
+        bank::v1beta1::MsgSend,
+        base::v1beta1::Coin,
+        staking::v1beta1::{MsgDelegate, MsgUndelegate},
+        tx::v1beta1::{TxBody, TxRaw},
+    },
+    traits::Message,
+};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -23,7 +28,6 @@ use cosmwasm_std::{
     MessageInfo, Reply, Response, StdError, StdResult, SubMsg,
 };
 use cw2::set_contract_version;
-use prost::Message;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

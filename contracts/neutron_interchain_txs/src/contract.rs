@@ -89,7 +89,7 @@ pub fn instantiate(
 ) -> NeutronResult<Response<NeutronMsg>> {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    REGISTER_FEE.save(deps.storage, &coins(1000, "untrn"))?;
+    REGISTER_FEE.save(deps.storage, &coins(1_000_000, "untrn"))?;
     Ok(Response::default())
 }
 

@@ -19,7 +19,7 @@ use neutron_sdk::{
             EstimateMultiHopSwapResponse, EstimatePlaceLimitOrderResponse,
             InactiveLimitOrderTrancheResponse, LimitOrderTrancheResponse,
             LimitOrderTrancheUserResponse, NeutronQuery, ParamsResponse, PoolMetadataResponse,
-            PoolReservesResponse, PoolResponse,
+            PoolReservesResponse, PoolResponse, AllUserLimitOrdersResponse,
         },
     },
     sudo::msg::SudoMsg,
@@ -91,7 +91,7 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             return to_binary(&query_response);
         }
         DexQuery::LimitOrderTrancheUserAllByAddress { .. } => {
-            let query_response: AllLimitOrderTrancheUserResponse =
+            let query_response: AllUserLimitOrdersResponse =
                 deps.querier.query(&msg.into())?;
             return to_binary(&query_response);
         }
@@ -125,7 +125,7 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let query_response: AllPoolReservesResponse = deps.querier.query(&msg.into())?;
             return to_binary(&query_response);
         }
-        DexQuery::PoolReverses { .. } => {
+        DexQuery::PoolReserves { .. } => {
             let query_response: PoolReservesResponse = deps.querier.query(&msg.into())?;
             return to_binary(&query_response);
         }

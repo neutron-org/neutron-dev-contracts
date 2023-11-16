@@ -61,7 +61,7 @@ fn execute_dex(
     _: MessageInfo,
     msg: DexMsg,
 ) -> StdResult<Response<NeutronMsg>> {
-    let resp_msg: CosmosMsg;
+    let resp_msg: CosmosMsg<NeutronMsg>;
 
     match msg {
         DexMsg::Deposit { receiver, token_a, token_b, amounts_a, amounts_b, tick_indexes_a_to_b, fees, options } => {
@@ -74,9 +74,9 @@ fn execute_dex(
                 amounts_b,
                 tick_indexes_a_to_b,
                 fees,
-                options: vec![],
+                options: vec![dex::DepositOptions{ disable_autoswap: true }],
             };
-            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.Msg/Deposit".to_string(), value: Binary::from(req.encode_to_vec())};
+            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.MsgDeposit".to_string(), value: Binary::from(req.encode_to_vec())};
         }
         DexMsg::Withdrawal { receiver, token_a, token_b, shares_to_remove, tick_indexes_a_to_b, fees } => {
             let req = dex::MsgWithdrawal{
@@ -88,9 +88,9 @@ fn execute_dex(
                 tick_indexes_a_to_b,
                 fees,
             };
-            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.Msg/Withdrawal".to_string(), value: Binary::from(req.encode_to_vec())};
+            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.MsgWithdrawal".to_string(), value: Binary::from(req.encode_to_vec())};
         }
-        DexMsg::PlaceLimitOrder { receiver, token_in, token_out, tick_index_in_to_out, amount_in, order_type, expiration_time, max_amount_out } => {
+        DexMsg::PlaceLimitOrder { receiver, token_in, token_out, tick_index_in_to_out, amount_in, order_type, max_amount_out } => {
             let req = dex::MsgPlaceLimitOrder{
                 creator: env.contract.address.to_string(),
                 receiver,
@@ -99,31 +99,32 @@ fn execute_dex(
                 tick_index_in_to_out,
                 amount_in,
                 order_type,
-                expiration_time,
+                expiration_time: None,
                 max_amount_out,
             };
-            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.Msg/PlaceLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
+            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.MsgPlaceLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
         }
         DexMsg::WithdrawFilledLimitOrder { tranche_key } => {
             let req = dex::MsgWithdrawFilledLimitOrder{ creator: env.contract.address.to_string(), tranche_key };
-            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.Msg/WithdrawFilledLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
+            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.MsgWithdrawFilledLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
         }
         DexMsg::CancelLimitOrder { tranche_key } => {
             let req = dex::MsgCancelLimitOrder{ creator: env.contract.address.to_string(), tranche_key };
-            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.Msg/CancelLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
+            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.MsgCancelLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
         }
         DexMsg::MultiHopSwap { receiver, routes, amount_in, exit_limit_price, pick_best_route } => {
             let req = dex::MsgMultiHopSwap{
                 creator: env.contract.address.to_string(),
                 receiver,
-                routes,
+                routes: routes.iter().map(|r| r.into()).collect(),
                 amount_in,
                 exit_limit_price,
                 pick_best_route,
             };
-            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.Msg/CancelLimitOrder".to_string(), value: Binary::from(req.encode_to_vec())};
+            resp_msg = CosmosMsg::Stargate{ type_url: "/neutron.dex.MsgMultiHopSwap".to_string(), value: Binary::from(req.encode_to_vec())};
         }
-    }
+    };
+
     Ok(Response::default().add_message(resp_msg))
 }
 
@@ -144,8 +145,8 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let resp = make_stargate_query(deps, "/neutron.dex.Query/LimitOrderTrancheUser".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::LimitOrderTrancheUserAll { pagination } => {
-            let req = QueryAllLimitOrderTrancheUserRequest{ pagination };
+        DexQuery::LimitOrderTrancheUserAll {} => {
+            let req = QueryAllLimitOrderTrancheUserRequest{ pagination: None };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/LimitOrderTrancheUser".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
@@ -159,25 +160,25 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let resp = make_stargate_query(deps, "/neutron.dex.Query/LimitOrderTranche".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::LimitOrderTrancheAll { pair_id, token_in, pagination } => {
+        DexQuery::LimitOrderTrancheAll { pair_id, token_in} => {
             let req = QueryAllLimitOrderTrancheRequest{
                 pair_id,
                 token_in,
-                pagination,
+                pagination: None,
             };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/LimitOrderTrancheAll".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::UserDepositAll { address, pagination } => {
-            let req = QueryAllUserDepositsRequest{ address, pagination };
+        DexQuery::UserDepositAll { address} => {
+            let req = QueryAllUserDepositsRequest{ address, pagination: None };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/UserDepositsAll".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::TickLiquidityAll { pair_id, token_in, pagination } => {
+        DexQuery::TickLiquidityAll { pair_id, token_in} => {
             let req = QueryAllTickLiquidityRequest{
                 pair_id,
                 token_in,
-                pagination,
+                pagination: None,
             };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/TickLiquidityAll".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
@@ -192,16 +193,16 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let resp = make_stargate_query(deps, "/neutron.dex.Query/InactiveLimitOrderTranche".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::InactiveLimitOrderTrancheAll { pagination } => {
-            let req = QueryAllInactiveLimitOrderTrancheRequest{ pagination };
+        DexQuery::InactiveLimitOrderTrancheAll {} => {
+            let req = QueryAllInactiveLimitOrderTrancheRequest{ pagination: None };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/InactiveLimitOrderTrancheAll".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::PoolReservesAll { pair_id, token_in, pagination } => {
+        DexQuery::PoolReservesAll { pair_id, token_in} => {
             let req = QueryAllPoolReservesRequest{
                 pair_id,
                 token_in,
-                pagination,
+                pagination: None,
             };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/PoolReservesAll".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
@@ -220,7 +221,7 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let req = QueryEstimateMultiHopSwapRequest{
                 creator,
                 receiver,
-                routes,
+                routes: routes.iter().map(|r| r.into()).collect(),
                 amount_in,
                 exit_limit_price,
                 pick_best_route,
@@ -228,7 +229,7 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let resp = make_stargate_query(deps, "/neutron.dex.Query/EstimateMultiHopSwap".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::EstimatePlaceLimitOrder { creator, receiver, token_in, token_out, tick_index_in_to_out, order_type, expiration_time, max_amount_out } => {
+        DexQuery::EstimatePlaceLimitOrder { creator, receiver, token_in, token_out, tick_index_in_to_out, expiration_time, max_amount_out } => {
             let req = QueryEstimatePlaceLimitOrderRequest{
                 creator,
                 receiver,
@@ -262,13 +263,13 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let resp = make_stargate_query(deps, "/neutron.dex.Query/PoolMetadata".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::PoolMetadataAll { pagination } => {
-            let req = QueryAllPoolMetadataRequest{ pagination };
+        DexQuery::PoolMetadataAll { } => {
+            let req = QueryAllPoolMetadataRequest{ pagination: None };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/PoolMetadataAll".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }
-        DexQuery::LimitOrderTrancheUserAllByAddress { address, pagination } => {
-            let req = QueryAllUserLimitOrdersRequest{ address, pagination };
+        DexQuery::LimitOrderTrancheUserAllByAddress { address } => {
+            let req = QueryAllUserLimitOrdersRequest{ address, pagination: None };
             let resp = make_stargate_query(deps, "/neutron.dex.Query/LimitOrderTrancheUserAllByAddress".to_string(), req.encode_to_vec())?;
             return to_binary(&resp);
         }

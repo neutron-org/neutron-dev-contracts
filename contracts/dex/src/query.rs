@@ -1,11 +1,8 @@
-use cosmwasm_std::{Binary, Coin, CustomQuery, Int128, QueryRequest, Uint128};
-use neutron_sdk::bindings::query::NeutronQuery;
-use neutron_sdk::proto_types::cosmos::base::query::v1beta1::PageRequest;
-use neutron_sdk::proto_types::neutron::dex::{LimitOrderTranche, LimitOrderTrancheUser, LimitOrderType};
+use cosmwasm_std::{Binary, Coin, Int128, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use crate::msg::{MultiHopRoute};
-use crate::types::TradePairID;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -19,12 +16,12 @@ pub enum DexQuery {
     },
     // Queries a list of LimitOrderTrancheMap items.
     LimitOrderTrancheUserAll {
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a list of LimitOrderTrancheUser items for a given address.
     LimitOrderTrancheUserAllByAddress {
         address: String,
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a LimitOrderTranche by index.
     LimitOrderTranche {
@@ -37,18 +34,18 @@ pub enum DexQuery {
     LimitOrderTrancheAll {
         pair_id: String,
         token_in: String,
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a list of UserDeposits items.
     UserDepositAll {
         address: String,
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a list of TickLiquidity items.
     TickLiquidityAll {
         pair_id: String,
         token_in: String,
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a InactiveLimitOrderTranche by index.
     InactiveLimitOrderTranche {
@@ -59,13 +56,13 @@ pub enum DexQuery {
     },
     // Queries a list of InactiveLimitOrderTranche items.
     InactiveLimitOrderTrancheAll {
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a list of PoolReserves items.
     PoolReservesAll {
         pair_id: String,
         token_in: String,
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
     // Queries a PoolReserve by index
     PoolReserves {
@@ -90,7 +87,7 @@ pub enum DexQuery {
         token_in: String,
         token_out: String,
         tick_index_in_to_out: Uint128,
-        order_type: LimitOrderType,
+        // order_type: LimitOrderType,
         // expirationTime is only valid iff orderType == GOOD_TIL_TIME.
         expiration_time: Option<u64>,
         max_amount_out: Option<Int128>,
@@ -112,7 +109,7 @@ pub enum DexQuery {
     },
     // Queries a list of PoolMetadata items.
     PoolMetadataAll {
-        pagination: Option<PageRequest>,
+        // pagination: Option<PageRequest>,
     },
 }
 
@@ -324,4 +321,54 @@ pub struct PageResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct QueryFailuresResponse {
+}
+
+#[derive(Serialize_repr, Deserialize_repr, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[repr(u8)]
+pub enum LimitOrderType {
+    GoodTilCancelled = 0,
+    FillOrKill = 1,
+    ImmediateOrCancel = 2,
+    JustInTime = 3,
+    GoodTilTime = 4,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct LimitOrderTrancheUser {
+    trade_pair_id: TradePairID,
+    tick_index_taker_to_maker: i64,
+    tranche_key: String,
+    address: String,
+    shares_owned: Int128,
+    shares_withdrawn: Int128,
+    shares_cancelled: Int128,
+    order_type: LimitOrderType,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct LimitOrderTrancheKey {
+    pub trade_pair_id: TradePairID,
+    pub tick_index_taker_to_maker: i64,
+    pub tranche_key: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct LimitOrderTranche {
+    pub key: LimitOrderTrancheKey,
+    reserves_maker_denom: Int128,
+    reserves_taker_denom: Int128,
+    total_maker_denom: Int128,
+    total_taker_denom: Int128,
+    expiration_time: Option<u64>,
+    price_taker_to_maker: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct TradePairID {
+    maker_denom: String,
+    taker_denom: String,
 }

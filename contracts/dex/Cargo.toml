@@ -37,7 +37,7 @@ cosmwasm-std = {version = "1.4.0", features = ["stargate"]}
 cw2 = "1.1.0"
 schemars = "0.8.10"
 serde = { version = "1.0.180", default-features = false, features = ["derive"] }
-neutron-sdk = { package = "neutron-sdk", path = "../../../neutron-sdk/packages/neutron-sdk" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", rev = "4e4c3fe" }
 serde_json = { version = "1.0.87" }
 serde_repr = { version = "0.1.17" }
 prost = "0.12"

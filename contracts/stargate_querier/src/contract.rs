@@ -235,7 +235,7 @@ fn query_interchaintx_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = stargate::interchaintx::QueryParams {};
     let resp = make_stargate_query(
         deps,
-        "/neutron.interchaintxs.Query/Params".to_string(),
+        "/neutron.interchaintxs.v1.Query/Params".to_string(),
         msg.encode_to_vec(),
     )?;
 

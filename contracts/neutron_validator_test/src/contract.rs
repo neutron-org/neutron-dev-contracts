@@ -12,18 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
-use cosmos_sdk_proto::cosmos::base::v1beta1::Coin;
-use cosmos_sdk_proto::cosmos::staking::v1beta1::{MsgDelegate, MsgUndelegate};
-use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
+use cosmos_sdk_proto::{
+    cosmos::{
+        bank::v1beta1::MsgSend,
+        base::v1beta1::Coin,
+        staking::v1beta1::{MsgDelegate, MsgUndelegate},
+        tx::v1beta1::{TxBody, TxRaw},
+    },
+    traits::Message,
+};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coin, to_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
+    coin, to_json_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
     MessageInfo, Reply, Response, StdError, StdResult, SubMsg,
 };
 use cw2::set_contract_version;
-use prost::Message;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -164,7 +168,7 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
             sequence_id,
         } => query_acknowledgement_result(deps, env, interchain_account_id, sequence_id),
         QueryMsg::LastAckSeqId {} => query_last_ack_seq_id(deps),
-        QueryMsg::Balance { query_id } => Ok(to_binary(&query_balance(deps, env, query_id)?)?),
+        QueryMsg::Balance { query_id } => Ok(to_json_binary(&query_balance(deps, env, query_id)?)?),
         QueryMsg::GetRecipientTxs { recipient } => query_recipient_txs(deps, recipient),
     }
 }
@@ -182,7 +186,7 @@ pub fn query_interchain_address(
     };
 
     let res: QueryInterchainAccountAddressResponse = deps.querier.query(&query.into())?;
-    Ok(to_binary(&res)?)
+    Ok(to_json_binary(&res)?)
 }
 
 pub fn query_interchain_address_contract(
@@ -190,7 +194,11 @@ pub fn query_interchain_address_contract(
     env: Env,
     interchain_account_id: String,
 ) -> NeutronResult<Binary> {
-    Ok(to_binary(&get_ica(deps, &env, &interchain_account_id)?)?)
+    Ok(to_json_binary(&get_ica(
+        deps,
+        &env,
+        &interchain_account_id,
+    )?)?)
 }
 
 pub fn query_acknowledgement_result(
@@ -201,19 +209,19 @@ pub fn query_acknowledgement_result(
 ) -> NeutronResult<Binary> {
     let port_id = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     let res = ACKNOWLEDGEMENT_RESULTS.may_load(deps.storage, (port_id, sequence_id))?;
-    Ok(to_binary(&res)?)
+    Ok(to_json_binary(&res)?)
 }
 
 pub fn query_last_ack_seq_id(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
     let res = LAST_SEQ_ID.may_load(deps.storage)?;
-    Ok(to_binary(&res)?)
+    Ok(to_json_binary(&res)?)
 }
 
 fn query_recipient_txs(deps: Deps<NeutronQuery>, recipient: String) -> NeutronResult<Binary> {
     let txs = RECIPIENT_TXS
         .load(deps.storage, &recipient)
         .unwrap_or_default();
-    Ok(to_binary(&GetRecipientTxsResponse { transfers: txs })?)
+    Ok(to_json_binary(&GetRecipientTxsResponse { transfers: txs })?)
 }
 
 fn msg_with_sudo_callback<C: Into<CosmosMsg<T>>, T>(
@@ -258,7 +266,7 @@ fn execute_register_ica(
     interchain_account_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
     let register =
-        NeutronMsg::register_interchain_account(connection_id, interchain_account_id.clone());
+        NeutronMsg::register_interchain_account(connection_id, interchain_account_id.clone(), None);
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
     Ok(Response::new().add_message(register))

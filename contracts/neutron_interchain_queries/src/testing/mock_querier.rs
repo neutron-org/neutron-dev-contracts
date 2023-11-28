@@ -17,7 +17,7 @@ use std::marker::PhantomData;
 
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
 use cosmwasm_std::{
-    from_slice, Binary, Coin, ContractResult, CustomQuery, FullDelegation, OwnedDeps, Querier,
+    from_json, Binary, Coin, ContractResult, CustomQuery, FullDelegation, OwnedDeps, Querier,
     QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, Validator,
 };
 use neutron_sdk::bindings::query::NeutronQuery;
@@ -56,7 +56,7 @@ pub struct WasmMockQuerier {
 
 impl Querier for WasmMockQuerier {
     fn raw_query(&self, bin_request: &[u8]) -> QuerierResult {
-        let request: QueryRequest<NeutronQuery> = match from_slice(bin_request) {
+        let request: QueryRequest<NeutronQuery> = match from_json(bin_request) {
             Ok(v) => v,
             Err(e) => {
                 return QuerierResult::Err(SystemError::InvalidRequest {

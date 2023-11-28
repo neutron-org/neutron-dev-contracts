@@ -2,6 +2,27 @@
 members = ["contracts/*"]
 
 [profile.release]
+opt-level = 3
+debug = false
 rpath = false
 lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
 overflow-checks = true
+
+[workspace.dependencies]
+neutron-sdk = { package = "neutron-sdk",git = "https://github.com/neutron-org/neutron-sdk.git", branch = "sdk/47" }
+prost = "0.12.1"
+prost-types = "0.12.1"
+cosmos-sdk-proto = { version = "0.20.0", default-features = false }
+cosmwasm-std = "1.4.1"
+cw2 = "1.1.1"
+cw-storage-plus = "1.1.0"
+schemars = "0.8.15"
+serde = { version = "1.0.189", default-features = false }
+cosmwasm-schema = { version = "1.4.1", default-features = false }
+serde-json-wasm = "1.0.0"
+base64 = "0.21.4"
+thiserror = "1.0.49"

@@ -332,7 +332,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
- "neutron-sdk 0.7.0 (git+https://github.com/neutron-org/neutron-sdk?rev=96c7f860c30c9ccd2c426f75359c12771178f035)",
+ "neutron-sdk 0.7.0 (git+https://github.com/neutron-org/neutron-sdk?rev=f3b1800de15ab58e56072377ee701aacd4459b0b)",
  "prost 0.12.3",
  "prost-types 0.12.3",
  "schemars",
@@ -619,7 +619,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.7.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?rev=96c7f860c30c9ccd2c426f75359c12771178f035#96c7f860c30c9ccd2c426f75359c12771178f035"
+source = "git+https://github.com/neutron-org/neutron-sdk?rev=f3b1800de15ab58e56072377ee701aacd4459b0b#f3b1800de15ab58e56072377ee701aacd4459b0b"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

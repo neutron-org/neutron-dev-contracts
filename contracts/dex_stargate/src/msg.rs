@@ -1,5 +1,5 @@
 use neutron_sdk::bindings::query::PageRequest;
-use neutron_sdk::stargate::types_dex::DepositOptions;
+use neutron_sdk::stargate::dex::types::DepositOptions;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

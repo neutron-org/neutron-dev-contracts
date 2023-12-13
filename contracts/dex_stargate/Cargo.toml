@@ -33,7 +33,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", rev = "f3b1800de15ab58e56072377ee701aacd4459b0b" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", rev = "520022fad4fc7e78569ec87e81043346f5125051" }
 cosmwasm-std = { version = "1.4.0", features = ["stargate"] }
 cw2 = "1.1.1"
 schemars = "0.8.15"

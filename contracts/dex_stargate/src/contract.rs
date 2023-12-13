@@ -5,11 +5,11 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use neutron_sdk::{
-    stargate::msg::neutron::dex::{
+    stargate::dex::msg::{
         msg_cancel_limit_order, msg_deposit, msg_multi_hop_swap, msg_place_limit_order,
         msg_withdraw_filled_limit_order, msg_withdrawal,
     },
-    stargate::query::neutron::dex::{
+    stargate::dex::query::{
         get_estimate_multi_hop_swap, get_estimate_place_limit_order,
         get_inactive_limit_order_tranche, get_inactive_limit_order_tranche_all,
         get_limit_order_tranche, get_limit_order_tranche_all, get_limit_order_tranche_user,
@@ -17,7 +17,7 @@ use neutron_sdk::{
         get_pool, get_pool_by_id, get_pool_metadata, get_pool_metadata_all, get_pool_reserves,
         get_pool_reserves_all, get_tick_liquidity_all, get_user_deposits_all,
     },
-    stargate::types_dex::{
+    stargate::dex::types::{
         AllInactiveLimitOrderTrancheRequest, AllLimitOrderTrancheRequest, AllPoolMetadataRequest,
         AllPoolReservesRequest, AllTickLiquidityRequest, AllUserDepositsRequest,
         AllUserLimitOrdersRequest, CancelLimitOrderRequest, DepositRequest,

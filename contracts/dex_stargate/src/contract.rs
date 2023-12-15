@@ -112,8 +112,7 @@ pub fn execute(
                 token_out,
                 tick_index_in_to_out,
                 amount_in,
-                order_type: LimitOrderType::try_from(order_type)
-                    .map_err(|e| StdError::generic_err(e.to_string()))?,
+                order_type: LimitOrderType::try_from(order_type).map_err(StdError::generic_err)?,
                 expiration_time,
                 max_amount_out,
             })),
@@ -330,8 +329,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 token_out,
                 tick_index_in_to_out,
                 amount_in,
-                order_type: LimitOrderType::try_from(order_type)
-                    .map_err(|e| StdError::generic_err(e.to_string()))?,
+                order_type: LimitOrderType::try_from(order_type).map_err(StdError::generic_err)?,
                 expiration_time,
                 max_amount_out,
             },

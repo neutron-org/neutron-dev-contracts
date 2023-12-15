@@ -266,6 +266,7 @@
       ],
       "properties": {
         "disable_autoswap": {
+          "description": "Autoswap provides a mechanism for users to deposit the entirety of their specified deposit amounts by paying a small fee. By default the `autoswap` option is enabled.",
           "type": "boolean"
         }
       }

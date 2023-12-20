@@ -5,6 +5,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use neutron_sdk::{
+    bindings::msg::NeutronMsg,
     stargate::dex::msg::{
         msg_cancel_limit_order, msg_deposit, msg_multi_hop_swap, msg_place_limit_order,
         msg_withdraw_filled_limit_order, msg_withdrawal,
@@ -51,7 +52,7 @@ pub fn execute(
     env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
-) -> StdResult<Response> {
+) -> StdResult<Response<NeutronMsg>> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {

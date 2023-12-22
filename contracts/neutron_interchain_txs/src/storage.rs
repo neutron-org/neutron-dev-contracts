@@ -1,4 +1,4 @@
-use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage};
+use cosmwasm_std::{from_json, to_json_vec, Binary, Coin, Order, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use neutron_sdk::bindings::msg::IbcFee;
 use schemars::JsonSchema;
@@ -25,6 +25,7 @@ pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 pub const SUDO_FAILING_SUBMSG_REPLY_ID: u64 = 2;
 
 pub const IBC_FEE: Item<IbcFee> = Item::new("ibc_fee");
+pub const REGISTER_FEE: Item<Vec<Coin>> = Item::new("register_fee");
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
 pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");
 pub const INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =
@@ -49,12 +50,12 @@ pub enum AcknowledgementResult {
 }
 
 pub fn save_reply_payload(store: &mut dyn Storage, payload: SudoPayload) -> StdResult<()> {
-    REPLY_ID_STORAGE.save(store, &to_vec(&payload)?)
+    REPLY_ID_STORAGE.save(store, &to_json_vec(&payload)?)
 }
 
 pub fn read_reply_payload(store: &dyn Storage) -> StdResult<SudoPayload> {
     let data = REPLY_ID_STORAGE.load(store)?;
-    from_binary(&Binary(data))
+    from_json(Binary(data))
 }
 
 pub fn add_error_to_queue(store: &mut dyn Storage, error_msg: String) -> Option<()> {
@@ -80,7 +81,7 @@ pub fn read_sudo_payload(
     seq_id: u64,
 ) -> StdResult<SudoPayload> {
     let data = SUDO_PAYLOAD.load(store, (channel_id, seq_id))?;
-    from_binary(&Binary(data))
+    from_json(Binary(data))
 }
 
 pub fn save_sudo_payload(
@@ -89,26 +90,32 @@ pub fn save_sudo_payload(
     seq_id: u64,
     payload: SudoPayload,
 ) -> StdResult<()> {
-    SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_vec(&payload)?)
+    SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_json_vec(&payload)?)
 }
 
 /// Used only in integration tests framework to simulate failures in sudo handler.
-pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoMock> =
+pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoFailureMock> =
     Item::new("integration_tests_sudo_failure_mock");
 /// Used only in integration tests framework to simulate failures in submessages created in
 /// sudo handler.
-pub const INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK: Item<IntegrationTestsSudoSubmsgMock> =
+pub const INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK: Item<IntegrationTestsSudoSubmsgFailureMock> =
     Item::new("integration_tests_sudo_submsg_failure_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub enum IntegrationTestsSudoMock {
+#[serde(rename_all = "snake_case")]
+pub enum IntegrationTestsSudoFailureMock {
     Enabled,
+    EnabledInfiniteLoop,
     Disabled,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub enum IntegrationTestsSudoSubmsgMock {
+#[serde(rename_all = "snake_case")]
+pub enum IntegrationTestsSudoSubmsgFailureMock {
     Enabled,
     EnabledInReply,
     Disabled,
 }
+
+// just to do something in infinite loop
+pub const TEST_COUNTER_ITEM: Item<u64> = Item::new("test_counter");

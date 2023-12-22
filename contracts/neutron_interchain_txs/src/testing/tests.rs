@@ -12,12 +12,13 @@
 
 use crate::contract::sudo;
 use crate::msg::ExecuteMsg;
+use crate::storage::IntegrationTestsSudoFailureMock;
 use crate::{
     contract::{execute, query_errors_queue},
     storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE},
 };
 use cosmwasm_std::{
-    from_binary,
+    from_json,
     testing::{
         mock_dependencies as cw_mock_dependencies, mock_env, mock_info, MockApi, MockQuerier,
         MockStorage,
@@ -42,7 +43,7 @@ fn test_query_errors_queue() {
     let mut deps = mock_dependencies();
 
     let result = query_errors_queue(deps.as_ref()).unwrap();
-    let result: Vec<(Vec<u8>, String)> = from_binary(&result).unwrap();
+    let result: Vec<(Vec<u8>, String)> = from_json(result).unwrap();
 
     assert_eq!(0, result.len());
 
@@ -53,7 +54,7 @@ fn test_query_errors_queue() {
         .unwrap();
 
     let result = query_errors_queue(deps.as_ref()).unwrap();
-    let result: Vec<(Vec<u8>, String)> = from_binary(&result).unwrap();
+    let result: Vec<(Vec<u8>, String)> = from_json(result).unwrap();
 
     assert_eq!(1, result.len());
 }
@@ -101,7 +102,9 @@ fn test_failure_mocks() {
         deps.as_mut(),
         mock_env(),
         mock_info("", &[]),
-        ExecuteMsg::IntegrationTestsSetSudoFailureMock {},
+        ExecuteMsg::IntegrationTestsSetSudoFailureMock {
+            state: IntegrationTestsSudoFailureMock::Enabled,
+        },
     )
     .unwrap();
 
@@ -123,5 +126,5 @@ fn test_failure_mocks() {
     };
 
     let err = sudo(deps.as_mut(), mock_env(), sudo_resp).unwrap_err();
-    assert_eq!(err, StdError::generic_err("Integations test mock error"));
+    assert_eq!(err, StdError::generic_err("Integrations test mock error"));
 }

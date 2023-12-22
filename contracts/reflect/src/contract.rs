@@ -1,7 +1,7 @@
 use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, Binary, ContractResult, Deps, DepsMut, Env, MessageInfo,
-    QueryRequest, Response, StdError, StdResult, SystemResult,
+    entry_point, to_json_binary, to_json_vec, Binary, ContractResult, Deps, DepsMut, Env,
+    MessageInfo, QueryRequest, Response, StdError, StdResult, SystemResult,
 };
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -45,7 +45,7 @@ pub fn execute(deps: DepsMut, _env: Env, _: MessageInfo, msg: ExecuteMsg) -> Std
 #[entry_point]
 pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Reflect(payload) => to_binary(&query_with_payload(deps, env, payload)?),
+        QueryMsg::Reflect(payload) => to_json_binary(&query_with_payload(deps, env, payload)?),
     }
 }
 
@@ -54,7 +54,7 @@ fn query_with_payload(
     _env: Env,
     icq_query: QueryRequest<InterchainQueries>,
 ) -> StdResult<ChainResponse> {
-    let raw = to_vec(&icq_query).map_err(|serialize_err| {
+    let raw = to_json_vec(&icq_query).map_err(|serialize_err| {
         StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
     })?;
     match deps.querier.raw_query(&raw) {

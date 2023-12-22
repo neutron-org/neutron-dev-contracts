@@ -4,7 +4,7 @@ use cosmos_sdk_proto::{
     ibc,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
+    entry_point, to_json_binary, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
     QueryRequest, Response, StdError, StdResult, SystemResult,
 };
 use std::str::from_utf8;
@@ -96,7 +96,7 @@ fn query_bank_balance(deps: Deps, address: String, denom: String) -> NeutronResu
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_bank_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
@@ -110,7 +110,7 @@ fn query_bank_denom_metadata(deps: Deps, denom: String) -> NeutronResult<Binary>
         bytes,
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_bank_params(deps: Deps) -> NeutronResult<Binary> {
@@ -119,7 +119,7 @@ fn query_bank_params(deps: Deps) -> NeutronResult<Binary> {
     Message::encode(&msg, &mut bytes).map_err(|_| StdError::generic_err("cannot encode proto"))?;
 
     let resp = make_stargate_query(deps, "/cosmos.bank.v1beta1.Query/Params".to_string(), bytes)?;
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_bank_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
@@ -130,7 +130,7 @@ fn query_bank_supply_of(deps: Deps, denom: String) -> NeutronResult<Binary> {
         Message::encode_to_vec(&msg),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_auth_account(deps: Deps, address: String) -> NeutronResult<Binary> {
@@ -141,7 +141,7 @@ fn query_auth_account(deps: Deps, address: String) -> NeutronResult<Binary> {
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_transfer_denom_trace(deps: Deps, hash: String) -> NeutronResult<Binary> {
@@ -152,7 +152,7 @@ fn query_transfer_denom_trace(deps: Deps, hash: String) -> NeutronResult<Binary>
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_ibc_client_state(deps: Deps, client_id: String) -> NeutronResult<Binary> {
@@ -163,7 +163,7 @@ fn query_ibc_client_state(deps: Deps, client_id: String) -> NeutronResult<Binary
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_ibc_consensus_state(
@@ -185,7 +185,7 @@ fn query_ibc_consensus_state(
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_ibc_connection(deps: Deps, connection_id: String) -> NeutronResult<Binary> {
@@ -196,7 +196,7 @@ fn query_ibc_connection(deps: Deps, connection_id: String) -> NeutronResult<Bina
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_tokenfactory_params(deps: Deps) -> NeutronResult<Binary> {
@@ -207,7 +207,7 @@ fn query_tokenfactory_params(deps: Deps) -> NeutronResult<Binary> {
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_tokenfactory_denom_authority_metadata(deps: Deps, denom: String) -> NeutronResult<Binary> {
@@ -221,7 +221,7 @@ fn query_tokenfactory_denom_authority_metadata(deps: Deps, denom: String) -> Neu
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_tokenfactory_denoms_from_creator(deps: Deps, creator: String) -> NeutronResult<Binary> {
@@ -234,7 +234,7 @@ fn query_tokenfactory_denoms_from_creator(deps: Deps, creator: String) -> Neutro
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_contractmanager_query_address_failures(
@@ -248,7 +248,7 @@ fn query_contractmanager_query_address_failures(
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_contractmanager_query_failures(deps: Deps, address: String) -> NeutronResult<Binary> {
@@ -262,18 +262,18 @@ fn query_contractmanager_query_failures(deps: Deps, address: String) -> NeutronR
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_interchaintx_params(deps: Deps) -> NeutronResult<Binary> {
     let msg = stargate::interchaintx::QueryParams {};
     let resp = make_stargate_query(
         deps,
-        "/neutron.interchaintxs.Query/Params".to_string(),
+        "/neutron.interchaintxs.v1.Query/Params".to_string(),
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_interchainqueries_params(deps: Deps) -> NeutronResult<Binary> {
@@ -284,7 +284,7 @@ fn query_interchainqueries_params(deps: Deps) -> NeutronResult<Binary> {
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 fn query_feeburner_params(deps: Deps) -> NeutronResult<Binary> {
@@ -295,7 +295,7 @@ fn query_feeburner_params(deps: Deps) -> NeutronResult<Binary> {
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 // WARN: should not work since we did not allowlist it
@@ -308,7 +308,7 @@ fn query_feeburner_total_burned_neutrons_amount(deps: Deps) -> NeutronResult<Bin
         msg.encode_to_vec(),
     )?;
 
-    Ok(to_binary(&resp)?)
+    Ok(to_json_binary(&resp)?)
 }
 
 pub fn make_stargate_query(

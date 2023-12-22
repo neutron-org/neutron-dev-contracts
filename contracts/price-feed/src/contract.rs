@@ -4,7 +4,7 @@ use crate::state::{PriceFeedRate, ERROR, RATES};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response, StdResult,
+    to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response, StdResult,
 };
 use cw2::set_contract_version;
 
@@ -60,8 +60,8 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetRate {} => to_binary(&query_rate(deps)?),
-        QueryMsg::GetError {} => to_binary(&query_error(deps)?),
+        QueryMsg::GetRate {} => to_json_binary(&query_rate(deps)?),
+        QueryMsg::GetError {} => to_json_binary(&query_error(deps)?),
     }
 }
 

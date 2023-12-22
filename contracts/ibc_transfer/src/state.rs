@@ -1,4 +1,4 @@
-use cosmwasm_std::{from_binary, to_vec, Binary, StdResult, Storage};
+use cosmwasm_std::{from_json, to_json_vec, Binary, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use neutron_sdk::bindings::msg::IbcFee;
 use schemars::JsonSchema;
@@ -33,13 +33,13 @@ pub fn get_next_id(store: &mut dyn Storage) -> StdResult<u64> {
 
 pub fn save_reply_payload(store: &mut dyn Storage, payload: SudoPayload) -> StdResult<u64> {
     let id = get_next_id(store)?;
-    REPLY_QUEUE_ID.save(store, id, &to_vec(&payload)?)?;
+    REPLY_QUEUE_ID.save(store, id, &to_json_vec(&payload)?)?;
     Ok(id)
 }
 
 pub fn read_reply_payload(store: &dyn Storage, id: u64) -> StdResult<SudoPayload> {
     let data = REPLY_QUEUE_ID.load(store, id)?;
-    from_binary(&Binary(data))
+    from_json(Binary(data))
 }
 
 /// SUDO_PAYLOAD - tmp storage for sudo handler payloads
@@ -55,7 +55,7 @@ pub fn save_sudo_payload(
     seq_id: u64,
     payload: SudoPayload,
 ) -> StdResult<()> {
-    SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_vec(&payload)?)
+    SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_json_vec(&payload)?)
 }
 
 pub fn read_sudo_payload(
@@ -64,15 +64,20 @@ pub fn read_sudo_payload(
     seq_id: u64,
 ) -> StdResult<SudoPayload> {
     let data = SUDO_PAYLOAD.load(store, (channel_id, seq_id))?;
-    from_binary(&Binary(data))
+    from_json(Binary(data))
 }
 
 /// Used only in integration tests framework to simulate failures.
-pub const INTEGRATION_TESTS_SUDO_MOCK: Item<IntegrationTestsSudoMock> =
+pub const INTEGRATION_TESTS_SUDO_FAILURE_MOCK: Item<IntegrationTestsSudoFailureMock> =
     Item::new("integration_tests_sudo_mock");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub enum IntegrationTestsSudoMock {
+#[serde(rename_all = "snake_case")]
+pub enum IntegrationTestsSudoFailureMock {
     Enabled,
+    EnabledInfiniteLoop,
     Disabled,
 }
+
+// just to do something in infinite loop
+pub const TEST_COUNTER_ITEM: Item<u64> = Item::new("test_counter");

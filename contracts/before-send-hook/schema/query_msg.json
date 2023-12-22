@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "sudo_result_block_before"
+      ],
+      "properties": {
+        "sudo_result_block_before": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "sudo_result_track_before"
+      ],
+      "properties": {
+        "sudo_result_track_before": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

@@ -46,6 +46,11 @@ pub enum ExecuteMsg {
         connection_id: String,
         update_period: u64,
     },
+    RegisterValidatorsSigningInfoQuery {
+        validators: Vec<String>,
+        connection_id: String,
+        update_period: u64,
+    },
     UpdateInterchainQuery {
         query_id: u64,
         new_keys: Option<Vec<KVKey>>,
@@ -84,6 +89,7 @@ pub enum QueryMsg {
     BankTotalSupply { query_id: u64 },
     DistributionFeePool { query_id: u64 },
     StakingValidators { query_id: u64 },
+    ValidatorsSigningInfos { query_id: u64 },
     GovernmentProposals { query_id: u64 },
     GetDelegations { query_id: u64 },
     GetRegisteredQuery { query_id: u64 },

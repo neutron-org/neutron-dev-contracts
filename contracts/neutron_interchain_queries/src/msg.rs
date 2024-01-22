@@ -46,6 +46,12 @@ pub enum ExecuteMsg {
         connection_id: String,
         update_period: u64,
     },
+    RegisterDelegatorUnbondingDelegationsQuery {
+        delegator: String,
+        validators: Vec<String>,
+        connection_id: String,
+        update_period: u64,
+    },
     RegisterValidatorsSigningInfoQuery {
         validators: Vec<String>,
         connection_id: String,
@@ -92,6 +98,7 @@ pub enum QueryMsg {
     ValidatorsSigningInfos { query_id: u64 },
     GovernmentProposals { query_id: u64 },
     GetDelegations { query_id: u64 },
+    GetUnbondingDelegations { query_id: u64 },
     GetRegisteredQuery { query_id: u64 },
     GetRecipientTxs { recipient: String },
     KvCallbackStats { query_id: u64 },

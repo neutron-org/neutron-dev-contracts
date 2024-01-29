@@ -1,6 +1,7 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, TestArg};
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult,
 };
 
 use cw2::set_contract_version;
@@ -41,7 +42,7 @@ pub fn execute(
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::TestMsg { arg } => to_binary(&query_test_msg(deps, env, arg)?),
+        QueryMsg::TestMsg { arg } => to_json_binary(&query_test_msg(deps, env, arg)?),
     }
 }
 

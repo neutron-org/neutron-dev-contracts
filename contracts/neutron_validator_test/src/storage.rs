@@ -1,4 +1,4 @@
-use cosmwasm_std::{from_binary, to_vec, Binary, StdResult, Storage};
+use cosmwasm_std::{from_json, to_json_vec, Binary, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use neutron_sdk::bindings::msg::IbcFee;
 use schemars::JsonSchema;
@@ -57,12 +57,12 @@ pub enum AcknowledgementResult {
 }
 
 pub fn save_reply_payload(store: &mut dyn Storage, payload: SudoPayload) -> StdResult<()> {
-    REPLY_ID_STORAGE.save(store, &to_vec(&payload)?)
+    REPLY_ID_STORAGE.save(store, &to_json_vec(&payload)?)
 }
 
 pub fn read_reply_payload(store: &dyn Storage) -> StdResult<SudoPayload> {
     let data = REPLY_ID_STORAGE.load(store)?;
-    from_binary(&Binary(data))
+    from_json(Binary(data))
 }
 
 pub fn read_sudo_payload(
@@ -71,7 +71,7 @@ pub fn read_sudo_payload(
     seq_id: u64,
 ) -> StdResult<SudoPayload> {
     let data = SUDO_PAYLOAD.load(store, (channel_id, seq_id))?;
-    from_binary(&Binary(data))
+    from_json(Binary(data))
 }
 
 pub fn save_sudo_payload(
@@ -80,5 +80,5 @@ pub fn save_sudo_payload(
     seq_id: u64,
     payload: SudoPayload,
 ) -> StdResult<()> {
-    SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_vec(&payload)?)
+    SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_json_vec(&payload)?)
 }

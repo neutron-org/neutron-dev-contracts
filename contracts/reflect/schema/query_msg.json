@@ -70,6 +70,72 @@
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
       "type": "string"
     },
+    "IbcQuery": {
+      "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. These will return errors if the contract is not \"ibc enabled\"",
+      "oneOf": [
+        {
+          "description": "Gets the Port ID the current contract is bound to.\n\nReturns a `PortIdResponse`.",
+          "type": "object",
+          "required": [
+            "port_id"
+          ],
+          "properties": {
+            "port_id": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Lists all channels that are bound to a given port. If `port_id` is omitted, this list all channels bound to the contract's port.\n\nReturns a `ListChannelsResponse`.",
+          "type": "object",
+          "required": [
+            "list_channels"
+          ],
+          "properties": {
+            "list_channels": {
+              "type": "object",
+              "properties": {
+                "port_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Lists all information for a (portID, channelID) pair. If port_id is omitted, it will default to the contract's own channel. (To save a PortId{} call)\n\nReturns a `ChannelResponse`.",
+          "type": "object",
+          "required": [
+            "channel"
+          ],
+          "properties": {
+            "channel": {
+              "type": "object",
+              "required": [
+                "channel_id"
+              ],
+              "properties": {
+                "channel_id": {
+                  "type": "string"
+                },
+                "port_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "InterchainQueries": {
       "oneOf": [
         {
@@ -241,13 +307,44 @@
           "additionalProperties": false
         },
         {
+          "description": "A Stargate query is encoded the same way as abci_query, with path and protobuf encoded request data. The format is defined in [ADR-21](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-021-protobuf-query-encoding.md). The response is protobuf encoded data directly without a JSON response wrapper. The caller is responsible for compiling the proper protobuf definitions for both requests and responses.",
           "type": "object",
           "required": [
-            "staking"
+            "stargate"
           ],
           "properties": {
-            "staking": {
-              "$ref": "#/definitions/StakingQuery"
+            "stargate": {
+              "type": "object",
+              "required": [
+                "data",
+                "path"
+              ],
+              "properties": {
+                "data": {
+                  "description": "this is the expected protobuf message type (not any), binary encoded",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/Binary"
+                    }
+                  ]
+                },
+                "path": {
+                  "description": "this is the fully qualified service path used for routing, eg. custom/cosmos_sdk.x.bank.v1.Query/QueryBalance",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "ibc"
+          ],
+          "properties": {
+            "ibc": {
+              "$ref": "#/definitions/IbcQuery"
             }
           },
           "additionalProperties": false
@@ -260,104 +357,6 @@
           "properties": {
             "wasm": {
               "$ref": "#/definitions/WasmQuery"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "StakingQuery": {
-      "oneOf": [
-        {
-          "description": "Returns the denomination that can be bonded (if there are multiple native tokens on the chain)",
-          "type": "object",
-          "required": [
-            "bonded_denom"
-          ],
-          "properties": {
-            "bonded_denom": {
-              "type": "object"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "AllDelegations will return all delegations by the delegator",
-          "type": "object",
-          "required": [
-            "all_delegations"
-          ],
-          "properties": {
-            "all_delegations": {
-              "type": "object",
-              "required": [
-                "delegator"
-              ],
-              "properties": {
-                "delegator": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Delegation will return more detailed info on a particular delegation, defined by delegator/validator pair",
-          "type": "object",
-          "required": [
-            "delegation"
-          ],
-          "properties": {
-            "delegation": {
-              "type": "object",
-              "required": [
-                "delegator",
-                "validator"
-              ],
-              "properties": {
-                "delegator": {
-                  "type": "string"
-                },
-                "validator": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns all validators in the currently active validator set.\n\nThe query response type is `AllValidatorsResponse`.",
-          "type": "object",
-          "required": [
-            "all_validators"
-          ],
-          "properties": {
-            "all_validators": {
-              "type": "object"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns the validator at the given address. Returns None if the validator is not part of the currently active validator set.\n\nThe query response type is `ValidatorResponse`.",
-          "type": "object",
-          "required": [
-            "validator"
-          ],
-          "properties": {
-            "validator": {
-              "type": "object",
-              "required": [
-                "address"
-              ],
-              "properties": {
-                "address": {
-                  "description": "The validator's address (e.g. (e.g. cosmosvaloper1...))",
-                  "type": "string"
-                }
-              }
             }
           },
           "additionalProperties": false

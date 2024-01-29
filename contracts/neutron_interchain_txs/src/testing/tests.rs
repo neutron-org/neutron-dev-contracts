@@ -18,7 +18,7 @@ use crate::{
     storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE},
 };
 use cosmwasm_std::{
-    from_binary,
+    from_json,
     testing::{
         mock_dependencies as cw_mock_dependencies, mock_env, mock_info, MockApi, MockQuerier,
         MockStorage,
@@ -43,7 +43,7 @@ fn test_query_errors_queue() {
     let mut deps = mock_dependencies();
 
     let result = query_errors_queue(deps.as_ref()).unwrap();
-    let result: Vec<(Vec<u8>, String)> = from_binary(&result).unwrap();
+    let result: Vec<(Vec<u8>, String)> = from_json(result).unwrap();
 
     assert_eq!(0, result.len());
 
@@ -54,7 +54,7 @@ fn test_query_errors_queue() {
         .unwrap();
 
     let result = query_errors_queue(deps.as_ref()).unwrap();
-    let result: Vec<(Vec<u8>, String)> = from_binary(&result).unwrap();
+    let result: Vec<(Vec<u8>, String)> = from_json(result).unwrap();
 
     assert_eq!(1, result.len());
 }

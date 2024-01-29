@@ -1,7 +1,7 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg, SudoResResponse};
 use crate::state::{SUDO_RES_BLOCK, SUDO_RES_TRACK};
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 
 #[entry_point]
@@ -30,8 +30,12 @@ pub fn execute(
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::SudoResultBlockBefore {} => to_binary(&query_sudo_result_block_before(deps)?),
-        QueryMsg::SudoResultTrackBefore {} => to_binary(&query_sudo_result_track_before(deps)?),
+        QueryMsg::SudoResultBlockBefore {} => {
+            to_json_binary(&query_sudo_result_block_before(deps)?)
+        }
+        QueryMsg::SudoResultTrackBefore {} => {
+            to_json_binary(&query_sudo_result_track_before(deps)?)
+        }
     }
 }
 

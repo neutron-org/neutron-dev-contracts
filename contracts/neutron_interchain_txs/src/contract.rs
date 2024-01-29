@@ -19,7 +19,7 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::{
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coins, to_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
+    coins, to_json_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
     MessageInfo, Reply, ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
@@ -89,7 +89,7 @@ pub fn instantiate(
 ) -> NeutronResult<Response<NeutronMsg>> {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    REGISTER_FEE.save(deps.storage, &coins(1000, "untrn"))?;
+    REGISTER_FEE.save(deps.storage, &coins(1_000_000, "untrn"))?;
     Ok(Response::default())
 }
 
@@ -219,7 +219,7 @@ pub fn query_interchain_address(
     };
 
     let res: QueryInterchainAccountAddressResponse = deps.querier.query(&query.into())?;
-    Ok(to_binary(&res)?)
+    Ok(to_json_binary(&res)?)
 }
 
 pub fn query_interchain_address_contract(
@@ -227,7 +227,11 @@ pub fn query_interchain_address_contract(
     env: Env,
     interchain_account_id: String,
 ) -> NeutronResult<Binary> {
-    Ok(to_binary(&get_ica(deps, &env, &interchain_account_id)?)?)
+    Ok(to_json_binary(&get_ica(
+        deps,
+        &env,
+        &interchain_account_id,
+    )?)?)
 }
 
 pub fn query_acknowledgement_result(
@@ -238,7 +242,7 @@ pub fn query_acknowledgement_result(
 ) -> NeutronResult<Binary> {
     let port_id = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     let res = ACKNOWLEDGEMENT_RESULTS.may_load(deps.storage, (port_id, sequence_id))?;
-    Ok(to_binary(&res)?)
+    Ok(to_json_binary(&res)?)
 }
 
 pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
@@ -254,12 +258,12 @@ pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<
         })
         .collect::<StdResult<Vec<AcknowledgementResultsResponse>>>()?;
 
-    Ok(to_binary(&results)?)
+    Ok(to_json_binary(&results)?)
 }
 
 pub fn query_errors_queue(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
     let res = read_errors_from_queue(deps.storage)?;
-    Ok(to_binary(&res)?)
+    Ok(to_json_binary(&res)?)
 }
 
 fn msg_with_sudo_callback<C: Into<CosmosMsg<T>>, T>(
@@ -541,7 +545,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
             id: SUDO_FAILING_SUBMSG_REPLY_ID,
             msg: CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
                 contract_addr: env.contract.address.to_string(),
-                msg: to_binary(&ExecuteMsg::IntegrationTestsSudoSubmsg {})?,
+                msg: to_json_binary(&ExecuteMsg::IntegrationTestsSudoSubmsg {})?,
                 funds: vec![],
             }),
             gas_limit: None,

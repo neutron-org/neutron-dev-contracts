@@ -1,7 +1,7 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{
-    coins, entry_point, to_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
-    Response, StdResult,
+    coins, entry_point, to_json_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env,
+    MessageInfo, Response, StdResult,
 };
 use neutron_sdk::query::token_factory::query_before_send_hook;
 use neutron_sdk::{
@@ -62,9 +62,11 @@ pub fn query(deps: Deps<NeutronQuery>, _env: Env, msg: QueryMsg) -> NeutronResul
         QueryMsg::FullDenom {
             creator_addr,
             subdenom,
-        } => to_binary(&query_full_denom(deps, creator_addr, subdenom)?)?,
-        QueryMsg::DenomAdmin { subdenom } => to_binary(&query_denom_admin(deps, subdenom)?)?,
-        QueryMsg::BeforeSendHook { denom } => to_binary(&query_before_send_hook(deps, denom)?)?,
+        } => to_json_binary(&query_full_denom(deps, creator_addr, subdenom)?)?,
+        QueryMsg::DenomAdmin { subdenom } => to_json_binary(&query_denom_admin(deps, subdenom)?)?,
+        QueryMsg::BeforeSendHook { denom } => {
+            to_json_binary(&query_before_send_hook(deps, denom)?)?
+        }
     })
 }
 

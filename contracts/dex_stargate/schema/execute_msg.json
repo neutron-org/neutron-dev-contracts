@@ -1,0 +1,275 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "deposit"
+      ],
+      "properties": {
+        "deposit": {
+          "type": "object",
+          "required": [
+            "amounts_a",
+            "amounts_b",
+            "fees",
+            "options",
+            "receiver",
+            "tick_indexes_a_to_b",
+            "token_a",
+            "token_b"
+          ],
+          "properties": {
+            "amounts_a": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "amounts_b": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "fees": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/DepositOptions"
+              }
+            },
+            "receiver": {
+              "type": "string"
+            },
+            "tick_indexes_a_to_b": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            },
+            "token_a": {
+              "type": "string"
+            },
+            "token_b": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "withdrawal"
+      ],
+      "properties": {
+        "withdrawal": {
+          "type": "object",
+          "required": [
+            "fees",
+            "receiver",
+            "shares_to_remove",
+            "tick_indexes_a_to_b",
+            "token_a",
+            "token_b"
+          ],
+          "properties": {
+            "fees": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "receiver": {
+              "type": "string"
+            },
+            "shares_to_remove": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "tick_indexes_a_to_b": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            },
+            "token_a": {
+              "type": "string"
+            },
+            "token_b": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "place_limit_order"
+      ],
+      "properties": {
+        "place_limit_order": {
+          "type": "object",
+          "required": [
+            "amount_in",
+            "order_type",
+            "receiver",
+            "tick_index_in_to_out",
+            "token_in",
+            "token_out"
+          ],
+          "properties": {
+            "amount_in": {
+              "type": "string"
+            },
+            "expiration_time": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "max_amount_out": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "order_type": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "receiver": {
+              "type": "string"
+            },
+            "tick_index_in_to_out": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "token_in": {
+              "type": "string"
+            },
+            "token_out": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "withdraw_filled_limit_order"
+      ],
+      "properties": {
+        "withdraw_filled_limit_order": {
+          "type": "object",
+          "required": [
+            "tranche_key"
+          ],
+          "properties": {
+            "tranche_key": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "cancel_limit_order"
+      ],
+      "properties": {
+        "cancel_limit_order": {
+          "type": "object",
+          "required": [
+            "tranche_key"
+          ],
+          "properties": {
+            "tranche_key": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "multi_hop_swap"
+      ],
+      "properties": {
+        "multi_hop_swap": {
+          "type": "object",
+          "required": [
+            "amount_in",
+            "exit_limit_price",
+            "pick_best_route",
+            "receiver",
+            "routes"
+          ],
+          "properties": {
+            "amount_in": {
+              "type": "string"
+            },
+            "exit_limit_price": {
+              "type": "string"
+            },
+            "pick_best_route": {
+              "type": "boolean"
+            },
+            "receiver": {
+              "type": "string"
+            },
+            "routes": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "DepositOptions": {
+      "type": "object",
+      "required": [
+        "disable_autoswap"
+      ],
+      "properties": {
+        "disable_autoswap": {
+          "description": "Autoswap provides a mechanism for users to deposit the entirety of their specified deposit amounts by paying a small fee. By default the `autoswap` option is enabled.",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

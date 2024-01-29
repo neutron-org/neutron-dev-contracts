@@ -24,7 +24,8 @@ use crate::state::{
 use cosmos_sdk_proto::cosmos::bank::v1beta1::MsgSend;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult,
 };
 use cw2::set_contract_version;
 use neutron_sdk::bindings::msg::NeutronMsg;
@@ -48,7 +49,6 @@ use neutron_sdk::interchain_queries::v045::{
 use neutron_sdk::sudo::msg::SudoMsg;
 use neutron_sdk::{NeutronError, NeutronResult};
 use prost::Message as ProstMessage;
-use serde_json_wasm;
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
 const MAX_ALLOWED_TRANSFER: u64 = 20000;
@@ -279,24 +279,24 @@ pub fn remove_interchain_query(query_id: u64) -> NeutronResult<Response<NeutronM
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
         //TODO: check if query.result.height is too old (for all interchain queries)
-        QueryMsg::Balance { query_id } => Ok(to_binary(&query_balance(deps, env, query_id)?)?),
+        QueryMsg::Balance { query_id } => Ok(to_json_binary(&query_balance(deps, env, query_id)?)?),
         QueryMsg::BankTotalSupply { query_id } => {
-            Ok(to_binary(&query_bank_total(deps, env, query_id)?)?)
+            Ok(to_json_binary(&query_bank_total(deps, env, query_id)?)?)
         }
-        QueryMsg::DistributionFeePool { query_id } => Ok(to_binary(&query_distribution_fee_pool(
+        QueryMsg::DistributionFeePool { query_id } => Ok(to_json_binary(
+            &query_distribution_fee_pool(deps, env, query_id)?,
+        )?),
+        QueryMsg::StakingValidators { query_id } => Ok(to_json_binary(&query_staking_validators(
             deps, env, query_id,
         )?)?),
-        QueryMsg::StakingValidators { query_id } => {
-            Ok(to_binary(&query_staking_validators(deps, env, query_id)?)?)
-        }
-        QueryMsg::GovernmentProposals { query_id } => Ok(to_binary(&query_government_proposals(
-            deps, env, query_id,
-        )?)?),
+        QueryMsg::GovernmentProposals { query_id } => Ok(to_json_binary(
+            &query_government_proposals(deps, env, query_id)?,
+        )?),
         QueryMsg::GetDelegations { query_id } => {
-            Ok(to_binary(&query_delegations(deps, env, query_id)?)?)
+            Ok(to_json_binary(&query_delegations(deps, env, query_id)?)?)
         }
         QueryMsg::GetRegisteredQuery { query_id } => {
-            Ok(to_binary(&get_registered_query(deps, query_id)?)?)
+            Ok(to_json_binary(&get_registered_query(deps, query_id)?)?)
         }
         QueryMsg::GetRecipientTxs { recipient } => query_recipient_txs(deps, recipient),
         QueryMsg::GetTransfersNumber {} => query_transfers_number(deps),
@@ -308,18 +308,20 @@ fn query_recipient_txs(deps: Deps<NeutronQuery>, recipient: String) -> NeutronRe
     let txs = RECIPIENT_TXS
         .load(deps.storage, &recipient)
         .unwrap_or_default();
-    Ok(to_binary(&GetRecipientTxsResponse { transfers: txs })?)
+    Ok(to_json_binary(&GetRecipientTxsResponse { transfers: txs })?)
 }
 
 /// Returns the number of transfers made on remote chain and queried with ICQ
 fn query_transfers_number(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
     let transfers_number = TRANSFERS.load(deps.storage).unwrap_or_default();
-    Ok(to_binary(&GetTransfersAmountResponse { transfers_number })?)
+    Ok(to_json_binary(&GetTransfersAmountResponse {
+        transfers_number,
+    })?)
 }
 
 /// Returns block height of last KV query callback execution
 pub fn query_kv_callback_stats(deps: Deps<NeutronQuery>, query_id: u64) -> NeutronResult<Binary> {
-    Ok(to_binary(&KvCallbackStatsResponse {
+    Ok(to_json_binary(&KvCallbackStatsResponse {
         last_update_height: KV_CALLBACK_STATS
             .may_load(deps.storage, query_id)?
             .unwrap_or(0),

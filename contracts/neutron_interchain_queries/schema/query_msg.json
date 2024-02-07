@@ -137,6 +137,28 @@
     {
       "type": "object",
       "required": [
+        "government_proposal_votes"
+      ],
+      "properties": {
+        "government_proposal_votes": {
+          "type": "object",
+          "required": [
+            "query_id"
+          ],
+          "properties": {
+            "query_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "get_delegations"
       ],
       "properties": {

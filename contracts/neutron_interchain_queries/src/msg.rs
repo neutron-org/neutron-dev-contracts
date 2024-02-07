@@ -34,6 +34,12 @@ pub enum ExecuteMsg {
         proposals_ids: Vec<u64>,
         update_period: u64,
     },
+    RegisterGovernmentProposalVotesQuery {
+        connection_id: String,
+        proposals_ids: Vec<u64>,
+        voters: Vec<String>,
+        update_period: u64,
+    },
     RegisterTransfersQuery {
         connection_id: String,
         update_period: u64,
@@ -97,6 +103,7 @@ pub enum QueryMsg {
     StakingValidators { query_id: u64 },
     ValidatorsSigningInfos { query_id: u64 },
     GovernmentProposals { query_id: u64 },
+    GovernmentProposalVotes { query_id: u64 },
     GetDelegations { query_id: u64 },
     GetUnbondingDelegations { query_id: u64 },
     GetRegisteredQuery { query_id: u64 },

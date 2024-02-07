@@ -100,6 +100,18 @@ pub fn execute(
             proposals_ids,
             update_period,
         } => register_gov_proposal_query(connection_id, proposals_ids, update_period),
+        ExecuteMsg::RegisterGovernmentProposalVotesQuery {
+            connection_id,
+            proposals_ids,
+            voters,
+            update_period,
+        } => register_gov_proposal_votes_query(
+            deps,
+            connection_id,
+            proposals_ids,
+            voters,
+            update_period,
+        ),
         ExecuteMsg::RegisterStakingValidatorsQuery {
             connection_id,
             validators,
@@ -190,6 +202,26 @@ pub fn register_gov_proposal_query(
     update_period: u64,
 ) -> NeutronResult<Response<NeutronMsg>> {
     let msg = new_register_gov_proposal_query_msg(connection_id, proposals_ids, update_period)?;
+
+    Ok(Response::new().add_message(msg))
+}
+
+pub fn register_gov_proposal_votes_query(
+    deps: DepsMut<NeutronQuery>,
+    connection_id: String,
+    proposals_ids: Vec<u64>,
+    voters: Vec<String>,
+    update_period: u64,
+) -> NeutronResult<Response<NeutronMsg>> {
+    deps.api
+        .debug("WASMDEBUG: register_gov_proposal_votes_query");
+
+    let msg = new_register_gov_proposal_votes_query_msg(
+        connection_id,
+        proposals_ids,
+        voters,
+        update_period,
+    )?;
 
     Ok(Response::new().add_message(msg))
 }
@@ -340,6 +372,9 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
         )?),
         QueryMsg::GovernmentProposals { query_id } => Ok(to_json_binary(
             &query_government_proposals(deps, env, query_id)?,
+        )?),
+        QueryMsg::GovernmentProposalVotes { query_id } => Ok(to_json_binary(
+            &query_government_proposal_votes(deps, env, query_id)?,
         )?),
         QueryMsg::GetDelegations { query_id } => {
             Ok(to_json_binary(&query_delegations(deps, env, query_id)?)?)

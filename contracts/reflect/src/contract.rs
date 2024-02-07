@@ -1,9 +1,10 @@
 use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
 use cosmwasm_std::{
-    entry_point, to_json_binary, to_json_vec, Binary, ContractResult, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, SystemResult,
+    entry_point, to_json_binary, to_json_vec, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
+    Env, MessageInfo, QueryRequest, Response, StdError, StdResult, SystemResult,
 };
 use cw2::set_contract_version;
+use neutron_sdk::bindings::msg::NeutronMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -30,16 +31,27 @@ pub fn instantiate(
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Send { to: String, amount: u128 },
+    ReflectMsg { msgs: Vec<CosmosMsg<NeutronMsg>> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
 #[entry_point]
-pub fn execute(deps: DepsMut, _env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+pub fn execute(
+    deps: DepsMut,
+    _env: Env,
+    _: MessageInfo,
+    msg: ExecuteMsg,
+) -> StdResult<Response<NeutronMsg>> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
-    Ok(Response::default())
+    match msg {
+        ExecuteMsg::Send { .. } => {
+            unimplemented!()
+        }
+        ExecuteMsg::ReflectMsg { msgs } => Ok(Response::default().add_messages(msgs)),
+    }
 }
 
 #[entry_point]

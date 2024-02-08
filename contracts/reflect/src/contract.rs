@@ -1,7 +1,7 @@
 use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
 use cosmwasm_std::{
     entry_point, to_json_binary, to_json_vec, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
-    Env, MessageInfo, QueryRequest, Response, StdError, StdResult, SystemResult,
+    Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, SystemResult,
 };
 use cw2::set_contract_version;
 use neutron_sdk::bindings::msg::NeutronMsg;
@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {}
 use neutron_sdk::sudo::msg::SudoMsg;
+
+const REFLECT_REPLY_ID: u64 = 0;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -50,7 +52,13 @@ pub fn execute(
         ExecuteMsg::Send { .. } => {
             unimplemented!()
         }
-        ExecuteMsg::ReflectMsg { msgs } => Ok(Response::default().add_messages(msgs)),
+        ExecuteMsg::ReflectMsg { msgs } => {
+            let submsgs = msgs
+                .into_iter()
+                .map(|m| SubMsg::reply_on_success(m, REFLECT_REPLY_ID));
+
+            Ok(Response::default().add_submessages(submsgs))
+        }
     }
 }
 
@@ -58,6 +66,18 @@ pub fn execute(
 pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Reflect(payload) => to_json_binary(&query_with_payload(deps, env, payload)?),
+    }
+}
+
+#[entry_point]
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
+    match msg.id {
+        REFLECT_REPLY_ID => {
+            Ok(Response::default().set_data(msg.result.unwrap().data.unwrap_or_default()))
+        }
+        _ => {
+            unimplemented!()
+        }
     }
 }
 

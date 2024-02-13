@@ -122,7 +122,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "schemars",
  "serde",
 ]
@@ -325,15 +325,18 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
 name = "dex"
 version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
- "neutron-sdk 0.7.0",
-=======
+ "neutron-sdk 0.8.0",
+ "schemars",
+ "serde",
+]
+
+[[package]]
 name = "dex_stargate"
 version = "0.1.0"
 dependencies = [
@@ -341,10 +344,9 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "prost 0.12.3",
  "prost-types 0.12.3",
->>>>>>> main
  "schemars",
  "serde",
 ]
@@ -536,7 +538,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.0",
@@ -585,7 +587,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "schemars",
  "serde",
 ]
@@ -604,8 +606,6 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46f60e477bd71007d9ff78ae020ec1c6b3b47798578af6151429434d86472efc"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",
@@ -616,94 +616,31 @@ dependencies = [
  "protobuf",
  "schemars",
  "serde",
-<<<<<<< HEAD
- "serde-json-wasm",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "neutron-sdk"
-version = "0.6.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=sdk/47#9626f3086418a04b61b6ef0af8f1721810cf5eba"
-dependencies = [
- "base64",
- "bech32",
- "cosmos-sdk-proto 0.16.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus",
- "prost 0.11.9",
- "protobuf",
- "schemars",
- "serde",
- "serde-json-wasm",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "neutron-sdk"
-version = "0.6.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?rev=bb2188561a30d0a7fb293ff05f73907724eb2020#bb2188561a30d0a7fb293ff05f73907724eb2020"
-dependencies = [
- "base64",
- "bech32",
- "cosmos-sdk-proto 0.16.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus",
- "prost 0.11.9",
- "protobuf",
- "schemars",
- "serde",
- "serde-json-wasm",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "neutron-sdk"
-version = "0.7.0"
-dependencies = [
- "base64",
- "bech32",
- "cosmos-sdk-proto 0.16.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus",
- "prost 0.11.9",
- "protobuf",
- "schemars",
- "serde",
- "serde-json-wasm",
+ "serde-json-wasm 1.0.0",
  "serde_json",
  "serde_repr",
+ "speedate",
+ "tendermint-proto 0.34.0",
  "thiserror",
 ]
 
 [[package]]
 name = "neutron-sdk"
-version = "0.7.0"
-source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=7249d5369dc04b189434de0c42d55aad6cbb61ec#7249d5369dc04b189434de0c42d55aad6cbb61ec"
+version = "0.8.0"
+source = "git+https://github.com/neutron-org/neutron-sdk.git#40f6592f1eec9e2e1bf0e0531a011294d70d1711"
 dependencies = [
- "base64",
  "bech32",
- "cosmos-sdk-proto 0.16.0",
+ "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus",
- "prost 0.11.9",
+ "prost 0.12.3",
+ "prost-types 0.12.3",
  "protobuf",
  "schemars",
  "serde",
- "serde-json-wasm",
- "serde_json",
-=======
  "serde-json-wasm 1.0.0",
  "speedate",
  "tendermint-proto 0.34.0",
->>>>>>> main
  "thiserror",
 ]
 
@@ -717,7 +654,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "prost 0.12.3",
  "schemars",
  "serde",
@@ -733,16 +670,9 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus",
  "cw2",
-<<<<<<< HEAD
- "neutron-sdk 0.7.0 (git+https://github.com/neutron-org/neutron-sdk.git?rev=7249d5369dc04b189434de0c42d55aad6cbb61ec)",
- "prost 0.11.9",
- "prost-types",
- "protobuf",
-=======
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "prost 0.12.3",
  "prost-types 0.12.3",
->>>>>>> main
  "schemars",
  "serde",
  "serde-json-wasm 1.0.0",
@@ -757,7 +687,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.0",
@@ -970,7 +900,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "schemars",
  "serde",
 ]
@@ -1126,8 +1056,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3081f5ffbb02284dda55132aa26daecedd7372a42417bbbab6f14ab7d6bb9145"
 dependencies = [
  "proc-macro2",
- "quote 1.0.33",
- "syn 2.0.37",
+ "quote",
+ "syn 2.0.39",
 ]
 
 [[package]]
@@ -1192,7 +1122,7 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "osmosis-std",
  "prost 0.11.9",
  "schemars",
@@ -1354,7 +1284,7 @@ version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "neutron-sdk",
+ "neutron-sdk 0.8.0 (git+https://github.com/neutron-org/neutron-sdk.git)",
  "schemars",
  "serde",
 ]

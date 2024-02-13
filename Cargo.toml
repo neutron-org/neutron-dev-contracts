@@ -13,7 +13,7 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-neutron-sdk = "0.8.0"
+neutron-sdk = { git = "https://github.com/neutron-org/neutron-sdk.git", commit = "3f3a89ecfaabb69bdaee02f0a0c3a9ce7c57891b" }
 prost = "0.12.1"
 prost-types = "0.12.1"
 cosmos-sdk-proto = { version = "0.20.0", default-features = false }

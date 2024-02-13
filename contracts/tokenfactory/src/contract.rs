@@ -52,6 +52,32 @@ pub fn execute(
             amount: coins(amount.u128(), denom),
         }
         .into(),
+        ExecuteMsg::ForceTransfer {
+            denom,
+            amount,
+            from,
+            to,
+        } => NeutronMsg::submit_force_transfer(denom, amount, from, to).into(),
+        ExecuteMsg::SetDenomMetadata {
+            description,
+            denom_units,
+            base,
+            display,
+            name,
+            symbol,
+            uri,
+            uri_hash,
+        } => NeutronMsg::submit_set_denom_metadata(
+            description,
+            denom_units,
+            base,
+            display,
+            name,
+            symbol,
+            uri,
+            uri_hash,
+        )
+        .into(),
     };
     Ok(Response::new().add_message(msg))
 }

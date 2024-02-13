@@ -1,15 +1,18 @@
 use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
 use cosmwasm_std::{
-    entry_point, to_json_binary, to_json_vec, Binary, ContractResult, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, SystemResult,
+    entry_point, to_json_binary, to_json_vec, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
+    Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, SystemResult,
 };
 use cw2::set_contract_version;
+use neutron_sdk::bindings::msg::NeutronMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {}
 use neutron_sdk::sudo::msg::SudoMsg;
+
+const REFLECT_REPLY_ID: u64 = 0;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -30,22 +33,51 @@ pub fn instantiate(
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Send { to: String, amount: u128 },
+    ReflectMsg { msgs: Vec<CosmosMsg<NeutronMsg>> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
 #[entry_point]
-pub fn execute(deps: DepsMut, _env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+pub fn execute(
+    deps: DepsMut,
+    _env: Env,
+    _: MessageInfo,
+    msg: ExecuteMsg,
+) -> StdResult<Response<NeutronMsg>> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
-    Ok(Response::default())
+    match msg {
+        ExecuteMsg::Send { .. } => {
+            unimplemented!()
+        }
+        ExecuteMsg::ReflectMsg { msgs } => {
+            let submsgs = msgs
+                .into_iter()
+                .map(|m| SubMsg::reply_on_success(m, REFLECT_REPLY_ID));
+
+            Ok(Response::default().add_submessages(submsgs))
+        }
+    }
 }
 
 #[entry_point]
 pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Reflect(payload) => to_json_binary(&query_with_payload(deps, env, payload)?),
+    }
+}
+
+#[entry_point]
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
+    match msg.id {
+        REFLECT_REPLY_ID => {
+            Ok(Response::default().set_data(msg.result.unwrap().data.unwrap_or_default()))
+        }
+        _ => {
+            unimplemented!()
+        }
     }
 }
 

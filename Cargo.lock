@@ -594,8 +594,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46f60e477bd71007d9ff78ae020ec1c6b3b47798578af6151429434d86472efc"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#398d4624976eb44f8573c0ecf698b9e0b0e41b00"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

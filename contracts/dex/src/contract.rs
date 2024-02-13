@@ -1,7 +1,6 @@
-use crate::query::{ChainResponse, InterchainQueries};
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, Binary, ContractResult, CosmosMsg, Deps, DepsMut, Env,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, SystemResult,
+    entry_point, to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response,
+    StdResult,
 };
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -15,11 +14,11 @@ use neutron_sdk::{
         query::{
             AllInactiveLimitOrderTrancheResponse, AllLimitOrderTrancheResponse,
             AllLimitOrderTrancheUserResponse, AllPoolMetadataResponse, AllPoolReservesResponse,
-            AllTickLiquidityResponse, AllUserDepositsResponse, DexQuery,
-            EstimateMultiHopSwapResponse, EstimatePlaceLimitOrderResponse,
+            AllTickLiquidityResponse, AllUserDepositsResponse, AllUserLimitOrdersResponse,
+            DexQuery, EstimateMultiHopSwapResponse, EstimatePlaceLimitOrderResponse,
             InactiveLimitOrderTrancheResponse, LimitOrderTrancheResponse,
             LimitOrderTrancheUserResponse, NeutronQuery, ParamsResponse, PoolMetadataResponse,
-            PoolReservesResponse, PoolResponse, AllUserLimitOrdersResponse,
+            PoolReservesResponse, PoolResponse,
         },
     },
     sudo::msg::SudoMsg,
@@ -79,80 +78,79 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
     match msg {
         DexQuery::Params {} => {
             let query_response: ParamsResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::LimitOrderTrancheUser { .. } => {
             let query_response: LimitOrderTrancheUserResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::LimitOrderTrancheUserAll { .. } => {
             let query_response: AllLimitOrderTrancheUserResponse =
                 deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::LimitOrderTrancheUserAllByAddress { .. } => {
-            let query_response: AllUserLimitOrdersResponse =
-                deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            let query_response: AllUserLimitOrdersResponse = deps.querier.query(&msg.into())?;
+            to_json_binary(&query_response)
         }
         DexQuery::LimitOrderTranche { .. } => {
             let query_response: LimitOrderTrancheResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::LimitOrderTrancheAll { .. } => {
             let query_response: AllLimitOrderTrancheResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::UserDepositAll { .. } => {
             let query_response: AllUserDepositsResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::TickLiquidityAll { .. } => {
             let query_response: AllTickLiquidityResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::InactiveLimitOrderTranche { .. } => {
             let query_response: InactiveLimitOrderTrancheResponse =
                 deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::InactiveLimitOrderTrancheAll { .. } => {
             let query_response: AllInactiveLimitOrderTrancheResponse =
                 deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::PoolReservesAll { .. } => {
             let query_response: AllPoolReservesResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::PoolReserves { .. } => {
             let query_response: PoolReservesResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::EstimateMultiHopSwap { .. } => {
             let query_response: EstimateMultiHopSwapResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::EstimatePlaceLimitOrder { .. } => {
             let query_response: EstimatePlaceLimitOrderResponse =
                 deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::Pool { .. } => {
             let query_response: PoolResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::PoolByID { .. } => {
             let query_response: PoolResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::PoolMetadata { .. } => {
             let query_response: PoolMetadataResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
         DexQuery::PoolMetadataAll { .. } => {
             let query_response: AllPoolMetadataResponse = deps.querier.query(&msg.into())?;
-            return to_binary(&query_response);
+            to_json_binary(&query_response)
         }
     }
 }

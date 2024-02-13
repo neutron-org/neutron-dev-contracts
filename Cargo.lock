@@ -606,7 +606,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.8.0"
-source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=3f3a89ecfaabb69bdaee02f0a0c3a9ce7c57891b#3f3a89ecfaabb69bdaee02f0a0c3a9ce7c57891b"
+source = "git+https://github.com/neutron-org/neutron-sdk.git?rev=26e49c95f707f252e283ac660e89d6d0d10b0545#26e49c95f707f252e283ac660e89d6d0d10b0545"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",
@@ -619,7 +619,6 @@ dependencies = [
  "serde",
  "serde-json-wasm 1.0.0",
  "serde_json",
- "serde_repr",
  "speedate",
  "tendermint-proto 0.34.0",
  "thiserror",
@@ -1028,17 +1027,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "serde_repr"
-version = "0.1.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3081f5ffbb02284dda55132aa26daecedd7372a42417bbbab6f14ab7d6bb9145"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.39",
 ]
 
 [[package]]

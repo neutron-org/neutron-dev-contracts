@@ -594,7 +594,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.8.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/missing-tokenfactory-bindings#05b05de6d1b4c559de283e064e79b1a632b0d0a1"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#398d4624976eb44f8573c0ecf698b9e0b0e41b00"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

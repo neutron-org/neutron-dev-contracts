@@ -1,4 +1,4 @@
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{DenomUnit, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +31,22 @@ pub enum ExecuteMsg {
     SetBeforeSendHook {
         denom: String,
         contract_addr: String,
+    },
+    ForceTransfer {
+        denom: String,
+        amount: Uint128,
+        from: String,
+        to: String,
+    },
+    SetDenomMetadata {
+        description: String,
+        denom_units: Vec<DenomUnit>,
+        base: String,
+        display: String,
+        name: String,
+        symbol: String,
+        uri: String,
+        uri_hash: String,
     },
 }
 

@@ -226,6 +226,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             AllUserDepositsRequest {
                 address,
                 pagination,
+                // TODO: make configurable and reflect this in integration tests
+                include_pool_data: false,
             },
         )?)?),
 

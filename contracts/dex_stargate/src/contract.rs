@@ -220,11 +220,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::AllUserDeposits {
             address,
+            include_pool_data,
             pagination,
         } => Ok(to_json_binary(&get_user_deposits_all(
             deps,
             AllUserDepositsRequest {
                 address,
+                include_pool_data,
                 pagination,
             },
         )?)?),

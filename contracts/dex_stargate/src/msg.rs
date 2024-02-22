@@ -80,6 +80,7 @@ pub enum QueryMsg {
     },
     AllUserDeposits {
         address: String,
+        include_pool_data: bool,
         pagination: Option<PageRequest>,
     },
     AllTickLiquidity {

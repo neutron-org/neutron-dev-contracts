@@ -8,20 +8,20 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {}
-use neutron_sdk::{
-    bindings::{
-        msg::{DexMsg, NeutronMsg},
-        query::{
-            AllInactiveLimitOrderTrancheResponse, AllLimitOrderTrancheResponse,
-            AllLimitOrderTrancheUserResponse, AllPoolMetadataResponse, AllPoolReservesResponse,
-            AllTickLiquidityResponse, AllUserDepositsResponse, AllUserLimitOrdersResponse,
-            DexQuery, EstimateMultiHopSwapResponse, EstimatePlaceLimitOrderResponse,
-            InactiveLimitOrderTrancheResponse, LimitOrderTrancheResponse,
-            LimitOrderTrancheUserResponse, NeutronQuery, ParamsResponse, PoolMetadataResponse,
-            PoolReservesResponse, PoolResponse,
-        },
+
+use neutron_sdk::bindings::{
+    dex::msg::DexMsg,
+    dex::query::{
+        AllInactiveLimitOrderTrancheResponse, AllLimitOrderTrancheResponse,
+        AllLimitOrderTrancheUserResponse, AllPoolMetadataResponse, AllPoolReservesResponse,
+        AllTickLiquidityResponse, AllUserDepositsResponse, AllUserLimitOrdersResponse, DexQuery,
+        EstimateMultiHopSwapResponse, EstimatePlaceLimitOrderResponse,
+        InactiveLimitOrderTrancheResponse, LimitOrderTrancheResponse,
+        LimitOrderTrancheUserResponse, ParamsResponse, PoolMetadataResponse, PoolReservesResponse,
+        PoolResponse,
     },
-    sudo::msg::SudoMsg,
+    msg::NeutronMsg,
+    query::NeutronQuery,
 };
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
@@ -38,15 +38,6 @@ pub fn instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     Ok(Response::default())
 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg {
-    Send { to: String, amount: u128 },
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct MigrateMsg {}
 
 #[entry_point]
 pub fn execute(
@@ -153,15 +144,4 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             to_json_binary(&query_response)
         }
     }
-}
-
-#[entry_point]
-pub fn sudo(_deps: DepsMut, _env: Env, _msg: SudoMsg) -> StdResult<Response> {
-    Ok(Response::default())
-}
-
-#[entry_point]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
-    deps.api.debug("WASMDEBUG: migrate");
-    Ok(Response::default())
 }

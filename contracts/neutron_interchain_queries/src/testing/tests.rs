@@ -23,6 +23,7 @@ use cosmos_sdk_proto::cosmos::distribution::v1beta1::FeePool as CosmosFeePool;
 use cosmos_sdk_proto::cosmos::gov::v1beta1::{
     Proposal as CosmosProposal, TallyResult as CosmosTallyResult,
 };
+use cosmos_sdk_proto::cosmos::slashing::v1beta1::ValidatorSigningInfo as CosmosValidatorSigningInfo;
 use cosmos_sdk_proto::cosmos::staking::v1beta1::Validator as CosmosValidator;
 use cosmos_sdk_proto::Any;
 use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockStorage};
@@ -42,15 +43,15 @@ use neutron_sdk::interchain_queries::types::{
 };
 use neutron_sdk::interchain_queries::v045::helpers::{
     create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
-    create_total_denom_key, create_validator_key,
+    create_total_denom_key, create_validator_key, create_validator_signing_info_key,
 };
 use neutron_sdk::interchain_queries::v045::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
-    TotalSupplyResponse, ValidatorResponse,
+    TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
 };
 use neutron_sdk::interchain_queries::v045::types::{
-    Balances, FeePool, GovernmentProposal, Proposal, StakingValidator, TallyResult, TotalSupply,
-    Validator, DECIMAL_PLACES, RECIPIENT_FIELD,
+    Balances, FeePool, GovernmentProposal, Proposal, SigningInfo, StakingValidator, TallyResult,
+    TotalSupply, Validator, ValidatorSigningInfo, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
 use prost::Message as ProstMessage;
@@ -164,6 +165,26 @@ fn build_interchain_query_staking_validator_value(validator: String) -> StorageV
         unbonding_time: None,
         commission: None,
         min_self_delegation: "1".to_string(),
+    };
+
+    StorageValue {
+        storage_prefix: "".to_string(),
+        key: Binary(validator_key),
+        value: Binary(validator.encode_to_vec()),
+    }
+}
+
+fn build_interchain_query_validator_signing_info_value(validator: String) -> StorageValue {
+    let operator_address = decode_and_convert(validator.as_str()).unwrap();
+    let validator_key = create_validator_signing_info_key(operator_address).unwrap();
+
+    let validator = CosmosValidatorSigningInfo {
+        address: validator,
+        start_height: 1,
+        index_offset: 1,
+        jailed_until: None,
+        tombstoned: false,
+        missed_blocks_counter: 987675,
     };
 
     StorageValue {
@@ -534,6 +555,7 @@ fn test_staking_validators_query() {
                     Validator {
                         operator_address: "cosmosvaloper132juzk0gdmwuxvx4phug7m3ymyatxlh9734g4w"
                             .to_string(),
+                        consensus_pubkey: Some(vec!()),
                         status: 1,
                         tokens: "1".to_string(),
                         jailed: false,
@@ -550,11 +572,11 @@ fn test_staking_validators_query() {
                         max_rate: None,
                         max_change_rate: None,
                         update_time: None,
-                        consensus_pubkey: Some(vec![]),
                     },
                     Validator {
                         operator_address: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0"
                             .to_string(),
+                        consensus_pubkey: Some(vec!()),
                         status: 1,
                         tokens: "1".to_string(),
                         jailed: false,
@@ -571,7 +593,74 @@ fn test_staking_validators_query() {
                         max_rate: None,
                         max_change_rate: None,
                         update_time: None,
-                        consensus_pubkey: Some(vec![]),
+                    }
+                ]
+            }
+        }
+    )
+}
+
+#[test]
+fn test_validators_signing_infos_query() {
+    let mut deps = dependencies(&[]);
+    let validators = vec![
+        "cosmosvalcons1yjf46k064988jdjje068zmrqg8xh4fqqe2wwnl".to_string(),
+        "cosmosvalcons16tnak7apushwznnd3wtku8gm0rt3xytz6ut006".to_string(),
+    ];
+
+    let msg = ExecuteMsg::RegisterValidatorsSigningInfoQuery {
+        connection_id: "connection".to_string(),
+        update_period: 10,
+        validators: validators.clone(),
+    };
+
+    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+
+    let registered_query =
+        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+
+    let mut kv_results: Vec<StorageValue> = vec![];
+
+    for validator in validators {
+        let value = build_interchain_query_validator_signing_info_value(validator);
+        kv_results.push(value);
+    }
+
+    let validators_response = QueryRegisteredQueryResultResponse {
+        result: InterchainQueryResult {
+            kv_results,
+            height: 0,
+            revision: 0,
+        },
+    };
+
+    deps.querier.add_registered_queries(1, registered_query);
+    deps.querier
+        .add_query_response(1, to_json_binary(&validators_response).unwrap());
+    let validators_signing_infos = QueryMsg::ValidatorsSigningInfos { query_id: 1 };
+    let resp: ValidatorSigningInfoResponse =
+        from_json(query(deps.as_ref(), mock_env(), validators_signing_infos).unwrap()).unwrap();
+    assert_eq!(
+        resp,
+        ValidatorSigningInfoResponse {
+            last_submitted_local_height: 987,
+            signing_infos: SigningInfo {
+                signing_infos: vec![
+                    ValidatorSigningInfo {
+                        address: "cosmosvalcons1yjf46k064988jdjje068zmrqg8xh4fqqe2wwnl".to_string(),
+                        start_height: 1,
+                        index_offset: 1,
+                        jailed_until: None,
+                        tombstoned: false,
+                        missed_blocks_counter: 987675,
+                    },
+                    ValidatorSigningInfo {
+                        address: "cosmosvalcons16tnak7apushwznnd3wtku8gm0rt3xytz6ut006".to_string(),
+                        start_height: 1,
+                        index_offset: 1,
+                        jailed_until: None,
+                        tombstoned: false,
+                        missed_blocks_counter: 987675,
                     }
                 ]
             }

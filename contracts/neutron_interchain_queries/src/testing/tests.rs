@@ -550,6 +550,7 @@ fn test_staking_validators_query() {
                         max_rate: None,
                         max_change_rate: None,
                         update_time: None,
+                        consensus_pubkey: Some(vec![]),
                     },
                     Validator {
                         operator_address: "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0"
@@ -570,6 +571,7 @@ fn test_staking_validators_query() {
                         max_rate: None,
                         max_change_rate: None,
                         update_time: None,
+                        consensus_pubkey: Some(vec![]),
                     }
                 ]
             }

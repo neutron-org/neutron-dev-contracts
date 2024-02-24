@@ -152,7 +152,7 @@ checksum = "32560304ab4c365791fd307282f76637213d8083c1a98490c35159cd67852237"
 dependencies = [
  "prost 0.12.3",
  "prost-types 0.12.3",
- "tendermint-proto 0.34.0",
+ "tendermint-proto 0.34.1",
 ]
 
 [[package]]
@@ -603,7 +603,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.8.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#68420318b07be21e3882a3eebc60574237536159"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/v047-icq#cc9ea0e322780f73b3410c7885b70a2fdbd1ab8e"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",
@@ -616,7 +616,7 @@ dependencies = [
  "serde",
  "serde-json-wasm 1.0.1",
  "speedate",
- "tendermint-proto 0.34.0",
+ "tendermint-proto 0.34.1",
  "thiserror",
 ]
 
@@ -1186,9 +1186,9 @@ dependencies = [
 
 [[package]]
 name = "tendermint-proto"
-version = "0.34.0"
+version = "0.34.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cc728a4f9e891d71adf66af6ecaece146f9c7a11312288a3107b3e1d6979aaf"
+checksum = "b797dd3d2beaaee91d2f065e7bdf239dc8d80bba4a183a288bc1279dd5a69a1e"
 dependencies = [
  "bytes",
  "flex-error",

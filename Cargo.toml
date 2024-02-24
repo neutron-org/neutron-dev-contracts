@@ -13,14 +13,14 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-neutron-sdk = { git = "https://github.com/neutron-org/neutron-sdk", branch = "main" }
+neutron-sdk = { git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/v047-icq" }
 prost = "0.12.1"
 prost-types = "0.12.1"
 cosmos-sdk-proto = { version = "0.20.0", default-features = false }
 cosmwasm-std = { version = "1.4.1", features = [
     "stargate",
     "staking",
-    "cosmwasm_1_1", 
+    "cosmwasm_1_1",
     "cosmwasm_1_2"
 ] }
 cw2 = "1.1.1"

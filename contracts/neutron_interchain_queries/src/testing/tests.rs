@@ -230,7 +230,7 @@ fn build_interchain_query_gov_proposal_value(proposal_id: u64) -> StorageValue {
 fn build_interchain_query_balance_response(addr: Addr, denom: String, amount: String) -> Binary {
     let converted_addr_bytes = decode_and_convert(addr.as_str()).unwrap();
 
-    let balance_key = create_account_denom_balance_key(converted_addr_bytes, &denom).unwrap();
+    let balance_key = create_account_denom_balance_key(converted_addr_bytes, denom).unwrap();
 
     let s = StorageValue {
         storage_prefix: "".to_string(),

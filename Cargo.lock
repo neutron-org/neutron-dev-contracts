@@ -719,8 +719,8 @@ dependencies = [
 
 [[package]]
 name = "neutron-sdk"
-version = "0.9.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#8645132d09229f717d13bcc5fd74b0886c0c9c31"
+version = "0.8.0"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/proposal-votes#1cbef1ae0dde2a4a96ad01c94b9bc878d94976f3"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",
@@ -732,7 +732,6 @@ dependencies = [
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
- "serde_json",
  "speedate",
  "tendermint-proto 0.34.1",
  "thiserror",

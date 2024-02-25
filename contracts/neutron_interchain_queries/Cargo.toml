@@ -21,7 +21,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-cosmwasm-std = { workspace = true }
+cosmwasm-std = { workspace = true, features = ["stargate", "staking"] }
 cw2 = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }

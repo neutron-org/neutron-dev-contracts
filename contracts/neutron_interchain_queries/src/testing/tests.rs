@@ -44,15 +44,17 @@ use neutron_sdk::interchain_queries::types::{
 };
 use neutron_sdk::interchain_queries::v045::helpers::{
     create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
-    create_total_denom_key, create_validator_key, create_validator_signing_info_key,
+    create_gov_proposal_votes_key, create_total_denom_key, create_validator_key,
+    create_validator_signing_info_key,
 };
 use neutron_sdk::interchain_queries::v045::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
-    TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
+    ProposalVotesResponse, TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
 };
 use neutron_sdk::interchain_queries::v045::types::{
-    Balances, FeePool, GovernmentProposal, Proposal, SigningInfo, StakingValidator, TallyResult,
-    TotalSupply, Validator, ValidatorSigningInfo, DECIMAL_PLACES, RECIPIENT_FIELD,
+    Balances, FeePool, GovernmentProposal, GovernmentProposalVotes, Proposal, ProposalVote,
+    SigningInfo, StakingValidator, TallyResult, TotalSupply, Validator, ValidatorSigningInfo,
+    WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
 use prost::Message as ProstMessage;

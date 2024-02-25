@@ -37,10 +37,12 @@ use neutron_sdk::interchain_queries::types::{
 };
 use neutron_sdk::interchain_queries::v045::queries::{
     query_balance, query_bank_total, query_delegations, query_distribution_fee_pool,
-    query_government_proposals, query_staking_validators, query_unbonding_delegations,
-    query_validators_signing_infos,
+    query_government_proposal_votes, query_government_proposals, query_staking_validators,
+    query_unbonding_delegations, query_validators_signing_infos,
 };
-use neutron_sdk::interchain_queries::v045::register_queries::new_register_validators_signing_infos_query_msg;
+use neutron_sdk::interchain_queries::v045::register_queries::{
+    new_register_gov_proposal_votes_query_msg, new_register_validators_signing_infos_query_msg,
+};
 use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
 use neutron_sdk::interchain_queries::v045::{
     new_register_balance_query_msg, new_register_bank_total_supply_query_msg,

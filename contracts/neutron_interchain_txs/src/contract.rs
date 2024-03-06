@@ -626,7 +626,7 @@ fn sudo_response(
         let item_type = item.msg_type.as_str();
         item_types.push(item_type.to_string());
         match item_type {
-            "/cosmos.staking.v1beta1.MsgUndelegate" => {
+            "/cosmos.staking.v1beta1.MsgUndelegateResponse" => {
                 let out: MsgUndelegateResponse = decode_message_response(&item.data)?;
 
                 let completion_time = out.completion_time.or_else(|| {
@@ -639,7 +639,7 @@ fn sudo_response(
                 deps.api
                     .debug(format!("Undelegation completion time: {:?}", completion_time).as_str());
             }
-            "/cosmos.staking.v1beta1.MsgDelegate" => {
+            "/cosmos.staking.v1beta1.MsgDelegateResponse" => {
                 let _out: MsgDelegateResponse = decode_message_response(&item.data)?;
             }
             _ => {

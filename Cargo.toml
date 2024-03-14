@@ -20,7 +20,7 @@ cosmos-sdk-proto = { version = "0.20.0", default-features = false }
 cosmwasm-std = { version = "1.4.1", features = [
     "stargate",
     "staking",
-    "cosmwasm_1_1", 
+    "cosmwasm_1_1",
     "cosmwasm_1_2"
 ] }
 cw2 = "1.1.1"

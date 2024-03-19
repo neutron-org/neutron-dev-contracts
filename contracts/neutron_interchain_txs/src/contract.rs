@@ -37,9 +37,8 @@ use crate::msg::{
 use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
 use neutron_sdk::bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse};
 use neutron_sdk::bindings::types::ProtobufAny;
-use neutron_sdk::interchain_txs::helpers::{
-    decode_acknowledgement_response, decode_message_response, get_port_id,
-};
+use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
+use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::NeutronResult;
 
@@ -623,11 +622,11 @@ fn sudo_response(
 
     let mut item_types = vec![];
     for item in parsed_data {
-        let item_type = item.msg_type.as_str();
+        let item_type = item.type_url.as_str();
         item_types.push(item_type.to_string());
         match item_type {
-            "/cosmos.staking.v1beta1.MsgUndelegate" => {
-                let out: MsgUndelegateResponse = decode_message_response(&item.data)?;
+            "/cosmos.staking.v1beta1.MsgUndelegateResponse" => {
+                let out: MsgUndelegateResponse = decode_message_response(&item.value)?;
 
                 let completion_time = out.completion_time.or_else(|| {
                     let error_msg = "WASMDEBUG: sudo_response: Recoverable error. Failed to get completion time";
@@ -639,8 +638,8 @@ fn sudo_response(
                 deps.api
                     .debug(format!("Undelegation completion time: {:?}", completion_time).as_str());
             }
-            "/cosmos.staking.v1beta1.MsgDelegate" => {
-                let _out: MsgDelegateResponse = decode_message_response(&item.data)?;
+            "/cosmos.staking.v1beta1.MsgDelegateResponse" => {
+                let _out: MsgDelegateResponse = decode_message_response(&item.value)?;
             }
             _ => {
                 deps.api.debug(

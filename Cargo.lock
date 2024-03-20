@@ -325,6 +325,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "dex"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw2",
+ "neutron-sdk",
+ "schemars",
+ "serde",
+]
+
+[[package]]
 name = "dex_stargate"
 version = "0.1.0"
 dependencies = [
@@ -602,8 +614,8 @@ dependencies = [
 
 [[package]]
 name = "neutron-sdk"
-version = "0.8.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#ebdffb37fb63837649d22f5493355a40450cd2d9"
+version = "0.9.0"
+source = "git+https://github.com/neutron-org/neutron-sdk.git?branch=main#8645132d09229f717d13bcc5fd74b0886c0c9c31"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",
@@ -615,6 +627,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
+ "serde_json",
  "speedate",
  "tendermint-proto 0.34.1",
  "thiserror",
@@ -810,7 +823,7 @@ dependencies = [
  "itertools 0.11.0",
  "proc-macro2",
  "quote",
- "syn 2.0.52",
+ "syn 2.0.53",
 ]
 
 [[package]]
@@ -1006,7 +1019,7 @@ checksum = "7eb0b34b42edc17f6b7cac84a52a1c5f0e1bb2227e997ca9011ea3dd34e8610b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.52",
+ "syn 2.0.53",
 ]
 
 [[package]]
@@ -1126,7 +1139,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
- "syn 2.0.52",
+ "syn 2.0.53",
 ]
 
 [[package]]
@@ -1157,9 +1170,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.52"
+version = "2.0.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b699d15b36d1f02c3e7c69f8ffef53de37aefae075d8488d4ba1a7788d574a07"
+checksum = "7383cd0e49fff4b6b90ca5670bfd3e9d6a733b3f90c686605aa7eec8c4996032"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1219,7 +1232,7 @@ checksum = "c61f3ba182994efc43764a46c018c347bc492c79f024e705f46567b418f6d4f7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.52",
+ "syn 2.0.53",
 ]
 
 [[package]]

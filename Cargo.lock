@@ -615,7 +615,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.9.0"
-source = "git+https://github.com/neutron-org/neutron-sdk.git?branch=feat/cw-dex-bindings#ee81d282ed2967c1616f87353083363598097df8"
+source = "git+https://github.com/neutron-org/neutron-sdk.git?branch=main#8645132d09229f717d13bcc5fd74b0886c0c9c31"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

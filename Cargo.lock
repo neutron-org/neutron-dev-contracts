@@ -189,8 +189,8 @@ version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32560304ab4c365791fd307282f76637213d8083c1a98490c35159cd67852237"
 dependencies = [
- "prost 0.12.3",
- "prost-types 0.12.3",
+ "prost 0.12.4",
+ "prost-types 0.12.4",
  "tendermint-proto 0.34.1",
 ]
 
@@ -441,8 +441,8 @@ dependencies = [
  "cosmwasm-std",
  "cw2",
  "neutron-sdk",
- "prost 0.12.3",
- "prost-types 0.12.3",
+ "prost 0.12.4",
+ "prost-types 0.12.4",
  "schemars",
  "serde",
 ]
@@ -726,8 +726,8 @@ dependencies = [
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema",
  "cosmwasm-std",
- "prost 0.12.3",
- "prost-types 0.12.3",
+ "prost 0.12.4",
+ "prost-types 0.12.4",
  "protobuf",
  "schemars",
  "serde",
@@ -749,7 +749,7 @@ dependencies = [
  "cw-storage-plus",
  "cw2",
  "neutron-sdk",
- "prost 0.12.3",
+ "prost 0.12.4",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
@@ -765,8 +765,8 @@ dependencies = [
  "cw-storage-plus",
  "cw2",
  "neutron-sdk",
- "prost 0.12.3",
- "prost-types 0.12.3",
+ "prost 0.12.4",
+ "prost-types 0.12.4",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
@@ -897,9 +897,9 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "146c289cda302b98a28d40c8b3b90498d6e526dd24ac2ecea73e4e491685b94a"
+checksum = "d0f5d036824e4761737860779c906171497f6d55681139d8312388f8fe398922"
 dependencies = [
  "bytes",
  "prost-derive 0.12.4",
@@ -942,11 +942,11 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "193898f59edcf43c26227dcd4c8427f00d99d61e95dcde58dabd49fa291d470e"
+checksum = "3235c33eb02c1f1e212abdbe34c78b264b038fb58ca612664343271e36e55ffe"
 dependencies = [
- "prost 0.12.3",
+ "prost 0.12.4",
 ]
 
 [[package]]
@@ -1312,8 +1312,8 @@ dependencies = [
  "flex-error",
  "num-derive",
  "num-traits",
- "prost 0.12.3",
- "prost-types 0.12.3",
+ "prost 0.12.4",
+ "prost-types 0.12.4",
  "serde",
  "serde_bytes",
  "subtle-encoding",

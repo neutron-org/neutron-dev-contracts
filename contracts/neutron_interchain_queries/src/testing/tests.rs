@@ -52,8 +52,9 @@ use neutron_sdk::interchain_queries::v047::queries::{
     ProposalVotesResponse, TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
 };
 use neutron_sdk::interchain_queries::v047::types::{
-    Balances, FeePool, GovernmentProposal, Proposal, SigningInfo, StakingValidator, TallyResult,
-    TotalSupply, Validator, ValidatorSigningInfo, DECIMAL_PLACES, RECIPIENT_FIELD,
+    Balances, FeePool, GovernmentProposal, GovernmentProposalVotes, Proposal, ProposalVote,
+    SigningInfo, StakingValidator, TallyResult, TotalSupply, Validator, ValidatorSigningInfo,
+    WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
 use prost::Message as ProstMessage;
@@ -477,10 +478,10 @@ fn test_gov_proposals_query() {
                         voting_end_time: None,
                         voting_start_time: None,
                         final_tally_result: Some(TallyResult {
-                            abstain: "0".to_string(),
-                            yes: "0".to_string(),
-                            no: "0".to_string(),
-                            no_with_veto: "0".to_string(),
+                            abstain: Uint128::zero(),
+                            yes: Uint128::zero(),
+                            no: Uint128::zero(),
+                            no_with_veto: Uint128::zero(),
                         }),
                     },
                     Proposal {
@@ -496,10 +497,10 @@ fn test_gov_proposals_query() {
                         voting_end_time: None,
                         voting_start_time: None,
                         final_tally_result: Some(TallyResult {
-                            abstain: "0".to_string(),
-                            yes: "0".to_string(),
-                            no: "0".to_string(),
-                            no_with_veto: "0".to_string(),
+                            abstain: Uint128::zero(),
+                            yes: Uint128::zero(),
+                            no: Uint128::zero(),
+                            no_with_veto: Uint128::zero(),
                         }),
                     },
                     Proposal {
@@ -515,10 +516,10 @@ fn test_gov_proposals_query() {
                         voting_end_time: None,
                         voting_start_time: None,
                         final_tally_result: Some(TallyResult {
-                            abstain: "0".to_string(),
-                            yes: "0".to_string(),
-                            no: "0".to_string(),
-                            no_with_veto: "0".to_string(),
+                            abstain: Uint128::zero(),
+                            yes: Uint128::zero(),
+                            no: Uint128::zero(),
+                            no_with_veto: Uint128::zero(),
                         }),
                     },
                 ]

@@ -14,8 +14,8 @@ overflow-checks = true
 
 [workspace.dependencies]
 neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/proposal-votes" }
-prost = "0.12.1"
-prost-types = "0.12.1"
+prost = "=0.12.3"
+prost-types = "=0.12.3"
 cosmos-sdk-proto = { version = "0.20.0", default-features = false }
 cosmwasm-std = { version = "1.4.1", features = [
     "stargate",

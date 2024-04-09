@@ -1,0 +1,30 @@
+[package]
+name = "balance-tracker"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+library = []
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = "z"
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+strip = true
+
+[dependencies]
+cw2 = "1"
+cosmwasm-std = "1.5"
+cw-storage-plus = "1.2"
+cosmwasm-schema = "1.5"
+thiserror = "1"
+astroport = { git = "https://github.com/astroport-fi/astroport-core", version = "4" }

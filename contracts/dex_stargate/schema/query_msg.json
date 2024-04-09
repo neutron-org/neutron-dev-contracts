@@ -168,11 +168,15 @@
         "all_user_deposits": {
           "type": "object",
           "required": [
-            "address"
+            "address",
+            "include_pool_data"
           ],
           "properties": {
             "address": {
               "type": "string"
+            },
+            "include_pool_data": {
+              "type": "boolean"
             },
             "pagination": {
               "anyOf": [

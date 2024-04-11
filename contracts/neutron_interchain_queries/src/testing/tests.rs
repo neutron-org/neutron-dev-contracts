@@ -21,7 +21,8 @@ use base64::prelude::*;
 use cosmos_sdk_proto::cosmos::base::v1beta1::{Coin as CosmosCoin, DecCoin as CosmosDecCoin};
 use cosmos_sdk_proto::cosmos::distribution::v1beta1::FeePool as CosmosFeePool;
 use cosmos_sdk_proto::cosmos::gov::v1beta1::{
-    Proposal as CosmosProposal, TallyResult as CosmosTallyResult,
+    Proposal as CosmosProposal, TallyResult as CosmosTallyResult, Vote,
+    WeightedVoteOption as CosmosWeightedVoteOption,
 };
 use cosmos_sdk_proto::cosmos::slashing::v1beta1::ValidatorSigningInfo as CosmosValidatorSigningInfo;
 use cosmos_sdk_proto::cosmos::staking::v1beta1::Validator as CosmosValidator;
@@ -43,15 +44,17 @@ use neutron_sdk::interchain_queries::types::{
 };
 use neutron_sdk::interchain_queries::v047::helpers::{
     create_account_denom_balance_key, create_fee_pool_key, create_gov_proposal_key,
-    create_total_denom_key, create_validator_key, create_validator_signing_info_key,
+    create_gov_proposal_votes_key, create_total_denom_key, create_validator_key,
+    create_validator_signing_info_key,
 };
 use neutron_sdk::interchain_queries::v047::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
-    TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
+    ProposalVotesResponse, TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
 };
 use neutron_sdk::interchain_queries::v047::types::{
-    Balances, FeePool, GovernmentProposal, Proposal, SigningInfo, StakingValidator, TallyResult,
-    TotalSupply, Validator, ValidatorSigningInfo, DECIMAL_PLACES, RECIPIENT_FIELD,
+    Balances, FeePool, GovernmentProposal, GovernmentProposalVotes, Proposal, ProposalVote,
+    SigningInfo, StakingValidator, TallyResult, TotalSupply, Validator, ValidatorSigningInfo,
+    WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
 use prost::Message as ProstMessage;
@@ -224,6 +227,27 @@ fn build_interchain_query_gov_proposal_value(proposal_id: u64) -> StorageValue {
         storage_prefix: "".to_string(),
         key: Binary(proposal_key),
         value: Binary(proposal.encode_to_vec()),
+    }
+}
+
+#[allow(deprecated)]
+fn build_interchain_query_gov_proposal_votes_value(proposal_id: u64) -> StorageValue {
+    let votes_key = create_gov_proposal_votes_key(proposal_id).unwrap();
+
+    let vote = Vote {
+        proposal_id,
+        voter: "cosmos1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+        option: 0,
+        options: vec![CosmosWeightedVoteOption {
+            weight: "1000000000000000000".to_string(),
+            option: 1,
+        }],
+    };
+
+    StorageValue {
+        storage_prefix: "".to_string(),
+        key: Binary(votes_key),
+        value: Binary(vote.encode_to_vec()),
     }
 }
 
@@ -454,10 +478,10 @@ fn test_gov_proposals_query() {
                         voting_end_time: None,
                         voting_start_time: None,
                         final_tally_result: Some(TallyResult {
-                            abstain: "0".to_string(),
-                            yes: "0".to_string(),
-                            no: "0".to_string(),
-                            no_with_veto: "0".to_string(),
+                            abstain: Uint128::zero(),
+                            yes: Uint128::zero(),
+                            no: Uint128::zero(),
+                            no_with_veto: Uint128::zero(),
                         }),
                     },
                     Proposal {
@@ -473,10 +497,10 @@ fn test_gov_proposals_query() {
                         voting_end_time: None,
                         voting_start_time: None,
                         final_tally_result: Some(TallyResult {
-                            abstain: "0".to_string(),
-                            yes: "0".to_string(),
-                            no: "0".to_string(),
-                            no_with_veto: "0".to_string(),
+                            abstain: Uint128::zero(),
+                            yes: Uint128::zero(),
+                            no: Uint128::zero(),
+                            no_with_veto: Uint128::zero(),
                         }),
                     },
                     Proposal {
@@ -492,14 +516,94 @@ fn test_gov_proposals_query() {
                         voting_end_time: None,
                         voting_start_time: None,
                         final_tally_result: Some(TallyResult {
-                            abstain: "0".to_string(),
-                            yes: "0".to_string(),
-                            no: "0".to_string(),
-                            no_with_veto: "0".to_string(),
+                            abstain: Uint128::zero(),
+                            yes: Uint128::zero(),
+                            no: Uint128::zero(),
+                            no_with_veto: Uint128::zero(),
                         }),
                     },
                 ]
             },
+        }
+    )
+}
+
+#[test]
+fn test_gov_proposal_votes_query() {
+    let mut deps = dependencies(&[]);
+
+    let proposals_ids = vec![1, 2, 3];
+
+    let msg = ExecuteMsg::RegisterGovernmentProposalVotesQuery {
+        connection_id: "connection".to_string(),
+        proposals_ids: proposals_ids.clone(),
+        voters: vec![
+            "osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+            "osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+            "osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+        ],
+        update_period: 10,
+    };
+
+    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+
+    let registered_query =
+        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 325);
+
+    let mut kv_results: Vec<StorageValue> = vec![];
+
+    for id in proposals_ids {
+        let value = build_interchain_query_gov_proposal_votes_value(id);
+        kv_results.push(value);
+    }
+
+    let proposals_votes_response = QueryRegisteredQueryResultResponse {
+        result: InterchainQueryResult {
+            kv_results,
+            height: 0,
+            revision: 0,
+        },
+    };
+
+    deps.querier.add_registered_queries(1, registered_query);
+    deps.querier
+        .add_query_response(1, to_json_binary(&proposals_votes_response).unwrap());
+
+    let government_proposal_votes = QueryMsg::GovernmentProposalVotes { query_id: 1 };
+    let resp: ProposalVotesResponse =
+        from_json(query(deps.as_ref(), mock_env(), government_proposal_votes).unwrap()).unwrap();
+    assert_eq!(
+        resp,
+        ProposalVotesResponse {
+            last_submitted_local_height: 325,
+            votes: GovernmentProposalVotes {
+                proposal_votes: vec![
+                    ProposalVote {
+                        proposal_id: 1,
+                        voter: "cosmos1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+                        options: vec![WeightedVoteOption {
+                            weight: "1000000000000000000".to_string(),
+                            option: 1,
+                        }],
+                    },
+                    ProposalVote {
+                        proposal_id: 2,
+                        voter: "cosmos1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+                        options: vec![WeightedVoteOption {
+                            weight: "1000000000000000000".to_string(),
+                            option: 1,
+                        }],
+                    },
+                    ProposalVote {
+                        proposal_id: 3,
+                        voter: "cosmos1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs".to_string(),
+                        options: vec![WeightedVoteOption {
+                            weight: "1000000000000000000".to_string(),
+                            option: 1,
+                        }],
+                    }
+                ]
+            }
         }
     )
 }

@@ -37,16 +37,19 @@ use neutron_sdk::interchain_queries::types::{
 };
 use neutron_sdk::interchain_queries::v047::queries::{
     query_balance, query_bank_total, query_delegations, query_distribution_fee_pool,
-    query_government_proposals, query_staking_validators, query_unbonding_delegations,
-    query_validators_signing_infos,
+    query_government_proposal_votes, query_government_proposals, query_staking_validators,
+    query_unbonding_delegations, query_validators_signing_infos,
 };
-use neutron_sdk::interchain_queries::v047::register_queries::new_register_validators_signing_infos_query_msg;
 use neutron_sdk::interchain_queries::v047::register_queries::{
     new_register_balance_query_msg, new_register_bank_total_supply_query_msg,
     new_register_delegator_delegations_query_msg,
     new_register_delegator_unbonding_delegations_query_msg,
-    new_register_distribution_fee_pool_query_msg, new_register_gov_proposal_query_msg,
+    new_register_distribution_fee_pool_query_msg, new_register_gov_proposals_query_msg,
     new_register_staking_validators_query_msg, new_register_transfers_query_msg,
+};
+use neutron_sdk::interchain_queries::v047::register_queries::{
+    new_register_gov_proposals_voters_votes_query_msg,
+    new_register_validators_signing_infos_query_msg,
 };
 use neutron_sdk::interchain_queries::v047::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
 use neutron_sdk::sudo::msg::SudoMsg;
@@ -100,6 +103,18 @@ pub fn execute(
             proposals_ids,
             update_period,
         } => register_gov_proposal_query(connection_id, proposals_ids, update_period),
+        ExecuteMsg::RegisterGovernmentProposalVotesQuery {
+            connection_id,
+            proposals_ids,
+            voters,
+            update_period,
+        } => register_gov_proposal_votes_query(
+            deps,
+            connection_id,
+            proposals_ids,
+            voters,
+            update_period,
+        ),
         ExecuteMsg::RegisterStakingValidatorsQuery {
             connection_id,
             validators,
@@ -189,7 +204,27 @@ pub fn register_gov_proposal_query(
     proposals_ids: Vec<u64>,
     update_period: u64,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg = new_register_gov_proposal_query_msg(connection_id, proposals_ids, update_period)?;
+    let msg = new_register_gov_proposals_query_msg(connection_id, proposals_ids, update_period)?;
+
+    Ok(Response::new().add_message(msg))
+}
+
+pub fn register_gov_proposal_votes_query(
+    deps: DepsMut<NeutronQuery>,
+    connection_id: String,
+    proposals_ids: Vec<u64>,
+    voters: Vec<String>,
+    update_period: u64,
+) -> NeutronResult<Response<NeutronMsg>> {
+    deps.api
+        .debug("WASMDEBUG: register_gov_proposal_votes_query");
+
+    let msg = new_register_gov_proposals_voters_votes_query_msg(
+        connection_id,
+        proposals_ids,
+        voters,
+        update_period,
+    )?;
 
     Ok(Response::new().add_message(msg))
 }
@@ -340,6 +375,9 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
         )?),
         QueryMsg::GovernmentProposals { query_id } => Ok(to_json_binary(
             &query_government_proposals(deps, env, query_id)?,
+        )?),
+        QueryMsg::GovernmentProposalVotes { query_id } => Ok(to_json_binary(
+            &query_government_proposal_votes(deps, env, query_id)?,
         )?),
         QueryMsg::GetDelegations { query_id } => {
             Ok(to_json_binary(&query_delegations(deps, env, query_id)?)?)

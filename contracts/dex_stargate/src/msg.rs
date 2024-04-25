@@ -59,6 +59,7 @@ pub enum QueryMsg {
     GetLimitOrderTrancheUser {
         address: String,
         tranche_key: String,
+        calc_withdrawable_shares: bool,
     },
     AllLimitOrderTrancheUser {
         pagination: Option<PageRequest>,

@@ -711,7 +711,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=fix/pool_metadata_proto#f13148861d43ea11cb5be12838591174deaba6b7"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/sdk-50#7712cf1fa46c6e07fcf722bbd8f0d3ce165df02b"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

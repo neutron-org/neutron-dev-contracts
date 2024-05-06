@@ -12,7 +12,6 @@ pub struct InstantiateMsg {}
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {}
 
-
 use neutron_sdk::bindings::{
     msg::NeutronMsg,
     oracle::query::{
@@ -37,7 +36,12 @@ pub fn instantiate(
 }
 
 #[entry_point]
-pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg:ExecuteMsg) -> StdResult<Response<NeutronMsg>> {
+pub fn execute(
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _msg: ExecuteMsg,
+) -> StdResult<Response<NeutronMsg>> {
     Ok(Default::default())
 }
 
@@ -48,11 +52,11 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: OracleQuery) -> StdResult<
 
 fn query_oracle(deps: Deps<NeutronQuery>, _env: Env, msg: OracleQuery) -> StdResult<Binary> {
     match msg {
-        OracleQuery::GetPriceRequest { .. } => {
+        OracleQuery::GetPrice { .. } => {
             let query_response: GetPriceResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
-        OracleQuery::GetPricesRequest { .. } => {
+        OracleQuery::GetPrices { .. } => {
             let query_response: GetPricesResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }

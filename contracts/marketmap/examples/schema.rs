@@ -16,9 +16,8 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use dex::contract::InstantiateMsg;
-use neutron_sdk::bindings::dex::msg::DexMsg;
-use neutron_sdk::bindings::dex::query::DexQuery;
+use marketmap::contract::InstantiateMsg;
+use neutron_sdk::bindings::marketmap::query::MarketmapQuery;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -27,6 +26,5 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
-    export_schema(&schema_for!(DexMsg), &out_dir);
-    export_schema(&schema_for!(DexQuery), &out_dir);
+    export_schema(&schema_for!(MarketmapQuery), &out_dir);
 }

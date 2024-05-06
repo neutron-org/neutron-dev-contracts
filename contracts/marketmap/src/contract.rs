@@ -1,6 +1,5 @@
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -9,8 +8,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {}
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecuteMsg {}
+
+
 use neutron_sdk::bindings::{
-    marketmap::query::{ MarketmapQuery, GetLastUpdatedResponse, GetMarketMapResponse, ParamsResponse},
+    marketmap::query::{
+        GetLastUpdatedResponse, GetMarketMapResponse, MarketmapQuery, ParamsResponse,
+    },
     msg::NeutronMsg,
     query::NeutronQuery,
 };
@@ -31,11 +37,7 @@ pub fn instantiate(
 }
 
 #[entry_point]
-pub fn execute(
-    _deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-) -> StdResult<Response<NeutronMsg>> {
+pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: ExecuteMsg) -> StdResult<Response<NeutronMsg>> {
     Ok(Default::default())
 }
 
@@ -55,8 +57,7 @@ fn query_marketmap(deps: Deps<NeutronQuery>, _env: Env, msg: MarketmapQuery) -> 
             to_json_binary(&query_response)
         }
         MarketmapQuery::GetMarketMapRequest { .. } => {
-            let query_response: GetMarketMapResponse =
-                deps.querier.query(&msg.into())?;
+            let query_response: GetMarketMapResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
     }

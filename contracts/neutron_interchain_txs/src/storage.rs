@@ -23,6 +23,8 @@ pub struct DoubleDelegateInfo {
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 pub const SUDO_FAILING_SUBMSG_REPLY_ID: u64 = 2;
+// only used to make sure `sudo()` handler gets OpenAck message with correct port_id and channel_id
+pub const REGISTER_ICA_REPLY_ID: u64 = 3;
 
 pub const IBC_FEE: Item<IbcFee> = Item::new("ibc_fee");
 pub const REGISTER_FEE: Item<Vec<Coin>> = Item::new("register_fee");
@@ -30,6 +32,8 @@ pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
 pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");
 pub const INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =
     Map::new("interchain_accounts");
+// only used to make sure `sudo()` handler gets OpenAck message with correct port_id and channel_id
+pub const ICA_CHANNELS: Map<String, String> = Map::new("ica_channels");
 
 // interchain transaction responses - ack/err/timeout state to query later
 pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =

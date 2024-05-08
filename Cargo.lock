@@ -21,8 +21,8 @@ checksum = "f538837af36e6f6a9be0faa67f9a314f8119e4e4b5867c6ab40ed60360142519"
 
 [[package]]
 name = "astroport"
-version = "4.0.0"
-source = "git+https://github.com/astroport-fi/astroport-core#5a93d233dd2a786370444062a5655d825a7ca4f9"
+version = "4.0.2"
+source = "git+https://github.com/astroport-fi/astroport-core#73b269c33b57acaefe20fcd19e20c814077b14bb"
 dependencies = [
  "astroport-circular-buffer",
  "cosmwasm-schema",
@@ -38,7 +38,7 @@ dependencies = [
 [[package]]
 name = "astroport-circular-buffer"
 version = "0.2.0"
-source = "git+https://github.com/astroport-fi/astroport-core#5a93d233dd2a786370444062a5655d825a7ca4f9"
+source = "git+https://github.com/astroport-fi/astroport-core#73b269c33b57acaefe20fcd19e20c814077b14bb"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -711,7 +711,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/sdk-50#4b46de0cbf2a8175f782836c0b9f4f2d05a664e0"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/sdk-50#9f4c3d1e0f440e954a1f783139239b7e6287a61f"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

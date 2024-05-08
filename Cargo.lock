@@ -711,7 +711,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=chore/make-dex-changes-backwards-compatible#3038fd4455d4197d1b9bb4aac322764ce58ced40"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/sdk-50#4b46de0cbf2a8175f782836c0b9f4f2d05a664e0"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

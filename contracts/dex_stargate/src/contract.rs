@@ -162,11 +162,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::GetLimitOrderTrancheUser {
             address,
             tranche_key,
+            calc_withdrawable_shares,
         } => Ok(to_json_binary(&get_limit_order_tranche_user(
             deps,
             LimitOrderTrancheUserRequest {
                 address,
                 tranche_key,
+                calc_withdrawable_shares,
             },
         )?)?),
 

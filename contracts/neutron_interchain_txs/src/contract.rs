@@ -34,7 +34,9 @@ use crate::integration_tests_mock_handlers::{
 use crate::msg::{
     AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
+use neutron_sdk::bindings::msg::{
+    IbcFee, MsgRegisterInterchainAccountResponse, MsgSubmitTxResponse, NeutronMsg,
+};
 use neutron_sdk::bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse};
 use neutron_sdk::bindings::types::ProtobufAny;
 use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
@@ -46,9 +48,9 @@ use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
     save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
     IntegrationTestsSudoFailureMock, IntegrationTestsSudoSubmsgFailureMock, SudoPayload,
-    ACKNOWLEDGEMENT_RESULTS, IBC_FEE, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
+    ACKNOWLEDGEMENT_RESULTS, IBC_FEE, ICA_CHANNELS, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, REGISTER_FEE,
-    SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
+    REGISTER_ICA_REPLY_ID, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -313,7 +315,7 @@ fn execute_register_ica(
     );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
-    Ok(Response::new().add_message(register))
+    Ok(Response::new().add_submessage(SubMsg::reply_on_success(register, REGISTER_ICA_REPLY_ID)))
 }
 
 fn execute_delegate(
@@ -565,10 +567,16 @@ fn sudo_open_ack(
     deps: DepsMut,
     _env: Env,
     port_id: String,
-    _channel_id: String,
+    channel_id: String,
     _counterparty_channel_id: String,
     counterparty_version: String,
 ) -> StdResult<Response<NeutronMsg>> {
+    let expected_channel_id = ICA_CHANNELS.load(deps.storage, port_id.clone())?;
+
+    if channel_id != expected_channel_id {
+        return Err(StdError::generic_err("channel_id is not as expected"));
+    }
+
     let parsed_version: Result<OpenAckVersion, _> =
         serde_json_wasm::from_str(counterparty_version.as_str());
     if let Ok(parsed_version) = parsed_version {
@@ -800,6 +808,22 @@ fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<R
     Ok(Response::new())
 }
 
+fn prepare_register_ica(deps: DepsMut, msg: Reply) -> StdResult<Response> {
+    let resp: MsgRegisterInterchainAccountResponse = serde_json_wasm::from_slice(
+        msg.result
+            .into_result()
+            .map_err(StdError::generic_err)?
+            .data
+            .ok_or_else(|| StdError::generic_err("no result"))?
+            .as_slice(),
+    )
+    .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
+
+    ICA_CHANNELS.save(deps.storage, resp.port_id, &resp.channel_id)?;
+
+    Ok(Response::default())
+}
+
 fn get_ica(
     deps: Deps<impl CustomQuery>,
     env: &Env,
@@ -832,6 +856,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
             }
             Ok(Response::default())
         }
+        REGISTER_ICA_REPLY_ID => prepare_register_ica(deps, msg),
         _ => Err(StdError::generic_err(format!(
             "unsupported reply message id {}",
             msg.id

@@ -14,7 +14,7 @@ pub enum ExecuteMsg {}
 
 use neutron_sdk::bindings::{
     marketmap::query::{
-        GetLastUpdatedResponse, GetMarketMapResponse, MarketmapQuery, ParamsResponse,
+        LastUpdatedResponse, MarketMapResponse, MarketmapQuery, ParamsResponse,
     },
     msg::NeutronMsg,
     query::NeutronQuery,
@@ -56,12 +56,12 @@ fn query_marketmap(deps: Deps<NeutronQuery>, _env: Env, msg: MarketmapQuery) -> 
             let query_response: ParamsResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
-        MarketmapQuery::GetLastUpdated { .. } => {
-            let query_response: GetLastUpdatedResponse = deps.querier.query(&msg.into())?;
+        MarketmapQuery::LastUpdated { .. } => {
+            let query_response: LastUpdatedResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
-        MarketmapQuery::GetMarketMap { .. } => {
-            let query_response: GetMarketMapResponse = deps.querier.query(&msg.into())?;
+        MarketmapQuery::MarketMap { .. } => {
+            let query_response: MarketMapResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
     }

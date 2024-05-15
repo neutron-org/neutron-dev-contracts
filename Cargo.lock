@@ -744,7 +744,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk.git?branch=feat/slinky-bindings#e65052e1de948a7dcc182a968f65356718666373"
+source = "git+https://github.com/neutron-org/neutron-sdk.git?branch=feat/slinky-bindings#929d719a96ecc885fe357d91b8f4db94f9fc5c4f"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

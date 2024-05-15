@@ -13,9 +13,7 @@ pub struct InstantiateMsg {}
 pub enum ExecuteMsg {}
 
 use neutron_sdk::bindings::{
-    marketmap::query::{
-        LastUpdatedResponse, MarketMapResponse, MarketmapQuery, ParamsResponse,
-    },
+    marketmap::query::{LastUpdatedResponse, MarketMapResponse, MarketmapQuery, ParamsResponse},
     msg::NeutronMsg,
     query::NeutronQuery,
 };

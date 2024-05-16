@@ -12,8 +12,9 @@ pub struct InstantiateMsg {}
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {}
 
+use neutron_sdk::bindings::marketmap::query::MarketResponse;
 use neutron_sdk::bindings::{
-    marketmap::query::{LastUpdatedResponse, MarketMapResponse, MarketmapQuery, ParamsResponse},
+    marketmap::query::{LastUpdatedResponse, MarketMapQuery, MarketMapResponse, ParamsResponse},
     msg::NeutronMsg,
     query::NeutronQuery,
 };
@@ -44,22 +45,26 @@ pub fn execute(
 }
 
 #[entry_point]
-pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: MarketmapQuery) -> StdResult<Binary> {
+pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
     query_marketmap(deps, env, msg)
 }
 
-fn query_marketmap(deps: Deps<NeutronQuery>, _env: Env, msg: MarketmapQuery) -> StdResult<Binary> {
+fn query_marketmap(deps: Deps<NeutronQuery>, _env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
     match msg {
-        MarketmapQuery::Params { .. } => {
+        MarketMapQuery::Params { .. } => {
             let query_response: ParamsResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
-        MarketmapQuery::LastUpdated { .. } => {
+        MarketMapQuery::LastUpdated { .. } => {
             let query_response: LastUpdatedResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
-        MarketmapQuery::MarketMap { .. } => {
+        MarketMapQuery::MarketMap { .. } => {
             let query_response: MarketMapResponse = deps.querier.query(&msg.into())?;
+            to_json_binary(&query_response)
+        }
+        MarketMapQuery::Market { .. } => {
+            let query_response: MarketResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
     }

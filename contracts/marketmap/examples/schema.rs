@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use before_send_hook_test::msg::{InstantiateMsg, MigrateMsg, QueryMsg};
+use std::env::current_dir;
+use std::fs::create_dir_all;
+
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use std::{env::current_dir, fs::create_dir_all};
+use marketmap::contract::InstantiateMsg;
+use neutron_sdk::bindings::marketmap::query::MarketMapQuery;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -23,6 +26,5 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
-    export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(MigrateMsg), &out_dir);
+    export_schema(&schema_for!(MarketMapQuery), &out_dir);
 }

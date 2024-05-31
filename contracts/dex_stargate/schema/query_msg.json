@@ -24,11 +24,15 @@
           "type": "object",
           "required": [
             "address",
+            "calc_withdrawable_shares",
             "tranche_key"
           ],
           "properties": {
             "address": {
               "type": "string"
+            },
+            "calc_withdrawable_shares": {
+              "type": "boolean"
             },
             "tranche_key": {
               "type": "string"

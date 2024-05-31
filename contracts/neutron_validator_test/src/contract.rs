@@ -32,6 +32,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
 use neutron_sdk::bindings::query::{
     NeutronQuery, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
 };
@@ -40,15 +41,14 @@ use neutron_sdk::interchain_queries::queries::get_registered_query;
 use neutron_sdk::interchain_queries::types::{
     TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
-use neutron_sdk::interchain_queries::v045::new_register_transfers_query_msg;
 use neutron_sdk::interchain_queries::v045::queries::query_balance;
 use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
-use neutron_sdk::interchain_txs::helpers::{decode_acknowledgement_response, get_port_id};
-use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
-use neutron_sdk::{
-    bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg},
-    interchain_queries::v045::new_register_balances_query_msg,
+use neutron_sdk::interchain_queries::v045::{
+    new_register_balances_query_msg, new_register_transfers_query_msg,
 };
+use neutron_sdk::interchain_txs::helpers::get_port_id;
+use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
+use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::{NeutronError, NeutronResult};
 
 use crate::storage::{
@@ -614,7 +614,7 @@ fn sudo_response(
 
     let mut item_types = vec![];
     for item in parsed_data {
-        let item_type = item.msg_type.as_str();
+        let item_type = item.type_url.as_str();
         item_types.push(item_type.to_string());
     }
 

@@ -1,8 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "QueryMsg",
+  "title": "DexQuery",
   "oneOf": [
     {
+      "description": "Parameters queries the parameters of the module.",
       "type": "object",
       "required": [
         "params"
@@ -15,12 +16,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a LimitOrderTrancheUser by index.",
       "type": "object",
       "required": [
-        "get_limit_order_tranche_user"
+        "limit_order_tranche_user"
       ],
       "properties": {
-        "get_limit_order_tranche_user": {
+        "limit_order_tranche_user": {
           "type": "object",
           "required": [
             "address",
@@ -39,12 +41,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of LimitOrderTrancheMap items.",
       "type": "object",
       "required": [
-        "all_limit_order_tranche_user"
+        "limit_order_tranche_user_all"
       ],
       "properties": {
-        "all_limit_order_tranche_user": {
+        "limit_order_tranche_user_all": {
           "type": "object",
           "properties": {
             "pagination": {
@@ -63,12 +66,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of LimitOrderTrancheUser items for a given address.",
       "type": "object",
       "required": [
-        "all_limit_order_tranche_user_by_address"
+        "limit_order_tranche_user_all_by_address"
       ],
       "properties": {
-        "all_limit_order_tranche_user_by_address": {
+        "limit_order_tranche_user_all_by_address": {
           "type": "object",
           "required": [
             "address"
@@ -93,12 +97,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a LimitOrderTranche by index.",
       "type": "object",
       "required": [
-        "get_limit_order_tranche"
+        "limit_order_tranche"
       ],
       "properties": {
-        "get_limit_order_tranche": {
+        "limit_order_tranche": {
           "type": "object",
           "required": [
             "pair_id",
@@ -126,12 +131,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of LimitOrderTranche items for a given pairID / TokenIn combination.",
       "type": "object",
       "required": [
-        "all_limit_order_tranche"
+        "limit_order_tranche_all"
       ],
       "properties": {
-        "all_limit_order_tranche": {
+        "limit_order_tranche_all": {
           "type": "object",
           "required": [
             "pair_id",
@@ -160,12 +166,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of UserDeposits items.",
       "type": "object",
       "required": [
-        "all_user_deposits"
+        "user_deposit_all"
       ],
       "properties": {
-        "all_user_deposits": {
+        "user_deposit_all": {
           "type": "object",
           "required": [
             "address",
@@ -194,12 +201,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of TickLiquidity items.",
       "type": "object",
       "required": [
-        "all_tick_liquidity"
+        "tick_liquidity_all"
       ],
       "properties": {
-        "all_tick_liquidity": {
+        "tick_liquidity_all": {
           "type": "object",
           "required": [
             "pair_id",
@@ -228,12 +236,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a InactiveLimitOrderTranche by index.",
       "type": "object",
       "required": [
-        "get_inactive_limit_order_tranche"
+        "inactive_limit_order_tranche"
       ],
       "properties": {
-        "get_inactive_limit_order_tranche": {
+        "inactive_limit_order_tranche": {
           "type": "object",
           "required": [
             "pair_id",
@@ -261,12 +270,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of InactiveLimitOrderTranche items.",
       "type": "object",
       "required": [
-        "all_inactive_limit_order_tranche"
+        "inactive_limit_order_tranche_all"
       ],
       "properties": {
-        "all_inactive_limit_order_tranche": {
+        "inactive_limit_order_tranche_all": {
           "type": "object",
           "properties": {
             "pagination": {
@@ -285,12 +295,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of PoolReserves items.",
       "type": "object",
       "required": [
-        "all_pool_reserves"
+        "pool_reserves_all"
       ],
       "properties": {
-        "all_pool_reserves": {
+        "pool_reserves_all": {
           "type": "object",
           "required": [
             "pair_id",
@@ -319,12 +330,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a PoolReserve by index",
       "type": "object",
       "required": [
-        "get_pool_reserves"
+        "pool_reserves"
       ],
       "properties": {
-        "get_pool_reserves": {
+        "pool_reserves": {
           "type": "object",
           "required": [
             "fee",
@@ -354,6 +366,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries the simulated result of a multihop swap",
       "type": "object",
       "required": [
         "estimate_multi_hop_swap"
@@ -371,13 +384,13 @@
           ],
           "properties": {
             "amount_in": {
-              "type": "string"
+              "$ref": "#/definitions/Int128"
             },
             "creator": {
               "type": "string"
             },
             "exit_limit_price": {
-              "type": "string"
+              "$ref": "#/definitions/PrecDec"
             },
             "pick_best_route": {
               "type": "boolean"
@@ -388,10 +401,7 @@
             "routes": {
               "type": "array",
               "items": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/definitions/MultiHopRoute"
               }
             }
           }
@@ -400,6 +410,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries the simulated result of a PlaceLimit order",
       "type": "object",
       "required": [
         "estimate_place_limit_order"
@@ -418,7 +429,7 @@
           ],
           "properties": {
             "amount_in": {
-              "type": "string"
+              "$ref": "#/definitions/Int128"
             },
             "creator": {
               "type": "string"
@@ -428,17 +439,21 @@
                 "integer",
                 "null"
               ],
-              "format": "int64"
+              "format": "uint64",
+              "minimum": 0.0
             },
             "max_amount_out": {
-              "type": [
-                "string",
-                "null"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Int128"
+                },
+                {
+                  "type": "null"
+                }
               ]
             },
             "order_type": {
-              "type": "integer",
-              "format": "int32"
+              "$ref": "#/definitions/LimitOrderType"
             },
             "receiver": {
               "type": "string"
@@ -459,6 +474,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a pool by pair, tick and fee",
       "type": "object",
       "required": [
         "pool"
@@ -490,6 +506,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a pool by ID",
       "type": "object",
       "required": [
         "pool_by_id"
@@ -512,12 +529,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a PoolMetadata by ID",
       "type": "object",
       "required": [
-        "get_pool_metadata"
+        "pool_metadata"
       ],
       "properties": {
-        "get_pool_metadata": {
+        "pool_metadata": {
           "type": "object",
           "required": [
             "id"
@@ -534,12 +552,13 @@
       "additionalProperties": false
     },
     {
+      "description": "Queries a list of PoolMetadata items.",
       "type": "object",
       "required": [
-        "all_pool_metadata"
+        "pool_metadata_all"
       ],
       "properties": {
-        "all_pool_metadata": {
+        "pool_metadata_all": {
           "type": "object",
           "properties": {
             "pagination": {
@@ -562,6 +581,63 @@
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
       "type": "string"
+    },
+    "Int128": {
+      "description": "An implementation of i128 that is using strings for JSON encoding/decoding, such that the full i128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `i128` to get the value out:\n\n``` # use cosmwasm_std::Int128; let a = Int128::from(258i128); assert_eq!(a.i128(), 258); ```",
+      "type": "string"
+    },
+    "LimitOrderType": {
+      "oneOf": [
+        {
+          "description": "Good-til-Cancelled limit orders are hybrid maker and taker limit orders. They will attempt to trade the supplied AmountIn at the TickIndex or better. However, if they total AmountIn cannot be traded at the limit price they are remaining amount will be placed as a maker limit order. The proceeds from the taker portion are deposited into the user’s account immediately, however, the proceeds from the maker portion must be explicitly withdrawn via WithdrawLimitOrder.",
+          "type": "string",
+          "enum": [
+            "GOOD_TIL_CANCELLED"
+          ]
+        },
+        {
+          "description": "Fill-or-Kill limit orders are taker limit orders that either successfully swap 100% of the supplied AmountIn or return an error. If there is insufficient liquidity to complete the trade at or above the supplied TickIndex a Fill-or-Kill order will return an error `codespace: dex, code: 1134` (https://github.com/neutron-org/neutron/blob/main/x/dex/types/errors.go#L107 ErrGoodTilOrderWithoutExpiration).",
+          "type": "string",
+          "enum": [
+            "FILL_OR_KILL"
+          ]
+        },
+        {
+          "description": "Immediate-or-Cancel limit orders are taker orders that will swap as much as of the AmountIn as possible given available liquidity above the supplied TickIndex. Unlike Fill-or-Kill orders they will still successfully complete even if they are only able to partially trade through the AmountIn at the TickIndex or better.",
+          "type": "string",
+          "enum": [
+            "IMMEDIATE_OR_CANCEL"
+          ]
+        },
+        {
+          "description": "Just-in-Time limit orders are an advanced maker limit order that provides tradeable liquidity for exactly one block. At the end of the same block in which the Just-in-Time order was submitted the order is canceled and any untraded portion will no longer be usable as active liquidity.",
+          "type": "string",
+          "enum": [
+            "JUST_IN_TIME"
+          ]
+        },
+        {
+          "description": "Good-til-Time limit order function exactly the same as Good-til-Cancelled limit orders first trying to trade as a taker limit order and then placing any remaining amount as a maker limit order. However, the maker portion of the limit order has a specified ExpirationTime. After the ExpirationTime the order will be cancelled and can no longer be traded against. When withdrawing a Good-til-Time limit order the user will receive both the successfully traded portion of the limit order (TokenOut) as well as any remaining untraded amount (TokenIn).",
+          "type": "string",
+          "enum": [
+            "GOOD_TIL_TIME"
+          ]
+        }
+      ]
+    },
+    "MultiHopRoute": {
+      "type": "object",
+      "required": [
+        "hops"
+      ],
+      "properties": {
+        "hops": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "PageRequest": {
       "type": "object",
@@ -600,6 +676,17 @@
         "reverse": {
           "description": "reverse is set to true if results are to be returned in the descending order.",
           "type": "boolean"
+        }
+      }
+    },
+    "PrecDec": {
+      "type": "object",
+      "required": [
+        "i"
+      ],
+      "properties": {
+        "i": {
+          "type": "string"
         }
       }
     }

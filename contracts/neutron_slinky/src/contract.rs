@@ -66,10 +66,12 @@ fn query_recent_valid_price(
 ) -> StdResult<Binary> {
     // 1. check if "symbol" in x/oracle and x/marketmap
 
+    // create a CurrencyPair object
     let currency_pair: CurrencyPair = CurrencyPair{
         base: base_symbol.clone(), quote: quote_currency.clone(),
     };
 
+    // fetch all supported currency pairs in x/oracle module
     let oracle_currency_pairs_query: OracleQuery = OracleQuery::GetAllCurrencyPairs{};
     let oracle_currency_pairs_response: GetAllCurrencyPairsResponse = deps.querier.query(
         &oracle_currency_pairs_query.into(),
@@ -80,6 +82,7 @@ fn query_recent_valid_price(
         ));
     }
 
+    // fetch all supported currency pairs in x/marketmap module
     let marketmap_currency_pairs_query: MarketMapQuery = MarketMapQuery::MarketMap{};
     let marketmap_currency_pairs_response: MarketMapResponse = deps.querier.query(
         &marketmap_currency_pairs_query.into(),
@@ -92,12 +95,15 @@ fn query_recent_valid_price(
 
     // 2. check if "symbol" enabled in x/marketmap
 
+    // fetch market for currency_pair in x/marketmap module
     let marketmap_market_query: MarketMapQuery = MarketMapQuery::Market{
         currency_pair: currency_pair.clone(),
     };
     let marketmap_market_response: MarketResponse = deps.querier.query(
         &marketmap_market_query.into(),
     )?;
+
+    // check if currency_pair is enabled
     if marketmap_market_response.market.ticker.enabled == false {
         StdError::generic_err(format!(
             "Market {base_symbol}, {quote_currency} not enabled in x/marketmap module"
@@ -109,12 +115,15 @@ fn query_recent_valid_price(
     // get current_block_height
     let current_block_height: u64 = env.block.height;
 
+    // fetch price for currency_pair from x/oracle module
     let oracle_price_query: OracleQuery = OracleQuery::GetPrice{
         currency_pair: currency_pair.clone(),
     };
     let oracle_price_response: GetPriceResponse = deps.querier.query(
         &oracle_price_query.into(),
     )?;
+
+    // check if block_height is not too old
     if (current_block_height - oracle_price_response.price.block_height) > max_blocks_old.u64() {
         StdError::generic_err(format!(
             "Market {base_symbol}, {quote_currency} price is older than {max_blocks_old} blocks"

@@ -723,7 +723,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/sdk-50#ab2fa67399769e30825b19a4fbb3af9d938d1771"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=chore/remove-taker-spread-param#53181bd3002f65c925cf4152cdd002429cb03a3c"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",
@@ -940,7 +940,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.65",

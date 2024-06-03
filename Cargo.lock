@@ -723,7 +723,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=chore/remove-taker-spread-param#53181bd3002f65c925cf4152cdd002429cb03a3c"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=chore/remove-taker-spread-param#bbd96ec1b8ee60c97c63e796152ba1362e6cfbaf"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

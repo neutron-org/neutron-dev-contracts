@@ -711,7 +711,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/improve-balances-query#5d668c3e68d15c6d49fc4e95cd828b205d080119"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#ed3d13502a5699cab120f9d2f8c9af98e01d6353"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

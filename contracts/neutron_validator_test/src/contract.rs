@@ -44,7 +44,7 @@ use neutron_sdk::interchain_queries::types::{
 use neutron_sdk::interchain_queries::v045::queries::query_balance;
 use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
 use neutron_sdk::interchain_queries::v045::{
-    new_register_balance_query_msg, new_register_transfers_query_msg,
+    new_register_balances_query_msg, new_register_transfers_query_msg,
 };
 use neutron_sdk::interchain_txs::helpers::get_port_id;
 use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
@@ -413,7 +413,7 @@ pub fn register_balance_query(
     denom: String,
     update_period: u64,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg = new_register_balance_query_msg(connection_id, addr, denom, update_period)?;
+    let msg = new_register_balances_query_msg(connection_id, addr, vec![denom], update_period)?;
 
     Ok(Response::new().add_message(msg))
 }

@@ -101,6 +101,7 @@ pub fn execute(
             token_in,
             token_out,
             tick_index_in_to_out,
+            limit_sell_price,
             amount_in,
             order_type,
             expiration_time,
@@ -112,6 +113,7 @@ pub fn execute(
                 token_in,
                 token_out,
                 tick_index_in_to_out,
+                limit_sell_price,
                 amount_in,
                 order_type: LimitOrderType::try_from(order_type).map_err(StdError::generic_err)?,
                 expiration_time,
@@ -162,11 +164,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::GetLimitOrderTrancheUser {
             address,
             tranche_key,
+            calc_withdrawable_shares,
         } => Ok(to_json_binary(&get_limit_order_tranche_user(
             deps,
             LimitOrderTrancheUserRequest {
                 address,
                 tranche_key,
+                calc_withdrawable_shares,
             },
         )?)?),
 

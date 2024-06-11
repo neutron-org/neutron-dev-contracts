@@ -1,6 +1,7 @@
 use cosmwasm_std::{entry_point, Addr, DepsMut, Env, MessageInfo, Response, StdError, StdResult};
 use cw2::set_contract_version;
 use cw_storage_plus::Item;
+#[allow(deprecated)]
 use neutron_sdk::bindings::msg::{ClientUpdateProposal, NeutronMsg};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -61,6 +62,7 @@ pub fn execute(
             subject_client_id,
             substitute_client_id,
         } => {
+            #[allow(deprecated)]
             let update_proposal_msg =
                 NeutronMsg::submit_client_update_proposal(ClientUpdateProposal {
                     title,

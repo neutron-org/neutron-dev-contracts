@@ -36,6 +36,7 @@ pub enum ExecuteMsg {
         order_type: i32,
         expiration_time: Option<i64>,
         max_amount_out: Option<String>,
+        limit_sell_price: String,
     },
     WithdrawFilledLimitOrder {
         tranche_key: String,
@@ -59,6 +60,7 @@ pub enum QueryMsg {
     GetLimitOrderTrancheUser {
         address: String,
         tranche_key: String,
+        calc_withdrawable_shares: bool,
     },
     AllLimitOrderTrancheUser {
         pagination: Option<PageRequest>,

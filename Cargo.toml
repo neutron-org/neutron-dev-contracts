@@ -13,21 +13,21 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/sdk-50" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", rev = "a09972bf01df1e36f6e2f4e35f8b0691fcc7a83b" }
 prost = "0.12.4"
 prost-types = "0.12.4"
 cosmos-sdk-proto = { version = "0.20.0", default-features = false }
-cosmwasm-std = { version = "1.4.1", features = [
+cosmwasm-std = { version = "2.0.4", features = [
     "stargate",
     "staking",
     "cosmwasm_1_1",
     "cosmwasm_1_2"
 ] }
-cw2 = "1.1.1"
-cw-storage-plus = "1.1.0"
+cw2 = "2.0.0"
+cw-storage-plus = "2.0.0"
 schemars = "0.8.15"
 serde = { version = "1.0.189", default-features = false }
-cosmwasm-schema = { version = "1.4.1", default-features = false }
+cosmwasm-schema = { version = "2.0.4", default-features = false }
 serde-json-wasm = "1.0.0"
-base64 = "0.21.4"
+base64 = "0.21.7"
 thiserror = "1.0.49"

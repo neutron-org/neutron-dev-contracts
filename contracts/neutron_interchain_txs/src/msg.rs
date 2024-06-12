@@ -1,4 +1,5 @@
 use crate::storage::{AcknowledgementResult, IntegrationTestsSudoFailureMock};
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -40,28 +41,28 @@ pub enum ExecuteMsg {
     },
     SetFees {
         denom: String,
-        recv_fee: u128,
-        ack_fee: u128,
-        timeout_fee: u128,
+        recv_fee: Uint128,
+        ack_fee: Uint128,
+        timeout_fee: Uint128,
     },
     Delegate {
         interchain_account_id: String,
         validator: String,
-        amount: u128,
+        amount: Uint128,
         denom: String,
         timeout: Option<u64>,
     },
     DelegateDoubleAck {
         interchain_account_id: String,
         validator: String,
-        amount: u128,
+        amount: Uint128,
         denom: String,
         timeout: Option<u64>,
     },
     Undelegate {
         interchain_account_id: String,
         validator: String,
-        amount: u128,
+        amount: Uint128,
         denom: String,
         timeout: Option<u64>,
     },

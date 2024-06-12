@@ -776,6 +776,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "neutron_slinky"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw2",
+ "neutron-sdk",
+ "schemars",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "neutron_validators_test"
 version = "0.1.0"
 dependencies = [

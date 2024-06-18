@@ -316,6 +316,7 @@ pub fn make_stargate_query(
     path: String,
     encoded_query_data: Vec<u8>,
 ) -> StdResult<String> {
+    #[allow(deprecated)]
     let raw = to_vec::<QueryRequest<Empty>>(&QueryRequest::Stargate {
         path,
         data: encoded_query_data.into(),

@@ -27,10 +27,10 @@ use cosmos_sdk_proto::cosmos::gov::v1beta1::{
 use cosmos_sdk_proto::cosmos::slashing::v1beta1::ValidatorSigningInfo as CosmosValidatorSigningInfo;
 use cosmos_sdk_proto::cosmos::staking::v1beta1::Validator as CosmosValidator;
 use cosmos_sdk_proto::Any;
-use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockStorage};
+use cosmwasm_std::testing::{message_info, mock_env, MockApi, MockStorage};
 use cosmwasm_std::{
-    from_json, to_json_binary, Addr, Binary, Coin, Decimal, Delegation, Env, MessageInfo,
-    OwnedDeps, StdError, Uint128,
+    from_json, to_json_binary, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError,
+    Uint128,
 };
 use neutron_sdk::bindings::query::{
     NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
@@ -53,8 +53,8 @@ use neutron_sdk::interchain_queries::v047::queries::{
 };
 use neutron_sdk::interchain_queries::v047::types::{
     Balances, FeePool, GovernmentProposal, GovernmentProposalVotes, Proposal, ProposalVote,
-    SigningInfo, StakingValidator, TallyResult, TotalSupply, Validator, ValidatorSigningInfo,
-    WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
+    SigningInfo, StakingValidator, StdDelegation, TallyResult, TotalSupply, Validator,
+    ValidatorSigningInfo, WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
 use prost::Message as ProstMessage;
@@ -111,8 +111,8 @@ fn build_interchain_query_bank_total_denom_value(denom: String, amount: String) 
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary(bank_total_key),
-        value: Binary(amount),
+        key: Binary::new(bank_total_key),
+        value: Binary::new(amount),
     }
 }
 
@@ -133,8 +133,8 @@ fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: 
 
     let s = StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary(fee_pool_key),
-        value: Binary(fee_pool.encode_to_vec()),
+        key: Binary::new(fee_pool_key),
+        value: Binary::new(fee_pool.encode_to_vec()),
     };
     Binary::from(
         to_string(&QueryRegisteredQueryResultResponse {
@@ -172,8 +172,8 @@ fn build_interchain_query_staking_validator_value(validator: String) -> StorageV
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary(validator_key),
-        value: Binary(validator.encode_to_vec()),
+        key: Binary::new(validator_key),
+        value: Binary::new(validator.encode_to_vec()),
     }
 }
 
@@ -192,8 +192,8 @@ fn build_interchain_query_validator_signing_info_value(validator: String) -> Sto
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary(validator_key),
-        value: Binary(validator.encode_to_vec()),
+        key: Binary::new(validator_key),
+        value: Binary::new(validator.encode_to_vec()),
     }
 }
 
@@ -225,8 +225,8 @@ fn build_interchain_query_gov_proposal_value(proposal_id: u64) -> StorageValue {
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary(proposal_key),
-        value: Binary(proposal.encode_to_vec()),
+        key: Binary::new(proposal_key),
+        value: Binary::new(proposal.encode_to_vec()),
     }
 }
 
@@ -246,8 +246,8 @@ fn build_interchain_query_gov_proposal_votes_value(proposal_id: u64) -> StorageV
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary(votes_key),
-        value: Binary(vote.encode_to_vec()),
+        key: Binary::new(votes_key),
+        value: Binary::new(vote.encode_to_vec()),
     }
 }
 
@@ -262,8 +262,8 @@ fn build_interchain_query_balances_response(addr: Addr, balances: Vec<Coin>) -> 
                     .unwrap();
             StorageValue {
                 storage_prefix: "".to_string(),
-                key: Binary(balance_key),
-                value: Binary(c.amount.to_string().into_bytes()),
+                key: Binary::new(balance_key),
+                value: Binary::new(c.amount.to_string().into_bytes()),
             }
         })
         .collect();
@@ -309,7 +309,12 @@ fn test_query_balance() {
         denoms: vec!["uosmo".to_string()],
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -347,7 +352,12 @@ fn test_query_balances() {
         denoms: vec!["uosmo".to_string(), "uatom".to_string()],
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -392,7 +402,12 @@ fn test_bank_total_supply_query() {
         denoms: denoms.clone(),
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -443,7 +458,12 @@ fn test_distribution_fee_pool_query() {
         update_period: 10,
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -482,7 +502,12 @@ fn test_gov_proposals_query() {
         update_period: 10,
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -595,7 +620,12 @@ fn test_gov_proposal_votes_query() {
         update_period: 10,
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 325);
@@ -672,7 +702,12 @@ fn test_staking_validators_query() {
         validators: validators.clone(),
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -766,7 +801,12 @@ fn test_validators_signing_infos_query() {
         validators: validators.clone(),
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
@@ -835,7 +875,12 @@ fn test_query_delegator_delegations() {
         ],
     };
 
-    let keys = register_query(&mut deps, mock_env(), mock_info("", &[]), msg);
+    let keys = register_query(
+        &mut deps,
+        mock_env(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    );
 
     let delegations_response = QueryRegisteredQueryResultResponse {
         result: InterchainQueryResult {
@@ -922,17 +967,17 @@ fn test_query_delegator_delegations() {
         DelegatorDelegationsResponse {
             last_submitted_local_height: 987,
             delegations: vec![
-                Delegation {
+                StdDelegation {
                     delegator: Addr::unchecked("osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs"),
                     validator: "osmovaloper1r2u5q6t6w0wssrk6l66n3t2q3dw2uqny4gj2e3".to_string(),
                     amount: Coin::new(5177628u128, "uatom".to_string()),
                 },
-                Delegation {
+                StdDelegation {
                     delegator: Addr::unchecked("osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs"),
                     validator: "osmovaloper1ej2es5fjztqjcd4pwa0zyvaevtjd2y5w37wr9t".to_string(),
                     amount: Coin::new(29620221u128, "uatom".to_string()),
                 },
-                Delegation {
+                StdDelegation {
                     delegator: Addr::unchecked("osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs"),
                     validator: "osmovaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxwmj9we".to_string(),
                     amount: Coin::new(219920u128, "uatom".to_string()),
@@ -958,7 +1003,13 @@ fn test_sudo_tx_query_result_callback() {
         recipient: watched_addr.clone(),
         min_height: None,
     };
-    execute(deps.as_mut(), env.clone(), mock_info("", &[]), msg).unwrap();
+    execute(
+        deps.as_mut(),
+        env.clone(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    )
+    .unwrap();
     let registered_query = build_registered_query_response(
         1,
         QueryParam::TransactionsFilter(
@@ -1056,7 +1107,13 @@ fn test_sudo_tx_query_result_min_height_callback() {
         recipient: watched_addr.clone(),
         min_height: Some(100000),
     };
-    execute(deps.as_mut(), env.clone(), mock_info("", &[]), msg).unwrap();
+    execute(
+        deps.as_mut(),
+        env.clone(),
+        message_info(&Addr::unchecked(""), &[]),
+        msg,
+    )
+    .unwrap();
     let registered_query = build_registered_query_response(
         1,
         QueryParam::TransactionsFilter(

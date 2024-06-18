@@ -1,9 +1,10 @@
 use cosmwasm_std::{
     coin, entry_point, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, SubMsg,
+    StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
-use neutron_sdk::bindings::msg::MsgIbcTransferResponse;
+use neutron_sdk::interchain_txs::helpers::decode_message_response;
+use neutron_sdk::proto_types::neutron::transfer::MsgTransferResponse;
 use neutron_sdk::{
     bindings::msg::{IbcFee, NeutronMsg},
     sudo::msg::{RequestPacket, RequestPacketTimeoutHeight, TransferSudoMsg},
@@ -49,13 +50,13 @@ pub enum ExecuteMsg {
         channel: String,
         to: String,
         denom: String,
-        amount: u128,
+        amount: Uint128,
         timeout_height: Option<u64>,
     },
     SetFees {
-        recv_fee: u128,
-        ack_fee: u128,
-        timeout_fee: u128,
+        recv_fee: Uint128,
+        ack_fee: Uint128,
+        timeout_fee: Uint128,
         denom: String,
     },
     ResubmitFailure {
@@ -153,13 +154,14 @@ fn msg_with_sudo_callback<C: Into<CosmosMsg<T>>, T>(
 
 fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     let payload = read_reply_payload(deps.storage, msg.id)?;
-    let resp: MsgIbcTransferResponse = serde_json_wasm::from_slice(
-        msg.result
+    let resp: MsgTransferResponse = decode_message_response(
+        &msg.result
             .into_result()
             .map_err(StdError::generic_err)?
-            .data
-            .ok_or_else(|| StdError::generic_err("no result"))?
-            .as_slice(),
+            .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L307
+            .clone()
+            .value
+            .to_vec(),
     )
     .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
     let seq_id = resp.sequence_id;
@@ -179,19 +181,19 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     }
 }
 
-fn get_fee_item(denom: String, amount: u128) -> Vec<Coin> {
-    if amount == 0 {
+fn get_fee_item(denom: String, amount: Uint128) -> Vec<Coin> {
+    if amount == Uint128::new(0) {
         vec![]
     } else {
-        vec![coin(amount, denom)]
+        vec![coin(amount.u128(), denom)]
     }
 }
 
 fn execute_set_fees(
     deps: DepsMut,
-    recv_fee: u128,
-    ack_fee: u128,
-    timeout_fee: u128,
+    recv_fee: Uint128,
+    ack_fee: Uint128,
+    timeout_fee: Uint128,
     denom: String,
 ) -> StdResult<Response<NeutronMsg>> {
     let fee = IbcFee {
@@ -211,11 +213,11 @@ fn execute_send(
     channel: String,
     to: String,
     denom: String,
-    amount: u128,
+    amount: Uint128,
     timeout_height: Option<u64>,
 ) -> StdResult<Response<NeutronMsg>> {
     let fee = IBC_FEE.load(deps.storage)?;
-    let coin1 = coin(amount, denom.clone());
+    let coin1 = coin(amount.u128(), denom.clone());
     let msg1 = NeutronMsg::IbcTransfer {
         source_port: "transfer".to_string(),
         source_channel: channel.clone(),
@@ -230,7 +232,7 @@ fn execute_send(
         fee: fee.clone(),
         memo: "".to_string(),
     };
-    let coin2 = coin(2 * amount, denom);
+    let coin2 = coin(2 * amount.u128(), denom);
     let msg2 = NeutronMsg::IbcTransfer {
         source_port: "transfer".to_string(),
         source_channel: channel,

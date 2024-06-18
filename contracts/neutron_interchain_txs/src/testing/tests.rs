@@ -17,14 +17,11 @@ use crate::{
     contract::{execute, query_errors_queue},
     storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE},
 };
-use cosmwasm_std::{
-    from_json,
-    testing::{
-        mock_dependencies as cw_mock_dependencies, mock_env, mock_info, MockApi, MockQuerier,
-        MockStorage,
-    },
-    OwnedDeps, StdError,
+use cosmwasm_std::testing::{
+    message_info, mock_dependencies as cw_mock_dependencies, mock_env, MockApi, MockQuerier,
+    MockStorage,
 };
+use cosmwasm_std::{from_json, Addr, OwnedDeps, StdError};
 use neutron_sdk::bindings::query::NeutronQuery;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use std::marker::PhantomData;
@@ -101,7 +98,7 @@ fn test_failure_mocks() {
     execute(
         deps.as_mut(),
         mock_env(),
-        mock_info("", &[]),
+        message_info(&Addr::unchecked(""), &[]),
         ExecuteMsg::IntegrationTestsSetSudoFailureMock {
             state: IntegrationTestsSudoFailureMock::Enabled,
         },

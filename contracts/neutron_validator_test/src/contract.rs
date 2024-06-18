@@ -25,14 +25,14 @@ use cosmos_sdk_proto::{
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     coin, to_json_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
-    MessageInfo, Reply, Response, StdError, StdResult, SubMsg,
+    MessageInfo, Reply, Response, StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use neutron_sdk::bindings::msg::{IbcFee, MsgSubmitTxResponse, NeutronMsg};
+use neutron_sdk::bindings::msg::{IbcFee, NeutronMsg};
 use neutron_sdk::bindings::query::{
     NeutronQuery, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
 };
@@ -46,8 +46,9 @@ use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, 
 use neutron_sdk::interchain_queries::v045::{
     new_register_balances_query_msg, new_register_transfers_query_msg,
 };
-use neutron_sdk::interchain_txs::helpers::get_port_id;
+use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
 use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
+use neutron_sdk::proto_types::neutron::interchaintxs::v1::MsgSubmitTxResponse;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::{NeutronError, NeutronResult};
 
@@ -234,19 +235,19 @@ fn msg_with_sudo_callback<C: Into<CosmosMsg<T>>, T>(
     Ok(SubMsg::reply_on_success(msg, SUDO_PAYLOAD_REPLY_ID))
 }
 
-fn get_fee_item(denom: String, amount: u128) -> Vec<CosmosCoin> {
-    if amount == 0 {
+fn get_fee_item(denom: String, amount: Uint128) -> Vec<CosmosCoin> {
+    if amount == Uint128::new(0) {
         vec![]
     } else {
-        vec![coin(amount, denom)]
+        vec![coin(amount.u128(), denom)]
     }
 }
 
 fn execute_set_fees(
     deps: DepsMut,
-    recv_fee: u128,
-    ack_fee: u128,
-    timeout_fee: u128,
+    recv_fee: Uint128,
+    ack_fee: Uint128,
+    timeout_fee: Uint128,
     denom: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
     let fee = IbcFee {
@@ -278,7 +279,7 @@ fn execute_delegate(
     env: Env,
     interchain_account_id: String,
     validator: String,
-    amount: u128,
+    amount: Uint128,
     denom: String,
     timeout: Option<u64>,
 ) -> NeutronResult<Response<NeutronMsg>> {
@@ -335,7 +336,7 @@ fn execute_undelegate(
     env: Env,
     interchain_account_id: String,
     validator: String,
-    amount: u128,
+    amount: Uint128,
     denom: String,
     timeout: Option<u64>,
 ) -> NeutronResult<Response<NeutronMsg>> {
@@ -602,7 +603,7 @@ fn sudo_response(
     deps.api
         .debug(format!("WASMDEBUG: sudo_response: sudo payload: {:?}", payload).as_str());
 
-    if payload.amount == 6666 {
+    if payload.amount == Uint128::new(6666) {
         // This one is for testing contract failures
         deps.api.debug("WASMDEBUG: This is a expected test error");
         return Err(NeutronError::Std(StdError::generic_err(
@@ -701,13 +702,14 @@ fn sudo_error(
 
 fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     let payload = read_reply_payload(deps.storage)?;
-    let resp: MsgSubmitTxResponse = serde_json_wasm::from_slice(
-        msg.result
+    let resp: MsgSubmitTxResponse = decode_message_response(
+        &msg.result
             .into_result()
             .map_err(StdError::generic_err)?
-            .data
-            .ok_or_else(|| StdError::generic_err("no result"))?
-            .as_slice(),
+            .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L443
+            .clone()
+            .value
+            .to_vec(),
     )
     .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
     deps.api

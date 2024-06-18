@@ -2,6 +2,7 @@ use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
 use cosmwasm_std::{
     entry_point, to_json_binary, to_json_vec, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
     Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, SystemResult,
+    Uint128,
 };
 use cw2::set_contract_version;
 use neutron_sdk::bindings::msg::NeutronMsg;
@@ -32,7 +33,7 @@ pub fn instantiate(
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Send { to: String, amount: u128 },
+    Send { to: String, amount: Uint128 },
     ReflectMsg { msgs: Vec<CosmosMsg<NeutronMsg>> },
 }
 
@@ -73,7 +74,7 @@ pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> StdResul
 pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         REFLECT_REPLY_ID => {
-            Ok(Response::default().set_data(msg.result.unwrap().data.unwrap_or_default()))
+            Ok(Response::default().set_data(msg.result.unwrap().msg_responses[0].clone().value))
         }
         _ => {
             unimplemented!()

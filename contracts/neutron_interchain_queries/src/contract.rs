@@ -301,7 +301,7 @@ pub fn register_query_empty_id(
 ) -> NeutronResult<Response<NeutronMsg>> {
     let kv_key = KVKey {
         path: "test".to_string(),
-        key: Binary(vec![]),
+        key: Binary::new(vec![]),
     };
     let msg =
         NeutronMsg::register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
@@ -316,7 +316,7 @@ pub fn register_query_empty_path(
 ) -> NeutronResult<Response<NeutronMsg>> {
     let kv_key = KVKey {
         path: "".to_string(),
-        key: Binary("test".as_bytes().to_vec()),
+        key: Binary::new("test".as_bytes().to_vec()),
     };
     let msg =
         NeutronMsg::register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;

@@ -1,3 +1,4 @@
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -41,14 +42,14 @@ pub enum ExecuteMsg {
     Delegate {
         interchain_account_id: String,
         validator: String,
-        amount: u128,
+        amount: Uint128,
         denom: String,
         timeout: Option<u64>,
     },
     Undelegate {
         interchain_account_id: String,
         validator: String,
-        amount: u128,
+        amount: Uint128,
         denom: String,
         timeout: Option<u64>,
     },
@@ -56,9 +57,9 @@ pub enum ExecuteMsg {
     CleanRecipientTxs {},
     SetFees {
         denom: String,
-        recv_fee: u128,
-        ack_fee: u128,
-        timeout_fee: u128,
+        recv_fee: Uint128,
+        ack_fee: Uint128,
+        timeout_fee: Uint128,
     },
     RegisterBalanceQuery {
         connection_id: String,

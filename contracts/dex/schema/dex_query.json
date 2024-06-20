@@ -376,27 +376,19 @@
           "type": "object",
           "required": [
             "amount_in",
-            "creator",
             "exit_limit_price",
             "pick_best_route",
-            "receiver",
             "routes"
           ],
           "properties": {
             "amount_in": {
               "$ref": "#/definitions/Int128"
             },
-            "creator": {
-              "type": "string"
-            },
             "exit_limit_price": {
               "$ref": "#/definitions/PrecDec"
             },
             "pick_best_route": {
               "type": "boolean"
-            },
-            "receiver": {
-              "type": "string"
             },
             "routes": {
               "type": "array",
@@ -420,9 +412,7 @@
           "type": "object",
           "required": [
             "amount_in",
-            "creator",
             "order_type",
-            "receiver",
             "tick_index_in_to_out",
             "token_in",
             "token_out"
@@ -430,9 +420,6 @@
           "properties": {
             "amount_in": {
               "$ref": "#/definitions/Int128"
-            },
-            "creator": {
-              "type": "string"
             },
             "expiration_time": {
               "type": [
@@ -454,9 +441,6 @@
             },
             "order_type": {
               "$ref": "#/definitions/LimitOrderType"
-            },
-            "receiver": {
-              "type": "string"
             },
             "tick_index_in_to_out": {
               "type": "integer",

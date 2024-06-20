@@ -299,8 +299,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?)?),
 
         QueryMsg::EstimateMultiHopSwap {
-            creator,
-            receiver,
             routes,
             amount_in,
             exit_limit_price,
@@ -308,8 +306,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         } => Ok(to_json_binary(&get_estimate_multi_hop_swap(
             deps,
             EstimateMultiHopSwapRequest {
-                creator,
-                receiver,
                 routes,
                 amount_in,
                 exit_limit_price,
@@ -318,8 +314,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?)?),
 
         QueryMsg::EstimatePlaceLimitOrder {
-            creator,
-            receiver,
             token_in,
             token_out,
             tick_index_in_to_out,
@@ -330,8 +324,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         } => Ok(to_json_binary(&get_estimate_place_limit_order(
             deps,
             EstimatePlaceLimitOrderRequest {
-                creator,
-                receiver,
                 token_in,
                 token_out,
                 tick_index_in_to_out,

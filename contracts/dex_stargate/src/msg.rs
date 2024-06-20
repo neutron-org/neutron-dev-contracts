@@ -111,16 +111,12 @@ pub enum QueryMsg {
         fee: u64,
     },
     EstimateMultiHopSwap {
-        creator: String,
-        receiver: String,
         routes: Vec<Vec<String>>,
         amount_in: String,
         exit_limit_price: String,
         pick_best_route: bool,
     },
     EstimatePlaceLimitOrder {
-        creator: String,
-        receiver: String,
         token_in: String,
         token_out: String,
         tick_index_in_to_out: i64,

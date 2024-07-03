@@ -31,11 +31,11 @@ overflow-checks = true
 library = []
 
 [dependencies]
-cosmwasm-std = "2.0.4"
-cw2 = "2.0.0"
-schemars = "0.8.10"
+cosmwasm-std = { workspace = true }
+cw2 = { workspace = true }
+schemars = { workspace = true }
 serde = { version = "1.0.180", default-features = false, features = ["derive"] }
 neutron-sdk = { workspace = true }
 
 [dev-dependencies]
-cosmwasm-schema = { version = "2.0.4", default-features = false }
+cosmwasm-schema = { workspace = true }

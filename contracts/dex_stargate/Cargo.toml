@@ -32,13 +32,13 @@ library = []
 
 [dependencies]
 neutron-sdk = { workspace = true }
-cosmwasm-std = { version = "2.0.4", features = ["stargate"] }
-cw2 = "2.0.0"
-schemars = "0.8.15"
+cosmwasm-std = { workspace = true, features = ["stargate"] }
+cw2 = { workspace = true }
+schemars = { workspace = true }
 serde = { version = "1.0.188", default-features = false, features = ["derive"] }
 prost = "0.12.3"
 prost-types = "0.12.3"
 cosmos-sdk-proto = { version = "0.20.0", default-features = false }
 
 [dev-dependencies]
-cosmwasm-schema = { version = "2.0.4", default-features = false }
+cosmwasm-schema = { workspace = true }

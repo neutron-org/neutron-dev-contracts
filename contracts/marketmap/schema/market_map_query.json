@@ -1,14 +1,15 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "OracleQuery",
+  "title": "MarketMapQuery",
   "oneOf": [
     {
+      "description": "Parameters queries the parameters of the module.",
       "type": "object",
       "required": [
-        "get_all_currency_pairs"
+        "params"
       ],
       "properties": {
-        "get_all_currency_pairs": {
+        "params": {
           "type": "object"
         }
       },
@@ -17,19 +18,11 @@
     {
       "type": "object",
       "required": [
-        "get_price"
+        "last_updated"
       ],
       "properties": {
-        "get_price": {
-          "type": "object",
-          "required": [
-            "currency_pair"
-          ],
-          "properties": {
-            "currency_pair": {
-              "$ref": "#/definitions/CurrencyPair"
-            }
-          }
+        "last_updated": {
+          "type": "object"
         }
       },
       "additionalProperties": false
@@ -37,20 +30,29 @@
     {
       "type": "object",
       "required": [
-        "get_prices"
+        "market_map"
       ],
       "properties": {
-        "get_prices": {
+        "market_map": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "market"
+      ],
+      "properties": {
+        "market": {
           "type": "object",
           "required": [
-            "currency_pair_ids"
+            "currency_pair"
           ],
           "properties": {
-            "currency_pair_ids": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+            "currency_pair": {
+              "$ref": "#/definitions/CurrencyPair"
             }
           }
         }

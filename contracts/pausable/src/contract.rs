@@ -19,7 +19,6 @@ pub fn instantiate(
     _info: MessageInfo,
     _msg: InstantiateMsg,
 ) -> StdResult<Response> {
-    deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     Ok(Response::default())
 }
@@ -44,8 +43,6 @@ fn execute_update_pause(deps: DepsMut, paused: bool) -> StdResult<Response<Neutr
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> NeutronResult<Binary> {
-    deps.api
-        .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
         QueryMsg::State {} => query_paused(deps),
     }

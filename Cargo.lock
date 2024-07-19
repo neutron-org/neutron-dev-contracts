@@ -822,23 +822,38 @@ dependencies = [
 
 [[package]]
 name = "neutron-sdk"
-version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#039d33c22590bf481a9a716c0842c2930829fffd"
+version = "0.11.0"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/remove-stargate#7187b4bae4888c7fb1b57da4b16f364cc3bfea92"
 dependencies = [
  "bech32",
+ "chrono",
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema 2.0.4",
  "cosmwasm-std 2.0.4",
+ "neutron-std-derive",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "protobuf",
  "schemars",
  "serde",
+ "serde-cw-value",
  "serde-json-wasm 1.0.1",
  "serde_json",
  "speedate",
  "tendermint-proto 0.34.1",
  "thiserror",
+]
+
+[[package]]
+name = "neutron-std-derive"
+version = "0.20.1"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/remove-stargate#7187b4bae4888c7fb1b57da4b16f364cc3bfea92"
+dependencies = [
+ "itertools 0.10.5",
+ "proc-macro2",
+ "prost-types 0.12.6",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]

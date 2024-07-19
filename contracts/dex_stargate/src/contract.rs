@@ -1,35 +1,13 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-    StdResult,
+    entry_point, to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response,
+    StdError, StdResult,
 };
 use cw2::set_contract_version;
-use neutron_sdk::{
-    bindings::msg::NeutronMsg,
-    stargate::dex::msg::{
-        msg_cancel_limit_order, msg_deposit, msg_multi_hop_swap, msg_place_limit_order,
-        msg_withdraw_filled_limit_order, msg_withdrawal,
-    },
-    stargate::dex::query::{
-        get_estimate_multi_hop_swap, get_estimate_place_limit_order,
-        get_inactive_limit_order_tranche, get_inactive_limit_order_tranche_all,
-        get_limit_order_tranche, get_limit_order_tranche_all, get_limit_order_tranche_user,
-        get_limit_order_tranche_user_all, get_limit_order_tranche_user_all_by_address, get_params,
-        get_pool, get_pool_by_id, get_pool_metadata, get_pool_metadata_all, get_pool_reserves,
-        get_pool_reserves_all, get_tick_liquidity_all, get_user_deposits_all,
-    },
-    stargate::dex::types::{
-        AllInactiveLimitOrderTrancheRequest, AllLimitOrderTrancheRequest, AllPoolMetadataRequest,
-        AllPoolReservesRequest, AllTickLiquidityRequest, AllUserDepositsRequest,
-        AllUserLimitOrdersRequest, CancelLimitOrderRequest, DepositRequest,
-        EstimateMultiHopSwapRequest, EstimatePlaceLimitOrderRequest,
-        GetInactiveLimitOrderTrancheRequest, GetLimitOrderTrancheRequest, GetPoolMetadataRequest,
-        GetPoolReservesRequest, LimitOrderTrancheUserAllRequest, LimitOrderTrancheUserRequest,
-        LimitOrderType, MultiHopSwapRequest, ParamsRequest, PlaceLimitOrderRequest,
-        PoolByIdRequest, PoolRequest, WithdrawFilledLimitOrderRequest, WithdrawalRequest,
-    },
-    sudo::msg::SudoMsg,
-};
+use neutron_sdk::{bindings::msg::NeutronMsg, sudo::msg::SudoMsg};
+use std::convert::TryInto;
+
+use neutron_sdk::proto_types::neutron::dex;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -52,7 +30,7 @@ pub fn execute(
     env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -65,17 +43,19 @@ pub fn execute(
             tick_indexes_a_to_b,
             fees,
             options,
-        } => Ok(Response::new().add_message(msg_deposit(DepositRequest {
-            sender: env.contract.address.to_string(),
-            receiver,
-            token_a,
-            token_b,
-            amounts_a,
-            amounts_b,
-            tick_indexes_a_to_b,
-            fees,
-            options,
-        }))),
+        } => Ok(
+            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgDeposit {
+                creator: env.contract.address.to_string(),
+                receiver,
+                token_a,
+                token_b,
+                amounts_a,
+                amounts_b,
+                tick_indexes_a_to_b,
+                fees,
+                options,
+            })),
+        ),
 
         ExecuteMsg::Withdrawal {
             receiver,
@@ -85,8 +65,8 @@ pub fn execute(
             tick_indexes_a_to_b,
             fees,
         } => Ok(
-            Response::new().add_message(msg_withdrawal(WithdrawalRequest {
-                sender: env.contract.address.to_string(),
+            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgWithdrawal {
+                creator: env.contract.address.to_string(),
                 receiver,
                 token_a,
                 token_b,
@@ -95,7 +75,7 @@ pub fn execute(
                 fees,
             })),
         ),
-
+        #[allow(deprecated)]
         ExecuteMsg::PlaceLimitOrder {
             receiver,
             token_in,
@@ -107,33 +87,34 @@ pub fn execute(
             expiration_time,
             max_amount_out,
         } => Ok(
-            Response::new().add_message(msg_place_limit_order(PlaceLimitOrderRequest {
-                sender: env.contract.address.to_string(),
+            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgPlaceLimitOrder {
+                creator: env.contract.address.to_string(),
                 receiver,
                 token_in,
                 token_out,
                 tick_index_in_to_out,
                 limit_sell_price,
                 amount_in,
-                order_type: LimitOrderType::try_from(order_type).map_err(StdError::generic_err)?,
+                order_type,
                 expiration_time,
                 max_amount_out,
             })),
         ),
-
         ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => Ok(Response::new().add_message(
-            msg_withdraw_filled_limit_order(WithdrawFilledLimitOrderRequest {
-                sender: env.contract.address.to_string(),
+            Into::<CosmosMsg>::into(dex::MsgWithdrawFilledLimitOrder {
+                creator: env.contract.address.to_string(),
                 tranche_key,
             }),
         )),
 
-        ExecuteMsg::CancelLimitOrder { tranche_key } => Ok(Response::new().add_message(
-            msg_cancel_limit_order(CancelLimitOrderRequest {
-                sender: env.contract.address.to_string(),
-                tranche_key,
-            }),
-        )),
+        ExecuteMsg::CancelLimitOrder { tranche_key } => {
+            Ok(
+                Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgCancelLimitOrder {
+                    creator: env.contract.address.to_string(),
+                    tranche_key,
+                })),
+            )
+        }
 
         ExecuteMsg::MultiHopSwap {
             receiver,
@@ -142,8 +123,8 @@ pub fn execute(
             exit_limit_price,
             pick_best_route,
         } => Ok(
-            Response::new().add_message(msg_multi_hop_swap(MultiHopSwapRequest {
-                sender: env.contract.address.to_string(),
+            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgMultiHopSwap {
+                creator: env.contract.address.to_string(),
                 receiver,
                 routes,
                 amount_in,
@@ -158,40 +139,31 @@ pub fn execute(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: query: received msg: {:?}", msg).as_str());
+
+    let dexQuerier = dex::DexQuerier::new(&deps.querier);
+
     match msg {
-        QueryMsg::Params {} => Ok(to_json_binary(&get_params(deps, ParamsRequest {})?)?),
+        QueryMsg::Params {} => Ok(to_json_binary(&dexQuerier.params()?)?),
 
         QueryMsg::GetLimitOrderTrancheUser {
             address,
             tranche_key,
             calc_withdrawable_shares,
-        } => Ok(to_json_binary(&get_limit_order_tranche_user(
-            deps,
-            LimitOrderTrancheUserRequest {
-                address,
-                tranche_key,
-                calc_withdrawable_shares,
-            },
+        } => Ok(to_json_binary(&dexQuerier.limit_order_tranche_user(
+            address,
+            tranche_key,
+            calc_withdrawable_shares,
         )?)?),
 
-        QueryMsg::AllLimitOrderTrancheUser { pagination } => {
-            Ok(to_json_binary(&get_limit_order_tranche_user_all(
-                deps,
-                LimitOrderTrancheUserAllRequest { pagination },
-            )?)?)
-        }
+        QueryMsg::AllLimitOrderTrancheUser { pagination } => Ok(to_json_binary(
+            &dexQuerier.limit_order_tranche_user_all(pagination)?,
+        )?),
 
         QueryMsg::AllLimitOrderTrancheUserByAddress {
             address,
             pagination,
         } => Ok(to_json_binary(
-            &get_limit_order_tranche_user_all_by_address(
-                deps,
-                AllUserLimitOrdersRequest {
-                    address,
-                    pagination,
-                },
-            )?,
+            &dexQuerier.limit_order_tranche_user_all_by_address(address, pagination)?,
         )?),
 
         QueryMsg::GetLimitOrderTranche {
@@ -199,104 +171,71 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             tick_index,
             token_in,
             tranche_key,
-        } => Ok(to_json_binary(&get_limit_order_tranche(
-            deps,
-            GetLimitOrderTrancheRequest {
-                pair_id,
-                tick_index,
-                token_in,
-                tranche_key,
-            },
+        } => Ok(to_json_binary(&dexQuerier.limit_order_tranche(
+            pair_id,
+            tick_index,
+            token_in,
+            tranche_key,
         )?)?),
 
         QueryMsg::AllLimitOrderTranche {
             pair_id,
             token_in,
             pagination,
-        } => Ok(to_json_binary(&get_limit_order_tranche_all(
-            deps,
-            AllLimitOrderTrancheRequest {
-                pair_id,
-                token_in,
-                pagination,
-            },
-        )?)?),
+        } => Ok(to_json_binary(
+            &dexQuerier.limit_order_tranche_all(pair_id, token_in, pagination)?,
+        )?),
 
         QueryMsg::AllUserDeposits {
             address,
             include_pool_data,
             pagination,
-        } => Ok(to_json_binary(&get_user_deposits_all(
-            deps,
-            AllUserDepositsRequest {
-                address,
-                include_pool_data,
-                pagination,
-            },
+        } => Ok(to_json_binary(&dexQuerier.user_deposits_all(
+            address,
+            pagination,
+            include_pool_data,
         )?)?),
 
         QueryMsg::AllTickLiquidity {
             pair_id,
             token_in,
             pagination,
-        } => Ok(to_json_binary(&get_tick_liquidity_all(
-            deps,
-            AllTickLiquidityRequest {
-                pair_id,
-                token_in,
-                pagination,
-            },
-        )?)?),
+        } => Ok(to_json_binary(
+            &dexQuerier.tick_liquidity_all(pair_id, token_in, pagination)?,
+        )?),
 
         QueryMsg::GetInactiveLimitOrderTranche {
             pair_id,
             token_in,
             tick_index,
             tranche_key,
-        } => Ok(to_json_binary(&get_inactive_limit_order_tranche(
-            deps,
-            GetInactiveLimitOrderTrancheRequest {
-                pair_id,
-                token_in,
-                tick_index,
-                tranche_key,
-            },
+        } => Ok(to_json_binary(&dexQuerier.inactive_limit_order_tranche(
+            pair_id,
+            token_in,
+            tick_index,
+            tranche_key,
         )?)?),
 
-        QueryMsg::AllInactiveLimitOrderTranche { pagination } => {
-            Ok(to_json_binary(&get_inactive_limit_order_tranche_all(
-                deps,
-                AllInactiveLimitOrderTrancheRequest { pagination },
-            )?)?)
-        }
+        QueryMsg::AllInactiveLimitOrderTranche { pagination } => Ok(to_json_binary(
+            &dexQuerier.inactive_limit_order_tranche_all(pagination)?,
+        )?),
 
         QueryMsg::AllPoolReserves {
             pair_id,
             token_in,
             pagination,
-        } => Ok(to_json_binary(&get_pool_reserves_all(
-            deps,
-            AllPoolReservesRequest {
-                pair_id,
-                token_in,
-                pagination,
-            },
-        )?)?),
+        } => Ok(to_json_binary(
+            &dexQuerier.pool_reserves_all(pair_id, token_in, pagination)?,
+        )?),
 
         QueryMsg::GetPoolReserves {
             pair_id,
             token_in,
             tick_index,
             fee,
-        } => Ok(to_json_binary(&get_pool_reserves(
-            deps,
-            GetPoolReservesRequest {
-                pair_id,
-                token_in,
-                tick_index,
-                fee,
-            },
-        )?)?),
+        } => Ok(to_json_binary(
+            &dexQuerier.pool_reserves(pair_id, token_in, tick_index, fee)?,
+        )?),
 
         QueryMsg::EstimateMultiHopSwap {
             creator,
@@ -305,16 +244,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             amount_in,
             exit_limit_price,
             pick_best_route,
-        } => Ok(to_json_binary(&get_estimate_multi_hop_swap(
-            deps,
-            EstimateMultiHopSwapRequest {
-                creator,
-                receiver,
-                routes,
-                amount_in,
-                exit_limit_price,
-                pick_best_route,
-            },
+        } => Ok(to_json_binary(&dexQuerier.estimate_multi_hop_swap(
+            creator,
+            receiver,
+            routes,
+            amount_in,
+            exit_limit_price,
+            pick_best_route,
         )?)?),
 
         QueryMsg::EstimatePlaceLimitOrder {
@@ -327,48 +263,31 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             order_type,
             expiration_time,
             max_amount_out,
-        } => Ok(to_json_binary(&get_estimate_place_limit_order(
-            deps,
-            EstimatePlaceLimitOrderRequest {
-                creator,
-                receiver,
-                token_in,
-                token_out,
-                tick_index_in_to_out,
-                amount_in,
-                order_type: LimitOrderType::try_from(order_type).map_err(StdError::generic_err)?,
-                expiration_time,
-                max_amount_out,
-            },
+        } => Ok(to_json_binary(&dexQuerier.estimate_place_limit_order(
+            creator,
+            receiver,
+            token_in,
+            token_out,
+            tick_index_in_to_out,
+            amount_in,
+            order_type,
+            expiration_time,
+            max_amount_out,
         )?)?),
 
         QueryMsg::Pool {
             pair_id,
             tick_index,
             fee,
-        } => Ok(to_json_binary(&get_pool(
-            deps,
-            PoolRequest {
-                pair_id,
-                tick_index,
-                fee,
-            },
-        )?)?),
+        } => Ok(to_json_binary(&dexQuerier.pool(pair_id, tick_index, fee)?)?),
 
-        QueryMsg::PoolById { pool_id } => Ok(to_json_binary(&get_pool_by_id(
-            deps,
-            PoolByIdRequest { pool_id },
-        )?)?),
+        QueryMsg::PoolById { pool_id } => Ok(to_json_binary(&dexQuerier.pool_by_id(pool_id)?)?),
 
-        QueryMsg::GetPoolMetadata { id } => Ok(to_json_binary(&get_pool_metadata(
-            deps,
-            GetPoolMetadataRequest { id },
-        )?)?),
+        QueryMsg::GetPoolMetadata { id } => Ok(to_json_binary(&dexQuerier.pool_metadata(id)?)?),
 
-        QueryMsg::AllPoolMetadata { pagination } => Ok(to_json_binary(&get_pool_metadata_all(
-            deps,
-            AllPoolMetadataRequest { pagination },
-        )?)?),
+        QueryMsg::AllPoolMetadata { pagination } => {
+            Ok(to_json_binary(&dexQuerier.pool_metadata_all(pagination)?)?)
+        }
     }
 }
 

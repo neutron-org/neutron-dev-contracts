@@ -131,6 +131,7 @@
           "required": [
             "amount_in",
             "limit_sell_price",
+            "max_amount_out",
             "order_type",
             "receiver",
             "tick_index_in_to_out",
@@ -142,20 +143,20 @@
               "type": "string"
             },
             "expiration_time": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "int64"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "limit_sell_price": {
               "type": "string"
             },
             "max_amount_out": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             },
             "order_type": {
               "type": "integer",
@@ -250,10 +251,7 @@
             "routes": {
               "type": "array",
               "items": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/definitions/MultiHopRoute"
               }
             }
           }
@@ -266,12 +264,48 @@
     "DepositOptions": {
       "type": "object",
       "required": [
-        "disable_autoswap"
+        "disable_autoswap",
+        "fail_tx_on_bel"
       ],
       "properties": {
         "disable_autoswap": {
-          "description": "Autoswap provides a mechanism for users to deposit the entirety of their specified deposit amounts by paying a small fee. By default the `autoswap` option is enabled.",
           "type": "boolean"
+        },
+        "fail_tx_on_bel": {
+          "type": "boolean"
+        }
+      }
+    },
+    "MultiHopRoute": {
+      "type": "object",
+      "required": [
+        "hops"
+      ],
+      "properties": {
+        "hops": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Timestamp": {
+      "type": "object",
+      "required": [
+        "nanos",
+        "seconds"
+      ],
+      "properties": {
+        "nanos": {
+          "description": "Non-negative fractions of a second at nanosecond resolution. Negative second values with fractions must still have non-negative nanos values that count forward in time. Must be from 0 to 999,999,999 inclusive.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "seconds": {
+          "description": "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
+          "type": "integer",
+          "format": "int64"
         }
       }
     }

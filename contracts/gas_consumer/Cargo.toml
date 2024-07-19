@@ -26,6 +26,8 @@ schemars = { workspace = true }
 serde = { workspace = true }
 neutron-sdk = { workspace = true }
 cw-storage-plus = { workspace = true }
+sha2 = "*"
+
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

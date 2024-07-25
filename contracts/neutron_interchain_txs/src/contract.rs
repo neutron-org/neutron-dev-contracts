@@ -34,13 +34,14 @@ use crate::integration_tests_mock_handlers::{
 use crate::msg::{
     AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use neutron_sdk::bindings::msg::{
-    IbcFee, MsgRegisterInterchainAccountResponse, MsgSubmitTxResponse, NeutronMsg,
-};
+use neutron_sdk::bindings::msg::{IbcFee, NeutronMsg};
 use neutron_sdk::bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse};
 use neutron_sdk::bindings::types::ProtobufAny;
 use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
 use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
+use neutron_sdk::proto_types::neutron::interchaintxs::v1::{
+    MsgRegisterInterchainAccountResponse, MsgSubmitTxResponse,
+};
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::NeutronResult;
 
@@ -75,7 +76,7 @@ struct OpenAckVersion {
 struct ExecuteDelegateInfo {
     pub interchain_account_id: String,
     pub validator: String,
-    pub amount: u128,
+    pub amount: Uint128,
     pub denom: String,
     pub timeout: Option<u64>,
     pub info: Option<DoubleDelegateInfo>,
@@ -279,22 +280,22 @@ fn msg_with_sudo_callback<C: Into<CosmosMsg<T>>, T>(
 fn execute_set_fees(
     deps: DepsMut,
     denom: String,
-    recv_fee: u128,
-    ack_fee: u128,
-    timeout_fee: u128,
+    recv_fee: Uint128,
+    ack_fee: Uint128,
+    timeout_fee: Uint128,
 ) -> StdResult<Response<NeutronMsg>> {
     let fees = IbcFee {
         recv_fee: vec![CosmosCoin {
             denom: denom.clone(),
-            amount: Uint128::from(recv_fee),
+            amount: recv_fee,
         }],
         ack_fee: vec![CosmosCoin {
             denom: denom.clone(),
-            amount: Uint128::from(ack_fee),
+            amount: ack_fee,
         }],
         timeout_fee: vec![CosmosCoin {
             denom,
-            amount: Uint128::from(timeout_fee),
+            amount: timeout_fee,
         }],
     };
     IBC_FEE.save(deps.storage, &fees)?;
@@ -331,7 +332,7 @@ fn execute_undelegate(
     env: Env,
     interchain_account_id: String,
     validator: String,
-    amount: u128,
+    amount: Uint128,
     denom: String,
     timeout: Option<u64>,
 ) -> StdResult<Response<NeutronMsg>> {
@@ -544,6 +545,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
     if failure_submsg_mock_enabled {
         resp = resp.add_submessage(SubMsg {
             id: SUDO_FAILING_SUBMSG_REPLY_ID,
+            payload: Binary::default(),
             msg: CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
                 contract_addr: env.contract.address.to_string(),
                 msg: to_json_binary(&ExecuteMsg::IntegrationTestsSudoSubmsg {})?,
@@ -791,13 +793,14 @@ fn sudo_error(
 
 fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     let payload = read_reply_payload(deps.storage)?;
-    let resp: MsgSubmitTxResponse = serde_json_wasm::from_slice(
-        msg.result
+    let resp: MsgSubmitTxResponse = decode_message_response(
+        &msg.result
             .into_result()
             .map_err(StdError::generic_err)?
-            .data
-            .ok_or_else(|| StdError::generic_err("no result"))?
-            .as_slice(),
+            .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L443
+            .clone()
+            .value
+            .to_vec(),
     )
     .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
     deps.api
@@ -809,13 +812,14 @@ fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<R
 }
 
 fn prepare_register_ica(deps: DepsMut, msg: Reply) -> StdResult<Response> {
-    let resp: MsgRegisterInterchainAccountResponse = serde_json_wasm::from_slice(
-        msg.result
+    let resp: MsgRegisterInterchainAccountResponse = decode_message_response(
+        &msg.result
             .into_result()
             .map_err(StdError::generic_err)?
-            .data
-            .ok_or_else(|| StdError::generic_err("no result"))?
-            .as_slice(),
+            .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L863
+            .clone()
+            .value
+            .to_vec(),
     )
     .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
 
@@ -850,9 +854,9 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
                 deps.api
                     .debug("WASMDEBUG: sudo: mocked reply failure on the handler");
 
-                return Err(StdError::GenericErr {
-                    msg: "Integrations test mock reply error".to_string(),
-                });
+                return Err(StdError::generic_err(
+                    "Integrations test mock reply error".to_string(),
+                ));
             }
             Ok(Response::default())
         }

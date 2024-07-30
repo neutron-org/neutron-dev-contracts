@@ -63,7 +63,8 @@
             "token_b": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -115,7 +116,8 @@
             "token_b": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -175,7 +177,8 @@
             "token_out": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -195,7 +198,8 @@
             "tranche_key": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -215,7 +219,8 @@
             "tranche_key": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -254,7 +259,8 @@
                 "$ref": "#/definitions/MultiHopRoute"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -274,7 +280,8 @@
         "fail_tx_on_bel": {
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "MultiHopRoute": {
       "type": "object",
@@ -288,7 +295,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "Timestamp": {
       "type": "object",
@@ -307,7 +315,8 @@
           "type": "integer",
           "format": "int64"
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

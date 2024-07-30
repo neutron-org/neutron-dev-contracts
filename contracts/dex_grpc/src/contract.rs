@@ -1,13 +1,11 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{
     entry_point, to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response,
-    StdError, StdResult,
+    StdResult,
 };
 use cw2::set_contract_version;
-use neutron_sdk::{bindings::msg::NeutronMsg, sudo::msg::SudoMsg};
-use std::convert::TryInto;
-
 use neutron_sdk::proto_types::neutron::dex;
+use neutron_sdk::sudo::msg::SudoMsg;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -140,30 +138,30 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: query: received msg: {:?}", msg).as_str());
 
-    let dexQuerier = dex::DexQuerier::new(&deps.querier);
+    let dex_querier = dex::DexQuerier::new(&deps.querier);
 
     match msg {
-        QueryMsg::Params {} => Ok(to_json_binary(&dexQuerier.params()?)?),
+        QueryMsg::Params {} => Ok(to_json_binary(&dex_querier.params()?)?),
 
         QueryMsg::GetLimitOrderTrancheUser {
             address,
             tranche_key,
             calc_withdrawable_shares,
-        } => Ok(to_json_binary(&dexQuerier.limit_order_tranche_user(
+        } => Ok(to_json_binary(&dex_querier.limit_order_tranche_user(
             address,
             tranche_key,
             calc_withdrawable_shares,
         )?)?),
 
         QueryMsg::AllLimitOrderTrancheUser { pagination } => Ok(to_json_binary(
-            &dexQuerier.limit_order_tranche_user_all(pagination)?,
+            &dex_querier.limit_order_tranche_user_all(pagination)?,
         )?),
 
         QueryMsg::AllLimitOrderTrancheUserByAddress {
             address,
             pagination,
         } => Ok(to_json_binary(
-            &dexQuerier.limit_order_tranche_user_all_by_address(address, pagination)?,
+            &dex_querier.limit_order_tranche_user_all_by_address(address, pagination)?,
         )?),
 
         QueryMsg::GetLimitOrderTranche {
@@ -171,7 +169,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             tick_index,
             token_in,
             tranche_key,
-        } => Ok(to_json_binary(&dexQuerier.limit_order_tranche(
+        } => Ok(to_json_binary(&dex_querier.limit_order_tranche(
             pair_id,
             tick_index,
             token_in,
@@ -183,14 +181,14 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             token_in,
             pagination,
         } => Ok(to_json_binary(
-            &dexQuerier.limit_order_tranche_all(pair_id, token_in, pagination)?,
+            &dex_querier.limit_order_tranche_all(pair_id, token_in, pagination)?,
         )?),
 
         QueryMsg::AllUserDeposits {
             address,
             include_pool_data,
             pagination,
-        } => Ok(to_json_binary(&dexQuerier.user_deposits_all(
+        } => Ok(to_json_binary(&dex_querier.user_deposits_all(
             address,
             pagination,
             include_pool_data,
@@ -201,7 +199,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             token_in,
             pagination,
         } => Ok(to_json_binary(
-            &dexQuerier.tick_liquidity_all(pair_id, token_in, pagination)?,
+            &dex_querier.tick_liquidity_all(pair_id, token_in, pagination)?,
         )?),
 
         QueryMsg::GetInactiveLimitOrderTranche {
@@ -209,7 +207,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             token_in,
             tick_index,
             tranche_key,
-        } => Ok(to_json_binary(&dexQuerier.inactive_limit_order_tranche(
+        } => Ok(to_json_binary(&dex_querier.inactive_limit_order_tranche(
             pair_id,
             token_in,
             tick_index,
@@ -217,7 +215,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         )?)?),
 
         QueryMsg::AllInactiveLimitOrderTranche { pagination } => Ok(to_json_binary(
-            &dexQuerier.inactive_limit_order_tranche_all(pagination)?,
+            &dex_querier.inactive_limit_order_tranche_all(pagination)?,
         )?),
 
         QueryMsg::AllPoolReserves {
@@ -225,7 +223,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             token_in,
             pagination,
         } => Ok(to_json_binary(
-            &dexQuerier.pool_reserves_all(pair_id, token_in, pagination)?,
+            &dex_querier.pool_reserves_all(pair_id, token_in, pagination)?,
         )?),
 
         QueryMsg::GetPoolReserves {
@@ -234,7 +232,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             tick_index,
             fee,
         } => Ok(to_json_binary(
-            &dexQuerier.pool_reserves(pair_id, token_in, tick_index, fee)?,
+            &dex_querier.pool_reserves(pair_id, token_in, tick_index, fee)?,
         )?),
 
         QueryMsg::EstimateMultiHopSwap {
@@ -244,7 +242,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             amount_in,
             exit_limit_price,
             pick_best_route,
-        } => Ok(to_json_binary(&dexQuerier.estimate_multi_hop_swap(
+        } => Ok(to_json_binary(&dex_querier.estimate_multi_hop_swap(
             creator,
             receiver,
             routes,
@@ -263,7 +261,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             order_type,
             expiration_time,
             max_amount_out,
-        } => Ok(to_json_binary(&dexQuerier.estimate_place_limit_order(
+        } => Ok(to_json_binary(&dex_querier.estimate_place_limit_order(
             creator,
             receiver,
             token_in,
@@ -279,14 +277,16 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             pair_id,
             tick_index,
             fee,
-        } => Ok(to_json_binary(&dexQuerier.pool(pair_id, tick_index, fee)?)?),
+        } => Ok(to_json_binary(
+            &dex_querier.pool(pair_id, tick_index, fee)?,
+        )?),
 
-        QueryMsg::PoolById { pool_id } => Ok(to_json_binary(&dexQuerier.pool_by_id(pool_id)?)?),
+        QueryMsg::PoolById { pool_id } => Ok(to_json_binary(&dex_querier.pool_by_id(pool_id)?)?),
 
-        QueryMsg::GetPoolMetadata { id } => Ok(to_json_binary(&dexQuerier.pool_metadata(id)?)?),
+        QueryMsg::GetPoolMetadata { id } => Ok(to_json_binary(&dex_querier.pool_metadata(id)?)?),
 
         QueryMsg::AllPoolMetadata { pagination } => {
-            Ok(to_json_binary(&dexQuerier.pool_metadata_all(pagination)?)?)
+            Ok(to_json_binary(&dex_querier.pool_metadata_all(pagination)?)?)
         }
     }
 }

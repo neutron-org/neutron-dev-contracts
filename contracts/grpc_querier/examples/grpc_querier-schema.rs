@@ -12,9 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![warn(clippy::unwrap_used, clippy::expect_used)]
+use std::env::current_dir;
+use std::fs::create_dir_all;
 
-pub mod contract;
-pub mod msg;
-mod stargate;
-pub mod state;
+use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+
+use grpc_querier::msg::{ExecuteMsg, InstantiateMsg};
+
+fn main() {
+    let mut out_dir = current_dir().unwrap();
+    out_dir.push("schema");
+    create_dir_all(&out_dir).unwrap();
+    remove_schemas(&out_dir).unwrap();
+
+    export_schema(&schema_for!(InstantiateMsg), &out_dir);
+    export_schema(&schema_for!(ExecuteMsg), &out_dir);
+}

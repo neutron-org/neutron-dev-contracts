@@ -64,6 +64,12 @@
             },
             "denom": {
               "type": "string"
+            },
+            "mint_to_address": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         }
@@ -85,6 +91,12 @@
           "properties": {
             "amount": {
               "$ref": "#/definitions/Uint128"
+            },
+            "burn_from_address": {
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "denom": {
               "type": "string"

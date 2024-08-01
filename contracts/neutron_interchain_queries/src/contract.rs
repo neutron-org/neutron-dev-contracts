@@ -35,6 +35,7 @@ use neutron_sdk::interchain_queries::get_registered_query;
 use neutron_sdk::interchain_queries::types::{
     QueryPayload, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
+use neutron_sdk::interchain_queries::v045::types::HEIGHT_FIELD;
 use neutron_sdk::interchain_queries::v047::queries::{
     query_balance, query_bank_total, query_delegations, query_distribution_fee_pool,
     query_government_proposal_votes, query_government_proposals, query_staking_validators,
@@ -45,7 +46,7 @@ use neutron_sdk::interchain_queries::v047::register_queries::{
     new_register_delegator_delegations_query_msg,
     new_register_delegator_unbonding_delegations_query_msg,
     new_register_distribution_fee_pool_query_msg, new_register_gov_proposals_query_msg,
-    new_register_staking_validators_query_msg, new_register_transfers_query_msg,
+    new_register_staking_validators_query_msg,
 };
 use neutron_sdk::interchain_queries::v047::register_queries::{
     new_register_gov_proposals_voters_votes_query_msg,
@@ -144,10 +145,10 @@ pub fn execute(
         } => register_validators_signing_infos_query(connection_id, validators, update_period),
         ExecuteMsg::RegisterTransfersQuery {
             connection_id,
-            recipient,
+            recipients,
             update_period,
             min_height,
-        } => register_transfers_query(connection_id, recipient, update_period, min_height),
+        } => register_transfers_query(connection_id, recipients, update_period, min_height),
         ExecuteMsg::UpdateInterchainQuery {
             query_id,
             new_keys,
@@ -284,12 +285,32 @@ pub fn register_validators_signing_infos_query(
 
 pub fn register_transfers_query(
     connection_id: String,
-    recipient: String,
+    recipients: Vec<String>,
     update_period: u64,
     min_height: Option<u64>,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let msg =
-        new_register_transfers_query_msg(connection_id, recipient, update_period, min_height)?;
+    let mut query_data: Vec<TransactionFilterItem> = recipients
+        .into_iter()
+        .map(|r| TransactionFilterItem {
+            field: RECIPIENT_FIELD.to_string(),
+            op: TransactionFilterOp::Eq,
+            value: TransactionFilterValue::String(r),
+        })
+        .collect();
+
+    if let Some(min_height) = min_height {
+        query_data.push(TransactionFilterItem {
+            field: HEIGHT_FIELD.to_string(),
+            op: TransactionFilterOp::Gte,
+            value: TransactionFilterValue::Int(min_height),
+        })
+    }
+
+    let msg = NeutronMsg::register_interchain_query(
+        QueryPayload::TX(query_data),
+        connection_id,
+        update_period,
+    )?;
 
     Ok(Response::new().add_message(msg))
 }

@@ -18,10 +18,12 @@ pub enum ExecuteMsg {
     MintTokens {
         denom: String,
         amount: Uint128,
+        mint_to_address: Option<String>,
     },
     BurnTokens {
         denom: String,
         amount: Uint128,
+        burn_from_address: Option<String>,
     },
     SendTokens {
         recipient: String,

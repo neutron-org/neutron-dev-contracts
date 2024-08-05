@@ -218,7 +218,7 @@
           "type": "object",
           "required": [
             "connection_id",
-            "recipient",
+            "recipients",
             "update_period"
           ],
           "properties": {
@@ -233,8 +233,11 @@
               "format": "uint64",
               "minimum": 0.0
             },
-            "recipient": {
-              "type": "string"
+            "recipients": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
             "update_period": {
               "type": "integer",

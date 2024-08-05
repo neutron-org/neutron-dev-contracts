@@ -710,8 +710,8 @@ dependencies = [
 
 [[package]]
 name = "neutron-sdk"
-version = "0.10.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/proposal-votes#2dfca1734dfc4cfba478b3067417648733d66cd9"
+version = "0.11.0"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=chore/reverse-dex-prices#38fc8db4dfbea1fcac6c91488668e64a071af0f1"
 dependencies = [
  "bech32",
  "cosmos-sdk-proto 0.20.0",

@@ -42,7 +42,8 @@ pub enum QueryMsg {
     },
     TokenfactoryParams {},
     TokenfactoryDenomAuthorityMetadata {
-        denom: String,
+        creator: String,
+        subdenom: String,
     },
     TokenfactoryDenomsFromCreator {
         creator: String,
@@ -53,7 +54,7 @@ pub enum QueryMsg {
     ContractmanagerFailures {
         address: String,
     },
-    InterchaintxParams {},
+    InterchaintxsParams {},
     InterchainqueriesParams {},
     FeeburnerParams {},
     FeeburnerTotalBurnedNeutronsAmount {},

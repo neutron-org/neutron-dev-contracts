@@ -9,7 +9,8 @@
       ],
       "properties": {
         "params": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -37,7 +38,8 @@
             "tranche_key": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -61,7 +63,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -91,7 +94,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -124,7 +128,8 @@
             "tranche_key": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -158,7 +163,8 @@
             "token_in": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -192,7 +198,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -226,7 +233,8 @@
             "token_in": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -259,7 +267,8 @@
             "tranche_key": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -283,7 +292,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -317,7 +327,8 @@
             "token_in": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -352,7 +363,8 @@
             "token_in": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -392,13 +404,11 @@
             "routes": {
               "type": "array",
               "items": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/definitions/MultiHopRoute"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -414,6 +424,7 @@
           "required": [
             "amount_in",
             "creator",
+            "max_amount_out",
             "order_type",
             "receiver",
             "tick_index_in_to_out",
@@ -428,17 +439,17 @@
               "type": "string"
             },
             "expiration_time": {
-              "type": [
-                "integer",
-                "null"
-              ],
-              "format": "int64"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "max_amount_out": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             },
             "order_type": {
               "type": "integer",
@@ -457,7 +468,8 @@
             "token_out": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -488,7 +500,8 @@
               "type": "integer",
               "format": "int64"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -510,7 +523,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -532,7 +546,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -556,18 +571,31 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "Binary": {
-      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-      "type": "string"
+    "MultiHopRoute": {
+      "type": "object",
+      "required": [
+        "hops"
+      ],
+      "properties": {
+        "hops": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "PageRequest": {
+      "description": "PageRequest is to be embedded in gRPC request messages for efficient pagination. Ex:\n\nmessage SomeRequest { Foo some_parameter = 1; PageRequest pagination = 2; }",
       "type": "object",
       "required": [
         "count_total",
@@ -578,34 +606,56 @@
       ],
       "properties": {
         "count_total": {
-          "description": "**count_total** is set to true  to indicate that the result set should include a count of the total number of items available for pagination in UIs. count_total is only respected when offset is used. It is ignored when key is set.",
+          "description": "count_total is set to true  to indicate that the result set should include a count of the total number of items available for pagination in UIs. count_total is only respected when offset is used. It is ignored when key is set.",
           "type": "boolean"
         },
         "key": {
-          "description": "**key** is a value returned in PageResponse.next_key to begin querying the next page most efficiently. Only one of offset or key should be set.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Binary"
-            }
-          ]
+          "description": "key is a value returned in PageResponse.next_key to begin querying the next page most efficiently. Only one of offset or key should be set.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          }
         },
         "limit": {
-          "description": "**limit** is the total number of results to be returned in the result page. If left empty it will default to a value to be set by each app.",
+          "description": "limit is the total number of results to be returned in the result page. If left empty it will default to a value to be set by each app.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0
         },
         "offset": {
-          "description": "**offset** is a numeric offset that can be used when key is unavailable. It is less efficient than using key. Only one of offset or key should be set.",
+          "description": "offset is a numeric offset that can be used when key is unavailable. It is less efficient than using key. Only one of offset or key should be set.",
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0
         },
         "reverse": {
-          "description": "reverse is set to true if results are to be returned in the descending order.",
+          "description": "reverse is set to true if results are to be returned in the descending order.\n\nSince: cosmos-sdk 0.43",
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "Timestamp": {
+      "type": "object",
+      "required": [
+        "nanos",
+        "seconds"
+      ],
+      "properties": {
+        "nanos": {
+          "description": "Non-negative fractions of a second at nanosecond resolution. Negative second values with fractions must still have non-negative nanos values that count forward in time. Must be from 0 to 999,999,999 inclusive.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "seconds": {
+          "description": "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

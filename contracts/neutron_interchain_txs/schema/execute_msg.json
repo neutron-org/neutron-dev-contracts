@@ -21,7 +21,8 @@
             "interchain_account_id": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -53,7 +54,8 @@
             "timeout_fee": {
               "$ref": "#/definitions/Uint128"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -93,7 +95,8 @@
             "validator": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -133,7 +136,8 @@
             "validator": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -173,7 +177,8 @@
             "validator": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -185,7 +190,8 @@
       ],
       "properties": {
         "clean_ack_results": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -207,7 +213,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -228,7 +235,8 @@
             "state": {
               "$ref": "#/definitions/IntegrationTestsSudoFailureMock"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -241,7 +249,8 @@
       ],
       "properties": {
         "integration_tests_set_sudo_submsg_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -254,7 +263,8 @@
       ],
       "properties": {
         "integration_tests_set_sudo_submsg_reply_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -267,7 +277,8 @@
       ],
       "properties": {
         "integration_tests_unset_sudo_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -280,7 +291,8 @@
       ],
       "properties": {
         "integration_tests_sudo_submsg": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

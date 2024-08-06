@@ -1,5 +1,5 @@
 [package]
-name = "dex_stargate"
+name = "dex_grpc"
 version = "0.1.0"
 edition = "2021"
 
@@ -32,7 +32,7 @@ library = []
 
 [dependencies]
 neutron-sdk = { workspace = true }
-cosmwasm-std = { workspace = true, features = ["stargate"] }
+cosmwasm-std = { workspace = true }
 cw2 = { workspace = true }
 schemars = { workspace = true }
 serde = { version = "1.0.188", default-features = false, features = ["derive"] }

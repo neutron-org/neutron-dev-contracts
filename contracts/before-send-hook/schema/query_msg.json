@@ -9,7 +9,8 @@
       ],
       "properties": {
         "sudo_result_block_before": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -21,7 +22,8 @@
       ],
       "properties": {
         "sudo_result_track_before": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

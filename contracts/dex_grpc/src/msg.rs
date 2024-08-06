@@ -1,5 +1,6 @@
-use neutron_sdk::bindings::query::PageRequest;
-use neutron_sdk::stargate::dex::types::DepositOptions;
+use neutron_sdk::proto_types::neutron::dex::{DepositOptions, MultiHopRoute};
+use neutron_sdk::proto_types::{cosmos::base::query::v1beta1::PageRequest, neutron::dex};
+use neutron_sdk::shim::Timestamp;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -34,8 +35,8 @@ pub enum ExecuteMsg {
         tick_index_in_to_out: i64,
         amount_in: String,
         order_type: i32,
-        expiration_time: Option<i64>,
-        max_amount_out: Option<String>,
+        expiration_time: Option<Timestamp>,
+        max_amount_out: String,
         limit_sell_price: String,
     },
     WithdrawFilledLimitOrder {
@@ -46,7 +47,7 @@ pub enum ExecuteMsg {
     },
     MultiHopSwap {
         receiver: String,
-        routes: Vec<Vec<String>>,
+        routes: Vec<dex::MultiHopRoute>,
         amount_in: String,
         exit_limit_price: String,
         pick_best_route: bool,
@@ -113,7 +114,7 @@ pub enum QueryMsg {
     EstimateMultiHopSwap {
         creator: String,
         receiver: String,
-        routes: Vec<Vec<String>>,
+        routes: Vec<MultiHopRoute>,
         amount_in: String,
         exit_limit_price: String,
         pick_best_route: bool,
@@ -126,8 +127,8 @@ pub enum QueryMsg {
         tick_index_in_to_out: i64,
         amount_in: String,
         order_type: i32,
-        expiration_time: Option<i64>,
-        max_amount_out: Option<String>,
+        expiration_time: Option<Timestamp>,
+        max_amount_out: String,
     },
     Pool {
         pair_id: String,

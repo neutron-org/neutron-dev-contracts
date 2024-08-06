@@ -34,7 +34,8 @@
                 "denom": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -59,7 +60,8 @@
                 "denom": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -80,7 +82,56 @@
                 "address": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "This calls into the native bank module for querying metadata for a specific bank token. Return value is DenomMetadataResponse",
+          "type": "object",
+          "required": [
+            "denom_metadata"
+          ],
+          "properties": {
+            "denom_metadata": {
+              "type": "object",
+              "required": [
+                "denom"
+              ],
+              "properties": {
+                "denom": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "This calls into the native bank module for querying metadata for all bank tokens that have a metadata entry. Return value is AllDenomMetadataResponse",
+          "type": "object",
+          "required": [
+            "all_denom_metadata"
+          ],
+          "properties": {
+            "all_denom_metadata": {
+              "type": "object",
+              "properties": {
+                "pagination": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/PageRequest"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -90,6 +141,125 @@
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
       "type": "string"
+    },
+    "DistributionQuery": {
+      "oneOf": [
+        {
+          "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L222-L230>",
+          "type": "object",
+          "required": [
+            "delegator_withdraw_address"
+          ],
+          "properties": {
+            "delegator_withdraw_address": {
+              "type": "object",
+              "required": [
+                "delegator_address"
+              ],
+              "properties": {
+                "delegator_address": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L157-L167>",
+          "type": "object",
+          "required": [
+            "delegation_rewards"
+          ],
+          "properties": {
+            "delegation_rewards": {
+              "type": "object",
+              "required": [
+                "delegator_address",
+                "validator_address"
+              ],
+              "properties": {
+                "delegator_address": {
+                  "type": "string"
+                },
+                "validator_address": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L180-L187>",
+          "type": "object",
+          "required": [
+            "delegation_total_rewards"
+          ],
+          "properties": {
+            "delegation_total_rewards": {
+              "type": "object",
+              "required": [
+                "delegator_address"
+              ],
+              "properties": {
+                "delegator_address": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "See <https://github.com/cosmos/cosmos-sdk/blob/b0acf60e6c39f7ab023841841fc0b751a12c13ff/proto/cosmos/distribution/v1beta1/query.proto#L202-L210>",
+          "type": "object",
+          "required": [
+            "delegator_validators"
+          ],
+          "properties": {
+            "delegator_validators": {
+              "type": "object",
+              "required": [
+                "delegator_address"
+              ],
+              "properties": {
+                "delegator_address": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "GrpcQuery": {
+      "description": "Queries the chain using a grpc query. This allows to query information that is not exposed in our API. The chain needs to allowlist the supported queries. The drawback of this query is that you have to handle the protobuf encoding and decoding yourself.\n\nThe returned data is protobuf encoded. The protobuf type depends on the query. Because of this, using it with the [`query`](crate::QuerierWrapper::query) function will result in a deserialization error. Use [`raw_query`](crate::Querier::raw_query) or [`query_grpc`](crate::QuerierWrapper::query_grpc) instead.\n\nTo find the path, as well as the request and response types, you can query the chain's gRPC endpoint using a tool like [grpcurl](https://github.com/fullstorydev/grpcurl).",
+      "type": "object",
+      "required": [
+        "data",
+        "path"
+      ],
+      "properties": {
+        "data": {
+          "description": "The expected protobuf message type (not [Any](https://protobuf.dev/programming-guides/proto3/#any)), binary encoded",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Binary"
+            }
+          ]
+        },
+        "path": {
+          "description": "The fully qualified endpoint path used for routing. It follows the format `/service_path/method_name`, eg. \"/cosmos.authz.v1beta1.Query/Grants\"",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "IbcQuery": {
       "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. These will return errors if the contract is not \"ibc enabled\"",
@@ -102,7 +272,8 @@
           ],
           "properties": {
             "port_id": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -123,7 +294,8 @@
                     "null"
                   ]
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -150,7 +322,8 @@
                     "null"
                   ]
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -176,7 +349,8 @@
                   "format": "uint64",
                   "minimum": 0.0
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -204,7 +378,8 @@
                 "owner_address": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -216,7 +391,8 @@
           ],
           "properties": {
             "registered_interchain_queries": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -238,7 +414,8 @@
                   "format": "uint64",
                   "minimum": 0.0
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -250,7 +427,8 @@
           ],
           "properties": {
             "min_ibc_fee": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -274,7 +452,8 @@
                 "subdenom": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -294,12 +473,42 @@
                 "subdenom": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
         }
       ]
+    },
+    "PageRequest": {
+      "description": "Simplified version of the PageRequest type for pagination from the cosmos-sdk",
+      "type": "object",
+      "required": [
+        "limit",
+        "reverse"
+      ],
+      "properties": {
+        "key": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Binary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "reverse": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     },
     "QueryRequest_for_InterchainQueries": {
       "oneOf": [
@@ -340,6 +549,18 @@
           "additionalProperties": false
         },
         {
+          "type": "object",
+          "required": [
+            "distribution"
+          ],
+          "properties": {
+            "distribution": {
+              "$ref": "#/definitions/DistributionQuery"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
           "description": "A Stargate query is encoded the same way as abci_query, with path and protobuf encoded request data. The format is defined in [ADR-21](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-021-protobuf-query-encoding.md). The response is protobuf encoded data directly without a JSON response wrapper. The caller is responsible for compiling the proper protobuf definitions for both requests and responses.",
           "deprecated": true,
           "type": "object",
@@ -366,7 +587,8 @@
                   "description": "this is the fully qualified service path used for routing, eg. \"/cosmos_sdk.x.bank.v1.Query/QueryBalance\"",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -394,6 +616,18 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "grpc"
+          ],
+          "properties": {
+            "grpc": {
+              "$ref": "#/definitions/GrpcQuery"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -407,7 +641,8 @@
           ],
           "properties": {
             "bonded_denom": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -428,7 +663,8 @@
                 "delegator": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -453,7 +689,8 @@
                 "validator": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -466,7 +703,8 @@
           ],
           "properties": {
             "all_validators": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -488,7 +726,8 @@
                   "description": "The validator's address (e.g. (e.g. cosmosvaloper1...))",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -522,7 +761,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -552,7 +792,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -573,7 +814,8 @@
                 "contract_addr": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -596,7 +838,8 @@
                   "format": "uint64",
                   "minimum": 0.0
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

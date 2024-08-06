@@ -37,7 +37,8 @@
             "to": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -69,7 +70,8 @@
             "timeout_fee": {
               "$ref": "#/definitions/Uint128"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -91,7 +93,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -112,7 +115,8 @@
             "state": {
               "$ref": "#/definitions/IntegrationTestsSudoFailureMock"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -125,7 +129,8 @@
       ],
       "properties": {
         "integration_tests_unset_sudo_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

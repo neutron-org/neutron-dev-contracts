@@ -34,7 +34,7 @@ use crate::integration_tests_mock_handlers::{
 use crate::msg::{
     AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use neutron_sdk::bindings::msg::{IbcFee, NeutronMsg};
+use neutron_sdk::bindings::msg::{ChannelOrdering, IbcFee, NeutronMsg};
 use neutron_sdk::bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse};
 use neutron_sdk::bindings::types::ProtobufAny;
 use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
@@ -108,7 +108,8 @@ pub fn execute(
         ExecuteMsg::Register {
             connection_id,
             interchain_account_id,
-        } => execute_register_ica(deps, env, connection_id, interchain_account_id),
+            ordering,
+        } => execute_register_ica(deps, env, connection_id, interchain_account_id, ordering),
         ExecuteMsg::Delegate {
             validator,
             interchain_account_id,
@@ -307,12 +308,14 @@ fn execute_register_ica(
     env: Env,
     connection_id: String,
     interchain_account_id: String,
+    ordering: Option<ChannelOrdering>,
 ) -> StdResult<Response<NeutronMsg>> {
     let register_fee = REGISTER_FEE.load(deps.storage)?;
     let register = NeutronMsg::register_interchain_account(
         connection_id,
         interchain_account_id.clone(),
         Option::from(register_fee),
+        ordering,
     );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;

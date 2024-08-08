@@ -32,7 +32,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use neutron_sdk::bindings::msg::{IbcFee, NeutronMsg};
+use neutron_sdk::bindings::msg::{ChannelOrdering, IbcFee, NeutronMsg};
 use neutron_sdk::bindings::query::{
     NeutronQuery, QueryInterchainAccountAddressResponse, QueryRegisteredQueryResponse,
 };
@@ -267,8 +267,12 @@ fn execute_register_ica(
     connection_id: String,
     interchain_account_id: String,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    let register =
-        NeutronMsg::register_interchain_account(connection_id, interchain_account_id.clone(), None);
+    let register = NeutronMsg::register_interchain_account(
+        connection_id,
+        interchain_account_id.clone(),
+        None,
+        Some(ChannelOrdering::OrderOrdered),
+    );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
     Ok(Response::new().add_message(register))

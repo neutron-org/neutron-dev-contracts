@@ -20,6 +20,16 @@
             },
             "interchain_account_id": {
               "type": "string"
+            },
+            "ordering": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ChannelOrdering"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "additionalProperties": false
@@ -242,7 +252,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage processing error.",
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in a submessage processing error.",
       "type": "object",
       "required": [
         "integration_tests_set_sudo_submsg_failure_mock"
@@ -256,7 +266,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage reply processing error.",
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in a submessage reply processing error.",
       "type": "object",
       "required": [
         "integration_tests_set_sudo_submsg_reply_failure_mock"
@@ -299,6 +309,14 @@
     }
   ],
   "definitions": {
+    "ChannelOrdering": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "ORDER_ORDERED",
+        "ORDER_UNORDERED"
+      ]
+    },
     "IntegrationTestsSudoFailureMock": {
       "type": "string",
       "enum": [

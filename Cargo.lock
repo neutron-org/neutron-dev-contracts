@@ -1131,7 +1131,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/remove-stargate#afe11ec1f30f189f0ea11c2fea3badd32aa1bbf9"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#240ab2cce961e67b3dfa90c137eb64a6d15c1824"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/remove-stargate#afe11ec1f30f189f0ea11c2fea3badd32aa1bbf9"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#240ab2cce961e67b3dfa90c137eb64a6d15c1824"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

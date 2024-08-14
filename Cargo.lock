@@ -1131,7 +1131,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/unordered-ica#d3b24c51ab41a6e26516bdeedb51ca0ef89d9339"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/unordered-ica#45b1e92069b8a0ab54097508de313f7c80c352f1"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/unordered-ica#d3b24c51ab41a6e26516bdeedb51ca0ef89d9339"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/unordered-ica#45b1e92069b8a0ab54097508de313f7c80c352f1"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

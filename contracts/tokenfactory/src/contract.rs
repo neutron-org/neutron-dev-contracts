@@ -47,14 +47,7 @@ pub fn execute(
             denom,
             amount,
             burn_from_address,
-        } => {
-            NeutronMsg::submit_burn_tokens(
-                denom,
-                amount,
-                burn_from_address,
-            )
-            .into()
-        }
+        } => NeutronMsg::submit_burn_tokens(denom, amount, burn_from_address).into(),
         ExecuteMsg::SetBeforeSendHook {
             denom,
             contract_addr,

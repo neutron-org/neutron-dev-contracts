@@ -48,12 +48,11 @@ pub fn execute(
             amount,
             burn_from_address,
         } => {
-            // TODO: update neutron-sdk `submit_burn_tokens`
-            NeutronMsg::BurnTokens {
+            NeutronMsg::submit_burn_tokens(
                 denom,
                 amount,
-                burn_from_address: burn_from_address.unwrap_or_default(),
-            }
+                burn_from_address,
+            )
             .into()
         }
         ExecuteMsg::SetBeforeSendHook {

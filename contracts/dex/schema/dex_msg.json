@@ -49,7 +49,7 @@
               "description": "Additional deposit options",
               "type": "array",
               "items": {
-                "$ref": "#/definitions/DepositOption"
+                "$ref": "#/definitions/DepositOptions"
               }
             },
             "receiver": {
@@ -322,13 +322,17 @@
     }
   ],
   "definitions": {
-    "DepositOption": {
+    "DepositOptions": {
       "type": "object",
       "required": [
-        "disable_swap"
+        "disable_autoswap",
+        "fail_tx_on_bel"
       ],
       "properties": {
-        "disable_swap": {
+        "disable_autoswap": {
+          "type": "boolean"
+        },
+        "fail_tx_on_bel": {
           "type": "boolean"
         }
       },

@@ -1,4 +1,7 @@
-use neutron_sdk::proto_types::neutron::dex::{DepositOptions, MultiHopRoute};
+use neutron_sdk::proto_types::neutron::dex::{
+    DepositOptions, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
+    MsgWithdrawFilledLimitOrder, MsgWithdrawal, MultiHopRoute,
+};
 use neutron_sdk::proto_types::{cosmos::base::query::v1beta1::PageRequest, neutron::dex};
 use neutron_sdk::shim::Timestamp;
 use schemars::JsonSchema;
@@ -143,6 +146,24 @@ pub enum QueryMsg {
     },
     AllPoolMetadata {
         pagination: Option<PageRequest>,
+    },
+    SimulateDeposit {
+        msg: MsgDeposit,
+    },
+    SimulateWithdrawal {
+        msg: MsgWithdrawal,
+    },
+    SimulatePlaceLimitOrder {
+        msg: MsgPlaceLimitOrder,
+    },
+    SimulateWithdrawFilledLimitOrder {
+        msg: MsgWithdrawFilledLimitOrder,
+    },
+    SimulateCancelLimitOrder {
+        msg: MsgCancelLimitOrder,
+    },
+    SimulateMultiHopSwap {
+        msg: MsgMultiHopSwap,
     },
 }
 

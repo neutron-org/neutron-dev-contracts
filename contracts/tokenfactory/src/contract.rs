@@ -37,7 +37,8 @@ pub fn execute(
             NeutronMsg::submit_mint_tokens(denom, amount, env.contract.address).into()
         }
         ExecuteMsg::BurnTokens { denom, amount } => {
-            NeutronMsg::submit_burn_tokens(denom, amount).into()
+            // TEMP: fix so that contract compiles
+            NeutronMsg::submit_burn_tokens(denom, amount, Some("TEMP".to_string())).into()
         }
         ExecuteMsg::SetBeforeSendHook {
             denom,

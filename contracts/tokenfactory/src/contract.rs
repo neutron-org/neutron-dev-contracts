@@ -33,12 +33,21 @@ pub fn execute(
             denom,
             new_admin_address,
         } => NeutronMsg::submit_change_admin(denom, new_admin_address).into(),
-        ExecuteMsg::MintTokens { denom, amount } => {
-            NeutronMsg::submit_mint_tokens(denom, amount, env.contract.address).into()
-        }
-        ExecuteMsg::BurnTokens { denom, amount } => {
-            NeutronMsg::submit_burn_tokens(denom, amount).into()
-        }
+        ExecuteMsg::MintTokens {
+            denom,
+            amount,
+            mint_to_address,
+        } => NeutronMsg::submit_mint_tokens(
+            denom,
+            amount,
+            mint_to_address.unwrap_or(env.contract.address.into()),
+        )
+        .into(),
+        ExecuteMsg::BurnTokens {
+            denom,
+            amount,
+            burn_from_address,
+        } => NeutronMsg::submit_burn_tokens(denom, amount, burn_from_address).into(),
         ExecuteMsg::SetBeforeSendHook {
             denom,
             contract_addr,

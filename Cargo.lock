@@ -1131,7 +1131,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/icq-params-gov-gated#a47ca5f461de2a021b912bd7f4851782f8dcebd0"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/icq-params-gov-gated#a11018a9152bb0065868145266f35e283ac36b8e"
 dependencies = [
  "bech32 0.9.1",
  "chrono",

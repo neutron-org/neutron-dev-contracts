@@ -313,7 +313,6 @@
     "ChannelOrdering": {
       "type": "string",
       "enum": [
-        "NONE",
         "ORDER_ORDERED",
         "ORDER_UNORDERED"
       ]

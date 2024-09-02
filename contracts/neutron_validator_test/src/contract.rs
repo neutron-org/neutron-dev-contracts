@@ -48,9 +48,9 @@ use neutron_sdk::interchain_queries::v045::{
 };
 use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
 use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
-use neutron_sdk::proto_types::neutron::interchaintxs::v1::MsgSubmitTxResponse;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::{NeutronError, NeutronResult};
+use neutron_std::types::neutron::interchaintxs::v1::MsgSubmitTxResponse;
 
 use crate::storage::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload,

@@ -1,6 +1,6 @@
-use neutron_sdk::proto_types::neutron::dex::{DepositOptions, MultiHopRoute};
-use neutron_sdk::proto_types::{cosmos::base::query::v1beta1::PageRequest, neutron::dex};
-use neutron_sdk::shim::Timestamp;
+use neutron_std::shim::Timestamp;
+use neutron_std::types::neutron::dex::{DepositOptions, MultiHopRoute};
+use neutron_std::types::{cosmos::base::query::v1beta1::PageRequest, neutron::dex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -43,7 +43,7 @@ pub enum ExecuteMsg {
     RegisterTransfersQuery {
         connection_id: String,
         update_period: u64,
-        recipient: String,
+        recipients: Vec<String>,
         min_height: Option<u64>,
     },
     RegisterDelegatorDelegationsQuery {

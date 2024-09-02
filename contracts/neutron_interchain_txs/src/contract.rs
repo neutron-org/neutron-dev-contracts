@@ -349,7 +349,7 @@ fn execute_undelegate(
             amount: amount.to_string(),
         }),
     };
-    let mut buf = Vec::new();
+    let mut buf = Vec::with_capacity(delegate_msg.encoded_len());
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
@@ -406,7 +406,7 @@ fn do_delegate(
             amount: info.amount.to_string(),
         }),
     };
-    let mut buf = Vec::new();
+    let mut buf = Vec::with_capacity(delegate_msg.encoded_len());
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {

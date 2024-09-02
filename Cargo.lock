@@ -1131,7 +1131,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/add_simulateXXQueries#fc90769f86a4d13a5af043092ac3928cefbb3b5c"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/add_simulateXXQueries#a4e23feabb57b57369b4820cc0e28333a240b550"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/add_simulateXXQueries#fc90769f86a4d13a5af043092ac3928cefbb3b5c"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/add_simulateXXQueries#a4e23feabb57b57369b4820cc0e28333a240b550"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

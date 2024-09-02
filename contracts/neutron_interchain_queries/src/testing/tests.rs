@@ -1000,7 +1000,7 @@ fn test_sudo_tx_query_result_callback() {
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
-        recipient: watched_addr.clone(),
+        recipients: vec![watched_addr.clone()],
         min_height: None,
     };
     execute(
@@ -1104,7 +1104,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
     let msg = ExecuteMsg::RegisterTransfersQuery {
         connection_id: "connection".to_string(),
         update_period: 1u64,
-        recipient: watched_addr.clone(),
+        recipients: vec![watched_addr.clone()],
         min_height: Some(100000),
     };
     execute(

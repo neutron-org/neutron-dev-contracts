@@ -310,6 +310,13 @@
       },
       "additionalProperties": false
     },
+    "ChannelOrdering": {
+      "type": "string",
+      "enum": [
+        "ORDER_ORDERED",
+        "ORDER_UNORDERED"
+      ]
+    },
     "ClearAdminProposal": {
       "description": "Deprecated. SudoContractProposal defines the struct for clear admin proposal.",
       "deprecated": true,
@@ -1338,6 +1345,17 @@
                   "description": "**interchain_account_id** is an identifier of your new interchain account. Can be any string. This identifier allows contracts to have multiple interchain accounts on remote chains.",
                   "type": "string"
                 },
+                "ordering": {
+                  "description": "**ordering** is an order of channel. Can be ordered or unordered. Set to ordered if not specified.",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/ChannelOrdering"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "register_fee": {
                   "description": "*register_fee** is a fees required to be payed to register interchain account",
                   "type": [
@@ -1473,7 +1491,7 @@
               ],
               "properties": {
                 "new_keys": {
-                  "description": "*new_keys** is the new query keys to retrive.",
+                  "description": "*new_keys** is the new query keys to retrieve.",
                   "type": [
                     "array",
                     "null"

@@ -145,32 +145,5 @@ fn query_dex(deps: Deps<NeutronQuery>, _env: Env, msg: DexQuery) -> StdResult<Bi
             let query_response: AllPoolMetadataResponse = deps.querier.query(&msg.into())?;
             to_json_binary(&query_response)
         }
-        DexQuery::SimulateDeposit { .. } => {
-            let query_response: SimulateDepositResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
-        DexQuery::SimulateWithdrawal { .. } => {
-            let query_response: SimulateWithdrawalResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
-        DexQuery::SimulatePlaceLimitOrder { .. } => {
-            let query_response: SimulatePlaceLimitOrderResponse =
-                deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
-        DexQuery::SimulateWithdrawFilledLimitOrder { .. } => {
-            let query_response: SimulateWithdrawFilledLimitOrderResponse =
-                deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
-        DexQuery::SimulateCancelLimitOrder { .. } => {
-            let query_response: SimulateCancelLimitOrderResponse =
-                deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
-        DexQuery::SimulateMultiHopSwap { .. } => {
-            let query_response: SimulateMultiHopSwapResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
     }
 }

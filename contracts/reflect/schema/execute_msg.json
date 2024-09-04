@@ -548,16 +548,18 @@
     },
     "DepositOptions": {
       "type": "object",
-      "required": [
-        "disable_autoswap",
-        "fail_tx_on_bel"
-      ],
       "properties": {
         "disable_autoswap": {
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "fail_tx_on_bel": {
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         }
       },
       "additionalProperties": false

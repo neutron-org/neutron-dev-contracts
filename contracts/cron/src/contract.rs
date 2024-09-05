@@ -1,12 +1,15 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{BEGIN_BLOCKER_SHEDULES, END_BLOCKER_SHEDULES};
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult,
 };
 use cw2::set_contract_version;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+const MODULE_ACCOUNT: &str = "neutron1cd6wafvehv79pm2yxth40thpyc7dc0yrqkyk95";
 
 #[entry_point]
 pub fn instantiate(
@@ -21,9 +24,13 @@ pub fn instantiate(
 }
 
 #[entry_point]
-pub fn execute(deps: DepsMut, _: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+pub fn execute(deps: DepsMut, _: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
+
+    if info.sender.as_str() != MODULE_ACCOUNT {
+        return Err(StdError::generic_err("Unauthorized"));
+    }
 
     match msg {
         ExecuteMsg::AddBeginBlockerSchedule { name } => {
@@ -45,16 +52,6 @@ pub fn execute(deps: DepsMut, _: Env, _: MessageInfo, msg: ExecuteMsg) -> StdRes
                 .unwrap_or_default();
 
             END_BLOCKER_SHEDULES.save(deps.storage, name, &counter)?;
-
-            Ok(Response::default())
-        }
-        ExecuteMsg::RemoveBeginBlockerSchedule { name } => {
-            BEGIN_BLOCKER_SHEDULES.remove(deps.storage, name);
-
-            Ok(Response::default())
-        }
-        ExecuteMsg::RemoveEndBlockerSchedule { name } => {
-            END_BLOCKER_SHEDULES.remove(deps.storage, name);
 
             Ok(Response::default())
         }

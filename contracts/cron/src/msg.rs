@@ -9,8 +9,6 @@ pub struct InstantiateMsg {}
 pub enum ExecuteMsg {
     AddBeginBlockerSchedule { name: String },
     AddEndBlockerSchedule { name: String },
-    RemoveBeginBlockerSchedule { name: String },
-    RemoveEndBlockerSchedule { name: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

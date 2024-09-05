@@ -160,8 +160,8 @@ dependencies = [
 
 [[package]]
 name = "astroport"
-version = "5.3.0"
-source = "git+https://github.com/astroport-fi/astroport-core#8bb2e109cfb717bee2cdd1495f385d2db1e8726d"
+version = "5.4.0"
+source = "git+https://github.com/astroport-fi/astroport-core#034ec4375ce50e34d9e9aff15d1f86d497b27b81"
 dependencies = [
  "astroport-circular-buffer",
  "cosmos-sdk-proto 0.19.0",
@@ -179,7 +179,7 @@ dependencies = [
 [[package]]
 name = "astroport-circular-buffer"
 version = "0.2.0"
-source = "git+https://github.com/astroport-fi/astroport-core#8bb2e109cfb717bee2cdd1495f385d2db1e8726d"
+source = "git+https://github.com/astroport-fi/astroport-core#034ec4375ce50e34d9e9aff15d1f86d497b27b81"
 dependencies = [
  "cosmwasm-schema 1.5.7",
  "cosmwasm-std 1.5.7",

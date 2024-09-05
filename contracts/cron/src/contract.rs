@@ -26,9 +26,10 @@ pub fn execute(deps: DepsMut, _: Env, _: MessageInfo, msg: ExecuteMsg) -> StdRes
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
 
     match msg {
-        ExecuteMsg::BeginBlocker { name } => {
+        ExecuteMsg::AddBeginBlockerSchedule { name } => {
             let counter = BEGIN_BLOCKER_SHEDULES
-                .load(deps.storage, name.clone())?
+                .may_load(deps.storage, name.clone())?
+                .unwrap_or_default()
                 .checked_add(1)
                 .unwrap_or_default();
 
@@ -36,13 +37,24 @@ pub fn execute(deps: DepsMut, _: Env, _: MessageInfo, msg: ExecuteMsg) -> StdRes
 
             Ok(Response::default())
         }
-        ExecuteMsg::EndBlocker { name } => {
+        ExecuteMsg::AddEndBlockerSchedule { name } => {
             let counter = END_BLOCKER_SHEDULES
-                .load(deps.storage, name.clone())?
+                .may_load(deps.storage, name.clone())?
+                .unwrap_or_default()
                 .checked_add(1)
                 .unwrap_or_default();
 
             END_BLOCKER_SHEDULES.save(deps.storage, name, &counter)?;
+
+            Ok(Response::default())
+        }
+        ExecuteMsg::RemoveBeginBlockerSchedule { name } => {
+            BEGIN_BLOCKER_SHEDULES.remove(deps.storage, name);
+
+            Ok(Response::default())
+        }
+        ExecuteMsg::RemoveEndBlockerSchedule { name } => {
+            END_BLOCKER_SHEDULES.remove(deps.storage, name);
 
             Ok(Response::default())
         }
@@ -53,11 +65,11 @@ pub fn execute(deps: DepsMut, _: Env, _: MessageInfo, msg: ExecuteMsg) -> StdRes
 pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetBeginBlockerScheduleCounter { name } => {
-            let res = BEGIN_BLOCKER_SHEDULES.load(deps.storage, name)?;
+            let res = BEGIN_BLOCKER_SHEDULES.may_load(deps.storage, name)?;
             to_json_binary(&res)
         }
         QueryMsg::GetEndBlockerScheduleCounter { name } => {
-            let res = END_BLOCKER_SHEDULES.load(deps.storage, name)?;
+            let res = END_BLOCKER_SHEDULES.may_load(deps.storage, name)?;
             to_json_binary(&res)
         }
     }

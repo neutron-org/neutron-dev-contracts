@@ -28,6 +28,10 @@ pub enum QueryMsg {
     TransferDenomTrace {
         hash: String,
     },
+    TransferEscrowAddress {
+        port_id: String,
+        channel_id: String,
+    },
     IbcClientState {
         client_id: String,
     },

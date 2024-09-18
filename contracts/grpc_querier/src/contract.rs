@@ -73,6 +73,13 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
             Ok(to_json_binary(&transfer_querier.denom_trace(hash)?)?)
         }
 
+        QueryMsg::TransferEscrowAddress {
+            port_id,
+            channel_id,
+        } => Ok(to_json_binary(
+            &transfer_querier.escrow_address(port_id, channel_id)?,
+        )?),
+
         QueryMsg::IbcClientState { client_id } => {
             Ok(to_json_binary(&client_querier.client_state(client_id)?)?)
         }

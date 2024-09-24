@@ -235,6 +235,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             &dex_querier.pool_reserves(pair_id, token_in, tick_index, fee)?,
         )?),
 
+        #[allow(deprecated)] // Allow deprecated call until its remove from neutron-core
         QueryMsg::EstimateMultiHopSwap {
             creator,
             receiver,
@@ -251,6 +252,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             pick_best_route,
         )?)?),
 
+        #[allow(deprecated)] // Allow deprecated call until its remove from neutron-core
         QueryMsg::EstimatePlaceLimitOrder {
             creator,
             receiver,
@@ -288,6 +290,30 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AllPoolMetadata { pagination } => {
             Ok(to_json_binary(&dex_querier.pool_metadata_all(pagination)?)?)
         }
+
+        QueryMsg::SimulateDeposit { msg } => {
+            Ok(to_json_binary(&dex_querier.simulate_deposit(Some(msg))?)?)
+        }
+
+        QueryMsg::SimulateWithdrawal { msg } => Ok(to_json_binary(
+            &dex_querier.simulate_withdrawal(Some(msg))?,
+        )?),
+
+        QueryMsg::SimulatePlaceLimitOrder { msg } => Ok(to_json_binary(
+            &dex_querier.simulate_place_limit_order(Some(msg))?,
+        )?),
+
+        QueryMsg::SimulateWithdrawFilledLimitOrder { msg } => Ok(to_json_binary(
+            &dex_querier.simulate_withdraw_filled_limit_order(Some(msg))?,
+        )?),
+
+        QueryMsg::SimulateCancelLimitOrder { msg } => Ok(to_json_binary(
+            &dex_querier.simulate_cancel_limit_order(Some(msg))?,
+        )?),
+
+        QueryMsg::SimulateMultiHopSwap { msg } => Ok(to_json_binary(
+            &dex_querier.simulate_multi_hop_swap(Some(msg))?,
+        )?),
     }
 }
 

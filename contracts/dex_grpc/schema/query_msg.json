@@ -576,9 +576,388 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_deposit"
+      ],
+      "properties": {
+        "simulate_deposit": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgDeposit"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_withdrawal"
+      ],
+      "properties": {
+        "simulate_withdrawal": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgWithdrawal"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_place_limit_order"
+      ],
+      "properties": {
+        "simulate_place_limit_order": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgPlaceLimitOrder"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_withdraw_filled_limit_order"
+      ],
+      "properties": {
+        "simulate_withdraw_filled_limit_order": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgWithdrawFilledLimitOrder"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_cancel_limit_order"
+      ],
+      "properties": {
+        "simulate_cancel_limit_order": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgCancelLimitOrder"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_multi_hop_swap"
+      ],
+      "properties": {
+        "simulate_multi_hop_swap": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgMultiHopSwap"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {
+    "DepositOptions": {
+      "type": "object",
+      "required": [
+        "disable_autoswap",
+        "fail_tx_on_bel"
+      ],
+      "properties": {
+        "disable_autoswap": {
+          "type": "boolean"
+        },
+        "fail_tx_on_bel": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgCancelLimitOrder": {
+      "type": "object",
+      "required": [
+        "creator",
+        "tranche_key"
+      ],
+      "properties": {
+        "creator": {
+          "type": "string"
+        },
+        "tranche_key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgDeposit": {
+      "type": "object",
+      "required": [
+        "amounts_a",
+        "amounts_b",
+        "creator",
+        "fees",
+        "options",
+        "receiver",
+        "tick_indexes_a_to_b",
+        "token_a",
+        "token_b"
+      ],
+      "properties": {
+        "amounts_a": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amounts_b": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "creator": {
+          "type": "string"
+        },
+        "fees": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DepositOptions"
+          }
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "tick_indexes_a_to_b": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "token_a": {
+          "type": "string"
+        },
+        "token_b": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgMultiHopSwap": {
+      "type": "object",
+      "required": [
+        "amount_in",
+        "creator",
+        "exit_limit_price",
+        "pick_best_route",
+        "receiver",
+        "routes"
+      ],
+      "properties": {
+        "amount_in": {
+          "type": "string"
+        },
+        "creator": {
+          "type": "string"
+        },
+        "exit_limit_price": {
+          "type": "string"
+        },
+        "pick_best_route": {
+          "description": "If pickBestRoute == true then all routes are run and the route with the best price is chosen otherwise, the first succesful route is used.",
+          "type": "boolean"
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultiHopRoute"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgPlaceLimitOrder": {
+      "type": "object",
+      "required": [
+        "amount_in",
+        "creator",
+        "limit_sell_price",
+        "max_amount_out",
+        "order_type",
+        "receiver",
+        "tick_index_in_to_out",
+        "token_in",
+        "token_out"
+      ],
+      "properties": {
+        "amount_in": {
+          "type": "string"
+        },
+        "creator": {
+          "type": "string"
+        },
+        "expiration_time": {
+          "description": "expirationTime is only valid iff orderType == GOOD_TIL_TIME.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limit_sell_price": {
+          "type": "string"
+        },
+        "max_amount_out": {
+          "type": "string"
+        },
+        "order_type": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "tick_index_in_to_out": {
+          "description": "DEPRECATED: tick_index_in_to_out will be removed in future release; limit_sell_price should be used instead.",
+          "deprecated": true,
+          "type": "integer",
+          "format": "int64"
+        },
+        "token_in": {
+          "type": "string"
+        },
+        "token_out": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgWithdrawFilledLimitOrder": {
+      "type": "object",
+      "required": [
+        "creator",
+        "tranche_key"
+      ],
+      "properties": {
+        "creator": {
+          "type": "string"
+        },
+        "tranche_key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgWithdrawal": {
+      "type": "object",
+      "required": [
+        "creator",
+        "fees",
+        "receiver",
+        "shares_to_remove",
+        "tick_indexes_a_to_b",
+        "token_a",
+        "token_b"
+      ],
+      "properties": {
+        "creator": {
+          "type": "string"
+        },
+        "fees": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "shares_to_remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tick_indexes_a_to_b": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "token_a": {
+          "type": "string"
+        },
+        "token_b": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "MultiHopRoute": {
       "type": "object",
       "required": [

@@ -546,14 +546,20 @@
       },
       "additionalProperties": false
     },
-    "DepositOption": {
+    "DepositOptions": {
       "type": "object",
-      "required": [
-        "disable_swap"
-      ],
       "properties": {
-        "disable_swap": {
-          "type": "boolean"
+        "disable_autoswap": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "fail_tx_on_bel": {
+          "type": [
+            "boolean",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -607,7 +613,7 @@
                   "description": "Additional deposit options",
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/DepositOption"
+                    "$ref": "#/definitions/DepositOptions"
                   }
                 },
                 "receiver": {

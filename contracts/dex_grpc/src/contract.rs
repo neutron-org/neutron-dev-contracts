@@ -133,6 +133,7 @@ pub fn execute(
     }
 }
 
+#[allow(deprecated)]
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api

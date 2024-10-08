@@ -1,6 +1,12 @@
 use neutron_std::shim::Timestamp;
 use neutron_std::types::neutron::dex::{DepositOptions, MultiHopRoute};
 use neutron_std::types::{cosmos::base::query::v1beta1::PageRequest, neutron::dex};
+
+use neutron_std::types::neutron::dex::{
+    MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
+    MsgWithdrawFilledLimitOrder, MsgWithdrawal,
+};
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -143,6 +149,24 @@ pub enum QueryMsg {
     },
     AllPoolMetadata {
         pagination: Option<PageRequest>,
+    },
+    SimulateDeposit {
+        msg: MsgDeposit,
+    },
+    SimulateWithdrawal {
+        msg: MsgWithdrawal,
+    },
+    SimulatePlaceLimitOrder {
+        msg: MsgPlaceLimitOrder,
+    },
+    SimulateWithdrawFilledLimitOrder {
+        msg: MsgWithdrawFilledLimitOrder,
+    },
+    SimulateCancelLimitOrder {
+        msg: MsgCancelLimitOrder,
+    },
+    SimulateMultiHopSwap {
+        msg: MsgMultiHopSwap,
     },
 }
 

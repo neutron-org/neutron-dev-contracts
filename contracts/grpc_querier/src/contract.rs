@@ -7,7 +7,7 @@ use std::str::from_utf8;
 
 use crate::grpc;
 use cw2::set_contract_version;
-use neutron_sdk::proto_types::{
+use neutron_std::types::{
     cosmos::{auth, bank},
     ibc::{
         applications::transfer,

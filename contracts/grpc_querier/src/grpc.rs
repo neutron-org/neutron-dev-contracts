@@ -10,8 +10,7 @@ pub mod contractmanager {
         #[prost(string, tag = "1")]
         pub address: ::prost::alloc::string::String,
         #[prost(message, optional, tag = "2")]
-        pub pagination: ::core::option::Option<
-            ::neutron_sdk::proto_types::cosmos::base::query::v1beta1::PageRequest,
-        >,
+        pub pagination:
+            ::core::option::Option<::neutron_std::types::cosmos::base::query::v1beta1::PageRequest>,
     }
 }

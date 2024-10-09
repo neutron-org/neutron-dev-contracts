@@ -12,13 +12,9 @@ pub struct InstantiateMsg {}
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {}
 
-use neutron_sdk::bindings::{
-    msg::NeutronMsg,
-    oracle::query::{
-        GetAllCurrencyPairsResponse, GetPriceResponse, GetPricesResponse, OracleQuery,
-    },
-    query::NeutronQuery,
-};
+use neutron_sdk::bindings::{msg::NeutronMsg, oracle::query::OracleQuery, query::NeutronQuery};
+
+use neutron_std::types::connect::oracle::v2::OracleQuerier;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -51,18 +47,16 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: OracleQuery) -> StdResult<
 }
 
 fn query_oracle(deps: Deps<NeutronQuery>, _env: Env, msg: OracleQuery) -> StdResult<Binary> {
+    let oracle_querier = OracleQuerier::new(&deps.querier);
     match msg {
-        OracleQuery::GetPrice { .. } => {
-            let query_response: GetPriceResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
-        }
-        OracleQuery::GetPrices { .. } => {
-            let query_response: GetPricesResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
+        OracleQuery::GetPrice { currency_pair } => to_json_binary(
+            &oracle_querier.get_price(format!("{}/{}", currency_pair.base, currency_pair.quote))?,
+        ),
+        OracleQuery::GetPrices { currency_pair_ids } => {
+            to_json_binary(&oracle_querier.get_prices(currency_pair_ids)?)
         }
         OracleQuery::GetAllCurrencyPairs { .. } => {
-            let query_response: GetAllCurrencyPairsResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
+            to_json_binary(&oracle_querier.get_all_currency_pairs()?)
         }
     }
 }

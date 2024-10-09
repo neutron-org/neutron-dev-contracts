@@ -4,8 +4,8 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw2::set_contract_version;
-use neutron_sdk::proto_types::neutron::dex;
 use neutron_sdk::sudo::msg::SudoMsg;
+use neutron_std::types::neutron::dex;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -133,6 +133,7 @@ pub fn execute(
     }
 }
 
+#[allow(deprecated)]
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api

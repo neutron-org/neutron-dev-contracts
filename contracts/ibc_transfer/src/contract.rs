@@ -4,11 +4,11 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use neutron_sdk::interchain_txs::helpers::decode_message_response;
-use neutron_sdk::proto_types::neutron::transfer::MsgTransferResponse;
 use neutron_sdk::{
     bindings::msg::{IbcFee, NeutronMsg},
     sudo::msg::{RequestPacket, RequestPacketTimeoutHeight, TransferSudoMsg},
 };
+use neutron_std::types::neutron::transfer::MsgTransferResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

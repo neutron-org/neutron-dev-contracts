@@ -1877,11 +1877,16 @@
             "add_schedule": {
               "type": "object",
               "required": [
+                "execution_stage",
                 "msgs",
                 "name",
                 "period"
               ],
               "properties": {
+                "execution_stage": {
+                  "description": "execution stage where schedule will be executed",
+                  "type": "string"
+                },
                 "msgs": {
                   "description": "list of cosmwasm messages to be executed",
                   "type": "array",

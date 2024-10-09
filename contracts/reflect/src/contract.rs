@@ -74,7 +74,14 @@ pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> StdResul
 pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         REFLECT_REPLY_ID => {
-            Ok(Response::default().set_data(msg.result.unwrap().msg_responses[0].clone().value))
+            let res = Response::default();
+
+            let msg_responses = msg.result.unwrap().msg_responses;
+            if msg_responses.is_empty() {
+                Ok(res)
+            } else {
+                Ok(res.set_data(msg_responses[0].clone().value))
+            }
         }
         _ => {
             unimplemented!()

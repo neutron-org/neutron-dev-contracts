@@ -12,13 +12,6 @@ pub struct InstantiateMsg {}
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {}
 
-use neutron_sdk::bindings::marketmap::query::MarketResponse;
-use neutron_sdk::bindings::{
-    marketmap::query::{LastUpdatedResponse, MarketMapQuery, MarketMapResponse, ParamsResponse},
-    msg::NeutronMsg,
-    query::NeutronQuery,
-};
-
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -40,12 +33,12 @@ pub fn execute(
     _env: Env,
     _info: MessageInfo,
     _msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     Ok(Default::default())
 }
 
 #[entry_point]
-pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
     query_marketmap(deps, env, msg)
 }
 

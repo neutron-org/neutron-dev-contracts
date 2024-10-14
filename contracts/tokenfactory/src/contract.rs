@@ -92,7 +92,7 @@ pub fn execute(
 }
 
 #[entry_point]
-pub fn query(deps: Deps<NeutronQuery>, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     Ok(match msg {
         QueryMsg::FullDenom {
             creator_addr,

@@ -42,7 +42,7 @@ pub fn query(deps: Deps, env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
     query_marketmap(deps, env, msg)
 }
 
-fn query_marketmap(deps: Deps<NeutronQuery>, _env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
+fn query_marketmap(deps: Deps, _env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
     match msg {
         MarketMapQuery::Params { .. } => {
             let query_response: ParamsResponse = deps.querier.query(&msg.into())?;

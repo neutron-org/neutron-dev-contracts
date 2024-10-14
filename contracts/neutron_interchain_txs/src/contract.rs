@@ -191,7 +191,7 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
         QueryMsg::InterchainAccountAddress {
             interchain_account_id,
@@ -210,7 +210,7 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
 }
 
 pub fn query_interchain_address(
-    deps: Deps<NeutronQuery>,
+    deps: Deps,
     env: Env,
     interchain_account_id: String,
     connection_id: String,
@@ -226,7 +226,7 @@ pub fn query_interchain_address(
 }
 
 pub fn query_interchain_address_contract(
-    deps: Deps<NeutronQuery>,
+    deps: Deps,
     env: Env,
     interchain_account_id: String,
 ) -> NeutronResult<Binary> {
@@ -238,7 +238,7 @@ pub fn query_interchain_address_contract(
 }
 
 pub fn query_acknowledgement_result(
-    deps: Deps<NeutronQuery>,
+    deps: Deps,
     env: Env,
     interchain_account_id: String,
     sequence_id: u64,
@@ -248,7 +248,7 @@ pub fn query_acknowledgement_result(
     Ok(to_json_binary(&res)?)
 }
 
-pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
+pub fn query_acknowledgement_results(deps: Deps) -> NeutronResult<Binary> {
     let results: Vec<AcknowledgementResultsResponse> = ACKNOWLEDGEMENT_RESULTS
         .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
         .take(100)
@@ -264,7 +264,7 @@ pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<
     Ok(to_json_binary(&results)?)
 }
 
-pub fn query_errors_queue(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
+pub fn query_errors_queue(deps: Deps) -> NeutronResult<Binary> {
     let res = read_errors_from_queue(deps.storage)?;
     Ok(to_json_binary(&res)?)
 }

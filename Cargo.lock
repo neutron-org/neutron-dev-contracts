@@ -1202,6 +1202,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
+ "neutron-std",
  "prost 0.12.6",
  "schemars",
  "serde",

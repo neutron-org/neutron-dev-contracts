@@ -1,5 +1,5 @@
+use neutron_std::types::neutron::interchainqueries::KvKey;
 use crate::state::Transfer;
-use neutron_sdk::bindings::types::KVKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -65,7 +65,7 @@ pub enum ExecuteMsg {
     },
     UpdateInterchainQuery {
         query_id: u64,
-        new_keys: Option<Vec<KVKey>>,
+        new_keys: Option<Vec<KvKey>>,
         new_update_period: Option<u64>,
         new_recipient: Option<String>,
     },

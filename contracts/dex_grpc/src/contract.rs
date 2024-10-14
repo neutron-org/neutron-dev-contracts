@@ -4,8 +4,8 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw2::set_contract_version;
-use neutron_sdk::proto_types::neutron::dex;
 use neutron_sdk::sudo::msg::SudoMsg;
+use neutron_std::types::neutron::dex::{DexQuerier, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder, MsgWithdrawFilledLimitOrder, MsgWithdrawal};
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -42,7 +42,7 @@ pub fn execute(
             fees,
             options,
         } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgDeposit {
+            Response::new().add_message(Into::<CosmosMsg>::into(MsgDeposit {
                 creator: env.contract.address.to_string(),
                 receiver,
                 token_a,
@@ -63,7 +63,7 @@ pub fn execute(
             tick_indexes_a_to_b,
             fees,
         } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgWithdrawal {
+            Response::new().add_message(Into::<CosmosMsg>::into(MsgWithdrawal {
                 creator: env.contract.address.to_string(),
                 receiver,
                 token_a,
@@ -85,7 +85,7 @@ pub fn execute(
             expiration_time,
             max_amount_out,
         } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgPlaceLimitOrder {
+            Response::new().add_message(Into::<CosmosMsg>::into(MsgPlaceLimitOrder {
                 creator: env.contract.address.to_string(),
                 receiver,
                 token_in,
@@ -99,7 +99,7 @@ pub fn execute(
             })),
         ),
         ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => Ok(Response::new().add_message(
-            Into::<CosmosMsg>::into(dex::MsgWithdrawFilledLimitOrder {
+            Into::<CosmosMsg>::into(MsgWithdrawFilledLimitOrder {
                 creator: env.contract.address.to_string(),
                 tranche_key,
             }),
@@ -107,7 +107,7 @@ pub fn execute(
 
         ExecuteMsg::CancelLimitOrder { tranche_key } => {
             Ok(
-                Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgCancelLimitOrder {
+                Response::new().add_message(Into::<CosmosMsg>::into(MsgCancelLimitOrder {
                     creator: env.contract.address.to_string(),
                     tranche_key,
                 })),
@@ -121,7 +121,7 @@ pub fn execute(
             exit_limit_price,
             pick_best_route,
         } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgMultiHopSwap {
+            Response::new().add_message(Into::<CosmosMsg>::into(MsgMultiHopSwap {
                 creator: env.contract.address.to_string(),
                 receiver,
                 routes,
@@ -138,7 +138,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: query: received msg: {:?}", msg).as_str());
 
-    let dex_querier = dex::DexQuerier::new(&deps.querier);
+    let dex_querier = DexQuerier::new(&deps.querier);
 
     match msg {
         QueryMsg::Params {} => Ok(to_json_binary(&dex_querier.params()?)?),

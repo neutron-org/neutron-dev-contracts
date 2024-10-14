@@ -1,9 +1,6 @@
-use neutron_sdk::proto_types::neutron::dex::{
-    DepositOptions, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
-    MsgWithdrawFilledLimitOrder, MsgWithdrawal, MultiHopRoute,
-};
-use neutron_sdk::proto_types::{cosmos::base::query::v1beta1::PageRequest, neutron::dex};
-use neutron_sdk::shim::Timestamp;
+use neutron_std::shim::Timestamp;
+use neutron_std::types::cosmos::base::query::v1beta1::PageRequest;
+use neutron_std::types::neutron::dex::{DepositOptions, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder, MsgWithdrawFilledLimitOrder, MsgWithdrawal, MultiHopRoute};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -50,7 +47,7 @@ pub enum ExecuteMsg {
     },
     MultiHopSwap {
         receiver: String,
-        routes: Vec<dex::MultiHopRoute>,
+        routes: Vec<MultiHopRoute>,
         amount_in: String,
         exit_limit_price: String,
         pick_best_route: bool,

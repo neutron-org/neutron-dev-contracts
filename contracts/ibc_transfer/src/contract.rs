@@ -7,9 +7,12 @@ use neutron_sdk::interchain_txs::helpers::decode_message_response;
 use neutron_sdk::{
     sudo::msg::{RequestPacket, RequestPacketTimeoutHeight, TransferSudoMsg},
 };
+use neutron_std::types::neutron::feerefunder::Fee;
+use neutron_std::types::neutron::transfer::{MsgTransfer, MsgTransferResponse};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
+use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
+use neutron_std::types::ibc::core::client::v1::Height;
 use crate::state::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload, IBC_FEE,
     IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START, TEST_COUNTER_ITEM,
@@ -179,11 +182,15 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     }
 }
 
-fn get_fee_item(denom: String, amount: Uint128) -> Vec<Coin> {
+fn get_fee_item(denom: String, amount: Uint128) -> Vec<StdCoin> {
     if amount == Uint128::new(0) {
         vec![]
     } else {
-        vec![coin(amount.u128(), denom)]
+        let coin = StdCoin {
+            amount: amount.to_string(),
+            denom
+        };
+        vec![coin]
     }
 }
 
@@ -194,7 +201,7 @@ fn execute_set_fees(
     timeout_fee: Uint128,
     denom: String,
 ) -> StdResult<Response> {
-    let fee = IbcFee {
+    let fee = Fee {
         recv_fee: get_fee_item(denom.clone(), recv_fee),
         ack_fee: get_fee_item(denom.clone(), ack_fee),
         timeout_fee: get_fee_item(denom, timeout_fee),
@@ -213,25 +220,31 @@ fn execute_send(
     denom: String,
     amount: Uint128,
     timeout_height: Option<u64>,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     let fee = IBC_FEE.load(deps.storage)?;
-    let coin1 = coin(amount.u128(), denom.clone());
-    let msg1 = NeutronMsg::IbcTransfer {
+    let coin1 = StdCoin {
+        amount: amount.to_string(),
+        denom: denom.clone()
+    };
+    let msg1 = MsgTransfer {
         source_port: "transfer".to_string(),
         source_channel: channel.clone(),
         sender: env.contract.address.to_string(),
         receiver: to.clone(),
-        token: coin1,
-        timeout_height: RequestPacketTimeoutHeight {
-            revision_number: Some(2),
-            revision_height: timeout_height.or(Some(DEFAULT_TIMEOUT_HEIGHT)),
-        },
+        token: Some(coin1),
+        timeout_height: Some(Height {
+            revision_number: 2,
+            revision_height: timeout_height.unwrap_or(DEFAULT_TIMEOUT_HEIGHT),
+        }),
         timeout_timestamp: 0,
-        fee: fee.clone(),
+        fee: Some(fee.clone()),
         memo: "".to_string(),
     };
-    let coin2 = coin(2 * amount.u128(), denom);
-    let msg2 = NeutronMsg::IbcTransfer {
+    let coin2 = StdCoin {
+        amount: (2 * amount).to_string(),
+        denom: denom.clone()
+    };
+    let msg2 = MsgTransfer {
         source_port: "transfer".to_string(),
         source_channel: channel,
         sender: env.contract.address.to_string(),
@@ -268,7 +281,7 @@ fn execute_send(
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
 }
 
-fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
+fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response> {
     let msg = NeutronMsg::submit_resubmit_failure(failure_id);
     Ok(Response::default().add_message(msg))
 }

@@ -1,5 +1,5 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{BEGIN_BLOCKER_SHEDULES, END_BLOCKER_SHEDULES};
+use crate::state::{BEGIN_BLOCKER_SCHEDULES, END_BLOCKER_SCHEDULES};
 use cosmwasm_std::{
     entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult,
@@ -34,24 +34,24 @@ pub fn execute(deps: DepsMut, _: Env, info: MessageInfo, msg: ExecuteMsg) -> Std
 
     match msg {
         ExecuteMsg::AddBeginBlockerSchedule { name } => {
-            let counter = BEGIN_BLOCKER_SHEDULES
+            let counter = BEGIN_BLOCKER_SCHEDULES
                 .may_load(deps.storage, name.clone())?
                 .unwrap_or_default()
                 .checked_add(1)
                 .unwrap_or_default();
 
-            BEGIN_BLOCKER_SHEDULES.save(deps.storage, name, &counter)?;
+            BEGIN_BLOCKER_SCHEDULES.save(deps.storage, name, &counter)?;
 
             Ok(Response::default())
         }
         ExecuteMsg::AddEndBlockerSchedule { name } => {
-            let counter = END_BLOCKER_SHEDULES
+            let counter = END_BLOCKER_SCHEDULES
                 .may_load(deps.storage, name.clone())?
                 .unwrap_or_default()
                 .checked_add(1)
                 .unwrap_or_default();
 
-            END_BLOCKER_SHEDULES.save(deps.storage, name, &counter)?;
+            END_BLOCKER_SCHEDULES.save(deps.storage, name, &counter)?;
 
             Ok(Response::default())
         }
@@ -62,11 +62,11 @@ pub fn execute(deps: DepsMut, _: Env, info: MessageInfo, msg: ExecuteMsg) -> Std
 pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetBeginBlockerScheduleCounter { name } => {
-            let res = BEGIN_BLOCKER_SHEDULES.may_load(deps.storage, name)?;
+            let res = BEGIN_BLOCKER_SCHEDULES.may_load(deps.storage, name)?;
             to_json_binary(&res)
         }
         QueryMsg::GetEndBlockerScheduleCounter { name } => {
-            let res = END_BLOCKER_SHEDULES.may_load(deps.storage, name)?;
+            let res = END_BLOCKER_SCHEDULES.may_load(deps.storage, name)?;
             to_json_binary(&res)
         }
     }

@@ -4,9 +4,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use neutron_sdk::interchain_txs::helpers::decode_message_response;
-use neutron_sdk::proto_types::neutron::transfer::MsgTransferResponse;
 use neutron_sdk::{
-    bindings::msg::{IbcFee, NeutronMsg},
     sudo::msg::{RequestPacket, RequestPacketTimeoutHeight, TransferSudoMsg},
 };
 use schemars::JsonSchema;
@@ -79,7 +77,7 @@ pub fn execute(
     env: Env,
     _: MessageInfo,
     msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -195,7 +193,7 @@ fn execute_set_fees(
     ack_fee: Uint128,
     timeout_fee: Uint128,
     denom: String,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     let fee = IbcFee {
         recv_fee: get_fee_item(denom.clone(), recv_fee),
         ack_fee: get_fee_item(denom.clone(), ack_fee),

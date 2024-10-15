@@ -32,7 +32,7 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError,
     Uint128,
 };
-use neutron_sdk::interchain_queries::helpers::decode_and_convert;
+use neutron_sdk::interchain_queries::helpers::{decode_and_convert, kv_key_from_string};
 use neutron_sdk::interchain_queries::types::{
     QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -41,6 +41,7 @@ use neutron_sdk::interchain_queries::v047::helpers::{
     create_gov_proposal_votes_key, create_total_denom_key, create_validator_key,
     create_validator_signing_info_key,
 };
+use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
 use neutron_sdk::interchain_queries::v047::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
     ProposalVotesResponse, TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
@@ -51,10 +52,12 @@ use neutron_sdk::interchain_queries::v047::types::{
     ValidatorSigningInfo, WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
-use neutron_std::types::neutron::interchainqueries::KvKey;
+use neutron_std::types::neutron::interchainqueries::{KvKey, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse, QueryResult, RegisteredQuery, StorageValue};
 use prost::Message as ProstMessage;
 use schemars::_serde_json::to_string;
 use std::ops::Mul;
+use neutron_sdk::interchain_queries::hex::decode_hex;
+use neutron_std::types::ibc::core::client::v1::Height;
 
 enum QueryParam {
     Keys(Vec<KvKey>),
@@ -67,34 +70,37 @@ fn build_registered_query_response(
     query_type: QueryType,
     last_submitted_result_local_height: u64,
 ) -> Binary {
-    let mut resp = QueryRegisteredQueryResponse {
-        registered_query: RegisteredQuery {
+    let mut registered_keys = vec![];
+    let mut transactions_filter = "".to_string();
+    match param {
+        QueryParam::Keys(keys) => registered_keys = keys,
+        QueryParam::TransactionsFilter(filter) => {
+            transactions_filter = filter
+        }
+    }
+
+    let resp = QueryRegisteredQueryResponse {
+        registered_query: Some(RegisteredQuery {
             id,
             owner: "".to_string(),
-            keys: vec![],
-            query_type,
-            transactions_filter: "".to_string(),
+            keys: registered_keys,
+            query_type: query_type.into(),
+            transactions_filter,
             connection_id: "".to_string(),
             update_period: 0,
             last_submitted_result_local_height,
-            last_submitted_result_remote_height: Height {
+            last_submitted_result_remote_height: Some(Height {
                 revision_number: 0,
                 revision_height: 0,
-            },
-            deposit: Vec::from([Coin {
+            }),
+            deposit: Vec::from([StdCoin {
                 denom: "stake".to_string(),
-                amount: Uint128::from_str("100").unwrap(),
+                amount: "100".to_string(),
             }]),
             submit_timeout: 0,
             registered_at_height: 0,
-        },
+        }),
     };
-    match param {
-        QueryParam::Keys(keys) => resp.registered_query.keys = keys,
-        QueryParam::TransactionsFilter(transactions_filter) => {
-            resp.registered_query.transactions_filter = transactions_filter
-        }
-    }
 
     Binary::from(to_string(&resp).unwrap().as_bytes())
 }
@@ -106,8 +112,9 @@ fn build_interchain_query_bank_total_denom_value(denom: String, amount: String) 
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary::new(bank_total_key),
-        value: Binary::new(amount),
+        key: bank_total_key,
+        value: amount,
+        proof: None,
     }
 }
 
@@ -128,16 +135,19 @@ fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: 
 
     let s = StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary::new(fee_pool_key),
-        value: Binary::new(fee_pool.encode_to_vec()),
+        key: fee_pool_key,
+        value: fee_pool.encode_to_vec(),
+        proof: None,
     };
     Binary::from(
         to_string(&QueryRegisteredQueryResultResponse {
-            result: InterchainQueryResult {
+            result: Some(QueryResult {
                 kv_results: vec![s],
+                block: None,
                 height: 123456,
                 revision: 1,
-            },
+                allow_kv_callbacks: false,
+            }),
         })
         .unwrap()
         .as_bytes(),
@@ -167,8 +177,9 @@ fn build_interchain_query_staking_validator_value(validator: String) -> StorageV
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary::new(validator_key),
-        value: Binary::new(validator.encode_to_vec()),
+        key: validator_key,
+        value: validator.encode_to_vec(),
+        proof: None,
     }
 }
 
@@ -187,8 +198,9 @@ fn build_interchain_query_validator_signing_info_value(validator: String) -> Sto
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary::new(validator_key),
-        value: Binary::new(validator.encode_to_vec()),
+        key: validator_key,
+        value: validator.encode_to_vec(),
+        proof: None,
     }
 }
 
@@ -220,8 +232,9 @@ fn build_interchain_query_gov_proposal_value(proposal_id: u64) -> StorageValue {
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary::new(proposal_key),
-        value: Binary::new(proposal.encode_to_vec()),
+        key: proposal_key,
+        value: proposal.encode_to_vec(),
+        proof: None,
     }
 }
 
@@ -241,8 +254,9 @@ fn build_interchain_query_gov_proposal_votes_value(proposal_id: u64) -> StorageV
 
     StorageValue {
         storage_prefix: "".to_string(),
-        key: Binary::new(votes_key),
-        value: Binary::new(vote.encode_to_vec()),
+        key: votes_key,
+        value: vote.encode_to_vec(),
+        proof: None,
     }
 }
 
@@ -257,19 +271,22 @@ fn build_interchain_query_balances_response(addr: Addr, balances: Vec<Coin>) -> 
                     .unwrap();
             StorageValue {
                 storage_prefix: "".to_string(),
-                key: Binary::new(balance_key),
-                value: Binary::new(c.amount.to_string().into_bytes()),
+                key: balance_key,
+                value: c.amount.to_string().into_bytes(),
+                proof: None,
             }
         })
         .collect();
 
     Binary::from(
         to_string(&QueryRegisteredQueryResultResponse {
-            result: InterchainQueryResult {
+            result: Some(QueryResult {
                 kv_results: s,
+                block: None,
                 height: 123456,
                 revision: 2,
-            },
+                allow_kv_callbacks: false,
+            }),
         })
         .unwrap()
         .as_bytes(),
@@ -278,19 +295,19 @@ fn build_interchain_query_balances_response(addr: Addr, balances: Vec<Coin>) -> 
 
 // registers an interchain query
 fn register_query(
-    deps: &mut OwnedDeps<MockStorage, MockApi, WasmMockQuerier, NeutronQuery>,
+    deps: &mut OwnedDeps<MockStorage, MockApi, WasmMockQuerier>,
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> KVKeys {
+) -> Vec<KvKey> {
     let reg_msgs = execute(deps.as_mut(), env, info, msg).unwrap();
     for attr in reg_msgs.attributes {
         if attr.key == "kv_keys" && !attr.value.is_empty() {
-            return KVKeys::from_string(attr.value).unwrap();
+            return vec![kv_key_from_string(attr.value).unwrap()];
         }
     }
 
-    KVKeys(vec![])
+    vec![]
 }
 
 #[test]
@@ -312,7 +329,7 @@ fn test_query_balance() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
@@ -355,7 +372,7 @@ fn test_query_balances() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
@@ -405,7 +422,7 @@ fn test_bank_total_supply_query() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     let mut kv_results: Vec<StorageValue> = vec![];
 
@@ -416,11 +433,13 @@ fn test_bank_total_supply_query() {
     }
 
     let total_supply_response = QueryRegisteredQueryResultResponse {
-        result: InterchainQueryResult {
+        result: Some(QueryResult {
             kv_results,
+            block: None,
             height: 0,
             revision: 0,
-        },
+            allow_kv_callbacks: false,
+        }),
     };
 
     deps.querier.add_registered_queries(1, registered_query);
@@ -461,7 +480,7 @@ fn test_distribution_fee_pool_query() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier.add_query_response(
@@ -505,7 +524,7 @@ fn test_gov_proposals_query() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     let mut kv_results: Vec<StorageValue> = vec![];
 
@@ -515,11 +534,13 @@ fn test_gov_proposals_query() {
     }
 
     let proposals_response = QueryRegisteredQueryResultResponse {
-        result: InterchainQueryResult {
+        result: Some(QueryResult {
             kv_results,
+            block: None,
             height: 0,
             revision: 0,
-        },
+            allow_kv_callbacks: false,
+        }),
     };
 
     deps.querier.add_registered_queries(1, registered_query);
@@ -623,7 +644,7 @@ fn test_gov_proposal_votes_query() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 325);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 325);
 
     let mut kv_results: Vec<StorageValue> = vec![];
 
@@ -633,11 +654,13 @@ fn test_gov_proposal_votes_query() {
     }
 
     let proposals_votes_response = QueryRegisteredQueryResultResponse {
-        result: InterchainQueryResult {
+        result: Some(QueryResult {
             kv_results,
+            block: None,
             height: 0,
             revision: 0,
-        },
+            allow_kv_callbacks: false,
+        }),
     };
 
     deps.querier.add_registered_queries(1, registered_query);
@@ -705,7 +728,7 @@ fn test_staking_validators_query() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     let mut kv_results: Vec<StorageValue> = vec![];
 
@@ -715,11 +738,13 @@ fn test_staking_validators_query() {
     }
 
     let validators_response = QueryRegisteredQueryResultResponse {
-        result: InterchainQueryResult {
+        result: Some(QueryResult {
             kv_results,
+            block: None,
             height: 0,
             revision: 0,
-        },
+            allow_kv_callbacks: false,
+        }),
     };
 
     deps.querier.add_registered_queries(1, registered_query);
@@ -804,7 +829,7 @@ fn test_validators_signing_infos_query() {
     );
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     let mut kv_results: Vec<StorageValue> = vec![];
 
@@ -814,11 +839,13 @@ fn test_validators_signing_infos_query() {
     }
 
     let validators_response = QueryRegisteredQueryResultResponse {
-        result: InterchainQueryResult {
+        result: Some(QueryResult {
             kv_results,
+            block: None,
             height: 0,
             revision: 0,
-        },
+            allow_kv_callbacks: false,
+        }),
     };
 
     deps.querier.add_registered_queries(1, registered_query);
@@ -878,7 +905,7 @@ fn test_query_delegator_delegations() {
     );
 
     let delegations_response = QueryRegisteredQueryResultResponse {
-        result: InterchainQueryResult {
+        result: Some(QueryResult {
             // response for `RegisterDelegatorDelegationsQuery` with necessary KV values to test reconstruction logic.
             // The values are taken from osmosis network
             kv_results: vec![
@@ -886,8 +913,9 @@ fn test_query_delegator_delegations() {
                 // value: Params
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(BASE64_STANDARD.decode("UQ==").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("CgQIgN9uEGQYByCQTioFdWF0b20yATA6FC0xMDAwMDAwMDAwMDAwMDAwMDAwQhMxMDAwMDAwMDAwMDAwMDAwMDAwShMxMDAwMDAwMDAwMDAwMDAwMDAw").unwrap()),
+                    key: BASE64_STANDARD.decode("UQ==").unwrap(),
+                    value: BASE64_STANDARD.decode("CgQIgN9uEGQYByCQTioFdWF0b20yATA6FC0xMDAwMDAwMDAwMDAwMDAwMDAwQhMxMDAwMDAwMDAwMDAwMDAwMDAwShMxMDAwMDAwMDAwMDAwMDAwMDAw").unwrap(),
+                    proof: None,
                 },
                 // delegation
                 // from: osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs
@@ -895,16 +923,18 @@ fn test_query_delegator_delegations() {
                 // delegation_shares: "5177628000000000000000000"
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b8141ab940697a73dd080edafeb538ad408b5cae0264").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxoZNTE3NzYyODAwMDAwMDAwMDAwMDAwMDAwMA==").unwrap()),
+                    key: decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b8141ab940697a73dd080edafeb538ad408b5cae0264").unwrap(),
+                    value: BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxoZNTE3NzYyODAwMDAwMDAwMDAwMDAwMDAwMA==").unwrap(),
+                    proof: None,
                 },
                 // validator: osmovaloper1r2u5q6t6w0wssrk6l66n3t2q3dw2uqny4gj2e3
                 // delegator_shares: "2845862840643000000000000000000"
                 // total tokens: "2845862840643"
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(decode_hex("21141ab940697a73dd080edafeb538ad408b5cae0264").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiCaZhCbacCetQorko3LfUUJX2UEyX38qBGVri8GyH8lcCADKg0yODQ1ODYyODQwNjQzMh8yODQ1ODYyODQwNjQzMDAwMDAwMDAwMDAwMDAwMDAwOqQCChRzdHJhbmdlbG92ZS12ZW50dXJlcxIQRDBEOEI4MEYxQzVDNzBCNRocaHR0cHM6Ly9zdHJhbmdlbG92ZS52ZW50dXJlcyrbAScuLi5iZWNhdXNlIG9mIHRoZSBhdXRvbWF0ZWQgYW5kIGlycmV2b2NhYmxlIGRlY2lzaW9uLW1ha2luZyBwcm9jZXNzIHdoaWNoIHJ1bGVzIG91dCBodW1hbiBtZWRkbGluZywgdGhlIERvb21zZGF5IG1hY2hpbmUgaXMgdGVycmlmeWluZyBhbmQgc2ltcGxlIHRvIHVuZGVyc3RhbmQgYW5kIGNvbXBsZXRlbHkgY3JlZGlibGUgYW5kIGNvbnZpbmNpbmcuJyAtIERyLiBTdHJhbmdlbG92ZUoAUkwKPAoRNTAwMDAwMDAwMDAwMDAwMDASEzEwMDAwMDAwMDAwMDAwMDAwMDAaEjUwMDAwMDAwMDAwMDAwMDAwMBIMCPetyYYGEKPoosUCWgEx").unwrap()),
+                    key: decode_hex("21141ab940697a73dd080edafeb538ad408b5cae0264").unwrap(),
+                    value: BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFyMnU1cTZ0Nncwd3Nzcms2bDY2bjN0MnEzZHcydXFueTRnajJlMxJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiCaZhCbacCetQorko3LfUUJX2UEyX38qBGVri8GyH8lcCADKg0yODQ1ODYyODQwNjQzMh8yODQ1ODYyODQwNjQzMDAwMDAwMDAwMDAwMDAwMDAwOqQCChRzdHJhbmdlbG92ZS12ZW50dXJlcxIQRDBEOEI4MEYxQzVDNzBCNRocaHR0cHM6Ly9zdHJhbmdlbG92ZS52ZW50dXJlcyrbAScuLi5iZWNhdXNlIG9mIHRoZSBhdXRvbWF0ZWQgYW5kIGlycmV2b2NhYmxlIGRlY2lzaW9uLW1ha2luZyBwcm9jZXNzIHdoaWNoIHJ1bGVzIG91dCBodW1hbiBtZWRkbGluZywgdGhlIERvb21zZGF5IG1hY2hpbmUgaXMgdGVycmlmeWluZyBhbmQgc2ltcGxlIHRvIHVuZGVyc3RhbmQgYW5kIGNvbXBsZXRlbHkgY3JlZGlibGUgYW5kIGNvbnZpbmNpbmcuJyAtIERyLiBTdHJhbmdlbG92ZUoAUkwKPAoRNTAwMDAwMDAwMDAwMDAwMDASEzEwMDAwMDAwMDAwMDAwMDAwMDAaEjUwMDAwMDAwMDAwMDAwMDAwMBIMCPetyYYGEKPoosUCWgEx").unwrap(),
+                    proof: None,
                 },
                 // delegation
                 // from: osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs
@@ -912,16 +942,18 @@ fn test_query_delegator_delegations() {
                 // delegation_shares: "29620221000000000000000000"
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b814cc9598513212c12c36a1775e2233b962e4d5128e").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBoaMjk2MjAyMjEwMDAwMDAwMDAwMDAwMDAwMDA=").unwrap()),
+                    key: decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b814cc9598513212c12c36a1775e2233b962e4d5128e").unwrap(),
+                    value: BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBoaMjk2MjAyMjEwMDAwMDAwMDAwMDAwMDAwMDA=").unwrap(),
+                    proof: None,
                 },
                 // validator: osmovaloper1ej2es5fjztqjcd4pwa0zyvaevtjd2y5w37wr9t
                 // delegator_shares: "3054477259038000000000000000000"
                 // total tokens: "3054477259038"
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(decode_hex("2114cc9598513212c12c36a1775e2233b962e4d5128e").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiA27dgAuZV/uS9FdsILGWLBw8eYPy+ZEyv1Df2VsrjXDiADKg0zMDU0NDc3MjU5MDM4Mh8zMDU0NDc3MjU5MDM4MDAwMDAwMDAwMDAwMDAwMDAwOoEBChFGcmVucyAo8J+knSzwn6SdKRIQQzQ3ODQ1MjI2NjYyQUY0NxoSaHR0cHM6Ly9mcmVucy5hcm15IhtzZWN1cml0eUBraWRzb250aGVibG9jay54eXoqKVlvdXIgZnJpZW5kbHkgdmFsaWRhdG9yIGZvciBjb3Ntb3MgY2hhaW5zQP3HpQFKCwj3zq6PBhCfrO86UkoKOgoRNTAwMDAwMDAwMDAwMDAwMDASEjUwMDAwMDAwMDAwMDAwMDAwMBoRNTAwMDAwMDAwMDAwMDAwMDASDAjg1rSQBhDkudCDAVoDNTAw").unwrap()),
+                    key: decode_hex("2114cc9598513212c12c36a1775e2233b962e4d5128e").unwrap(),
+                    value: BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFlajJlczVmanp0cWpjZDRwd2Ewenl2YWV2dGpkMnk1dzM3d3I5dBJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiA27dgAuZV/uS9FdsILGWLBw8eYPy+ZEyv1Df2VsrjXDiADKg0zMDU0NDc3MjU5MDM4Mh8zMDU0NDc3MjU5MDM4MDAwMDAwMDAwMDAwMDAwMDAwOoEBChFGcmVucyAo8J+knSzwn6SdKRIQQzQ3ODQ1MjI2NjYyQUY0NxoSaHR0cHM6Ly9mcmVucy5hcm15IhtzZWN1cml0eUBraWRzb250aGVibG9jay54eXoqKVlvdXIgZnJpZW5kbHkgdmFsaWRhdG9yIGZvciBjb3Ntb3MgY2hhaW5zQP3HpQFKCwj3zq6PBhCfrO86UkoKOgoRNTAwMDAwMDAwMDAwMDAwMDASEjUwMDAwMDAwMDAwMDAwMDAwMBoRNTAwMDAwMDAwMDAwMDAwMDASDAjg1rSQBhDkudCDAVoDNTAw").unwrap(),
+                    proof: None,
                 },
                 // delegation
                 // from: osmo1yz54ncxj9csp7un3xled03q6thrrhy9cztkfzs
@@ -929,25 +961,29 @@ fn test_query_delegator_delegations() {
                 // delegation_shares: "219920000000000000000000"
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b814f8aff987b760a6e4b2b2df48a5a3b7ed2db15006").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRoYMjE5OTIwMDAwMDAwMDAwMDAwMDAwMDAw").unwrap()),
+                    key: decode_hex("311420a959e0d22e201f727137f2d7c41a5dc63b90b814f8aff987b760a6e4b2b2df48a5a3b7ed2db15006").unwrap(),
+                    value: BASE64_STANDARD.decode("Citvc21vMXl6NTRuY3hqOWNzcDd1bjN4bGVkMDNxNnRocnJoeTljenRrZnpzEjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRoYMjE5OTIwMDAwMDAwMDAwMDAwMDAwMDAw").unwrap(),
+                    proof: None,
                 },
                 // validator: osmovaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qxwmj9we
                 // delegator_shares: "3201438898476000000000000000000"
                 // total tokens: "3201438898476"
                 StorageValue {
                     storage_prefix: "staking".to_string(),
-                    key: Binary::from(decode_hex("2114f8aff987b760a6e4b2b2df48a5a3b7ed2db15006").unwrap()),
-                    value: Binary::from(BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiBPXCnkQvO+pU6oGbp4ZiJBBZ7RNoLYtXYFOEdpXGH+uSADKg0zMjAxNDM4ODk4NDc2Mh8zMjAxNDM4ODk4NDc2MDAwMDAwMDAwMDAwMDAwMDAwOp8CCgtDaXRhZGVsLm9uZRIQRUJCMDNFQjRCQjRDRkNBNxoTaHR0cHM6Ly9jaXRhZGVsLm9uZSroAUNpdGFkZWwub25lIGlzIGEgbXVsdGktYXNzZXQgbm9uLWN1c3RvZGlhbCBzdGFraW5nIHBsYXRmb3JtIHRoYXQgbGV0cyBhbnlvbmUgYmVjb21lIGEgcGFydCBvZiBkZWNlbnRyYWxpemVkIGluZnJhc3RydWN0dXJlIGFuZCBlYXJuIHBhc3NpdmUgaW5jb21lLiBTdGFrZSB3aXRoIG91ciBub2RlcyBvciBhbnkgb3RoZXIgdmFsaWRhdG9yIGFjcm9zcyBtdWx0aXBsZSBuZXR3b3JrcyBpbiBhIGZldyBjbGlja3NKAFJECjoKETUwMDAwMDAwMDAwMDAwMDAwEhIyMDAwMDAwMDAwMDAwMDAwMDAaETMwMDAwMDAwMDAwMDAwMDAwEgYIkKKzhgZaATE=").unwrap()),
+                    key: decode_hex("2114f8aff987b760a6e4b2b2df48a5a3b7ed2db15006").unwrap(),
+                    value: BASE64_STANDARD.decode("CjJvc21vdmFsb3BlcjFsemhsbnBhaHZ6bndmdjRqbWF5MnRnYWhhNWttejVxeHdtajl3ZRJDCh0vY29zbW9zLmNyeXB0by5lZDI1NTE5LlB1YktleRIiCiBPXCnkQvO+pU6oGbp4ZiJBBZ7RNoLYtXYFOEdpXGH+uSADKg0zMjAxNDM4ODk4NDc2Mh8zMjAxNDM4ODk4NDc2MDAwMDAwMDAwMDAwMDAwMDAwOp8CCgtDaXRhZGVsLm9uZRIQRUJCMDNFQjRCQjRDRkNBNxoTaHR0cHM6Ly9jaXRhZGVsLm9uZSroAUNpdGFkZWwub25lIGlzIGEgbXVsdGktYXNzZXQgbm9uLWN1c3RvZGlhbCBzdGFraW5nIHBsYXRmb3JtIHRoYXQgbGV0cyBhbnlvbmUgYmVjb21lIGEgcGFydCBvZiBkZWNlbnRyYWxpemVkIGluZnJhc3RydWN0dXJlIGFuZCBlYXJuIHBhc3NpdmUgaW5jb21lLiBTdGFrZSB3aXRoIG91ciBub2RlcyBvciBhbnkgb3RoZXIgdmFsaWRhdG9yIGFjcm9zcyBtdWx0aXBsZSBuZXR3b3JrcyBpbiBhIGZldyBjbGlja3NKAFJECjoKETUwMDAwMDAwMDAwMDAwMDAwEhIyMDAwMDAwMDAwMDAwMDAwMDAaETMwMDAwMDAwMDAwMDAwMDAwEgYIkKKzhgZaATE=").unwrap(),
+                    proof: None,
                 },
             ],
+            block: None,
             height: 0,
             revision: 0,
-        },
+            allow_kv_callbacks: false,
+        }),
     };
 
     let registered_query =
-        build_registered_query_response(1, QueryParam::Keys(keys.0), QueryType::KV, 987);
+        build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     deps.querier
         .add_query_response(1, to_json_binary(&delegations_response).unwrap());

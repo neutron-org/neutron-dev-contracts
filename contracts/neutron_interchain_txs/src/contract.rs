@@ -43,7 +43,6 @@ use crate::storage::{
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, REGISTER_FEE,
     REGISTER_ICA_REPLY_ID, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
 };
-use neutron_sdk::bindings::msg::ChannelOrdering;
 use neutron_sdk::interchain_txs::helpers::{
     decode_message_response, get_port_id, register_interchain_account, submit_tx,
 };
@@ -51,6 +50,7 @@ use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::NeutronResult;
 use neutron_std::shim::Any;
+use neutron_std::types::ibc::core::channel::v1::Order;
 use neutron_std::types::neutron::contractmanager::MsgResubmitFailure;
 use neutron_std::types::neutron::feerefunder::Fee;
 use neutron_std::types::neutron::interchaintxs::v1::{
@@ -313,7 +313,7 @@ fn execute_register_ica(
     env: Env,
     connection_id: String,
     interchain_account_id: String,
-    ordering: Option<ChannelOrdering>,
+    ordering: Option<Order>,
 ) -> StdResult<Response> {
     let register_fee = REGISTER_FEE.load(deps.storage)?;
     let register = register_interchain_account(

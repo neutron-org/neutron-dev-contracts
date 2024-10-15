@@ -1,2 +1,2 @@
 pub mod contract;
-mod query;
+mod msg;

@@ -32,10 +32,6 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError,
     Uint128,
 };
-use neutron_sdk::bindings::query::{
-    NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
-};
-use neutron_sdk::bindings::types::{decode_hex, Height};
 use neutron_sdk::interchain_queries::helpers::decode_and_convert;
 use neutron_sdk::interchain_queries::types::{
     QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
@@ -55,12 +51,13 @@ use neutron_sdk::interchain_queries::v047::types::{
     ValidatorSigningInfo, WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
+use neutron_std::types::neutron::interchainqueries::KvKey;
 use prost::Message as ProstMessage;
 use schemars::_serde_json::to_string;
 use std::ops::Mul;
 
 enum QueryParam {
-    Keys(Vec<KVKey>),
+    Keys(Vec<KvKey>),
     TransactionsFilter(String),
 }
 

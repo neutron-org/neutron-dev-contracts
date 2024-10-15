@@ -34,7 +34,6 @@ use cosmwasm_std::{
     Response, StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
-use neutron_sdk::bindings::msg::ChannelOrdering;
 use neutron_sdk::interchain_queries::helpers::remove_interchain_query as helpers_remove_interchain_query;
 use neutron_sdk::interchain_queries::queries::get_registered_query;
 use neutron_sdk::interchain_queries::types::{
@@ -53,6 +52,7 @@ use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::{NeutronError, NeutronResult};
 use neutron_std::shim::Any;
 use neutron_std::types::cosmos::base::v1beta1::Coin as CosmosCoin;
+use neutron_std::types::ibc::core::channel::v1::Order;
 use neutron_std::types::ibc::core::client::v1::Height;
 use neutron_std::types::neutron::feerefunder::Fee;
 use neutron_std::types::neutron::interchainqueries::RegisteredQuery;
@@ -290,7 +290,7 @@ fn execute_register_ica(
         connection_id,
         interchain_account_id.clone(),
         vec![],
-        Some(ChannelOrdering::OrderOrdered),
+        Some(Order::Ordered),
     );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;

@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#4841d0231fae18e6ac39571e9b8b2b1bcf67faf9"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#82e4e338ba92c3bd4d6f2f22c10aa597c09a7e3c"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1177,7 +1177,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#4841d0231fae18e6ac39571e9b8b2b1bcf67faf9"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#82e4e338ba92c3bd4d6f2f22c10aa597c09a7e3c"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

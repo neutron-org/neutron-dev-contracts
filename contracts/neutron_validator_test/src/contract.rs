@@ -51,7 +51,7 @@ use crate::storage::{
     IBC_FEE, INTERCHAIN_ACCOUNTS, LAST_SEQ_ID, RECIPIENT_TXS, SUDO_PAYLOAD_REPLY_ID,
 };
 use neutron_std::types::cosmos::base::v1beta1::Coin as CosmosCoin;
-use neutron_std::types::neutron::interchaintxs::v1::MsgSubmitTxResponse;
+use neutron_std::types::neutron::interchaintxs::v1::{InterchaintxsQuerier, MsgSubmitTxResponse};
 
 // Default timeout for SubmitTX is two weeks
 const DEFAULT_TIMEOUT_SECONDS: u64 = 60 * 60 * 24 * 7 * 2;
@@ -176,8 +176,8 @@ pub fn query_interchain_address(
     interchain_account_id: String,
     connection_id: String,
 ) -> NeutronResult<Binary> {
-    let querier = InterchainqueriesQuerier::new(deps.querier);
-    let res = querier.interchain_account_address(owner_address: env.contract.address.to_string(), interchain_account_id, connection_id) // TODO
+    let querier = InterchaintxsQuerier::new(&deps.querier);
+    let res =  querier.interchain_account_address(env.contract.address.to_string(), interchain_account_id, connection_id)?;
     Ok(to_json_binary(&res)?)
 }
 
@@ -420,7 +420,7 @@ pub fn register_transfers_query(
     recipient: String,
     update_period: u64,
     min_height: Option<u64>,
-) -> NeutronResult<Response<NeutronMsg>> {
+) -> NeutronResult<Response> {
     let msg =
         new_register_transfers_query_msg(contract, connection_id, recipient, update_period, min_height)?;
 
@@ -428,7 +428,7 @@ pub fn register_transfers_query(
 }
 
 pub fn remove_interchain_query(contract: Addr, query_id: u64) -> NeutronResult<Response> {
-    let remove_msg = remove_interchain_query(contract, query_id)?;
+    let remove_msg = remove_interchain_query_helper(contract, query_id)?;
     Ok(Response::new().add_message(remove_msg))
 }
 

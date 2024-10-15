@@ -13,6 +13,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
 use neutron_std::types::ibc::core::client::v1::Height;
+use neutron_std::types::neutron::contractmanager::MsgResubmitFailure;
 use crate::state::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload, IBC_FEE,
     IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START, TEST_COUNTER_ITEM,
@@ -102,7 +103,7 @@ pub fn execute(
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
 
-        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
+        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, env, failure_id),
 
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
@@ -281,8 +282,11 @@ fn execute_send(
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
 }
 
-fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response> {
-    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
+fn execute_resubmit_failure(deps: DepsMut, env: Env, failure_id: u64) -> StdResult<Response> {
+    let msg = MsgResubmitFailure{
+        sender: env.contract.address.to_string(),
+        failure_id,
+    }.into();
     Ok(Response::default().add_message(msg))
 }
 

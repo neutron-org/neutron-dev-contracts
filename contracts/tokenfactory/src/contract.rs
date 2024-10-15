@@ -25,8 +25,8 @@ pub fn execute(
 ) -> StdResult<Response> {
     let msg: CosmosMsg = match msg {
         ExecuteMsg::CreateDenom { subdenom } => {
-            MsgCreateDenom{
-                sender: env.contract.address.to_string(),
+            MsgCreateDenom {
+                sender: info.sender.to_string(),
                 subdenom,
             }.into()
         },
@@ -35,7 +35,7 @@ pub fn execute(
             new_admin_address,
         } => {
             MsgChangeAdmin{
-                sender: env.contract.address.to_string(),
+                sender: info.sender.to_string(),
                 denom,
                 new_admin: new_admin_address
             }.into()
@@ -46,7 +46,7 @@ pub fn execute(
             mint_to_address,
         } => {
             MsgMint{
-                sender: info.sender.to_string(), // FIXME
+                sender: info.sender.to_string(),
                 amount: Some(CosmosCoin{ denom, amount: amount.to_string() }),
                 mint_to_address: mint_to_address.unwrap_or(env.contract.address.into()),
             }
@@ -133,12 +133,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
             creator_addr,
             subdenom,
         } => {
-            // TODO
-            to_json_binary(&query_full_denom(deps, creator_addr, subdenom)?)?
+            let res = &querier.full_denom(creator_addr, subdenom)?;
+            to_json_binary(res)?
         },
         QueryMsg::DenomAdmin { creator, subdenom } => {
             let authority = querier.denom_authority_metadata(creator, subdenom)?;
-            to_json_binary(&authority.authority_metadata.ok_or(Std(StdError::generic_err("authority metadata not found")))?.admin?)?
+            to_json_binary(&authority.authority_metadata.ok_or(Std(StdError::generic_err("authority metadata not found")))?)?
         },
         QueryMsg::BeforeSendHook { creator, denom } => {
             to_json_binary(&querier.before_send_hook_address(creator, denom)?)?

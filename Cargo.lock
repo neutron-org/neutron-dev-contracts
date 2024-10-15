@@ -773,7 +773,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "schemars",
@@ -967,7 +967,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "prost 0.12.6",
  "schemars",
  "serde",
@@ -1032,7 +1032,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
@@ -1127,14 +1127,14 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#a097d934ce27531be3bb7368f5fac90268a52f22"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#716ae7cf4913b1cfea34d49a9d74f898b3b1c179"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=cc49ece967353bcae7ad29ce04f75d2cc167b028)",
+ "neutron-std",
  "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings)",
  "prost 0.12.6",
  "prost-types 0.12.6",
@@ -1152,38 +1152,14 @@ dependencies = [
 [[package]]
 name = "neutron-std"
 version = "4.2.2-rc"
-source = "git+https://github.com/neutron-org/neutron-std?rev=cc49ece967353bcae7ad29ce04f75d2cc167b028#cc49ece967353bcae7ad29ce04f75d2cc167b028"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings#f8168e5727bf8d397b144e700b9c22af40c9710c"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
- "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-std?rev=cc49ece967353bcae7ad29ce04f75d2cc167b028)",
- "prost 0.12.6",
- "prost-types 0.12.6",
- "protobuf",
- "schemars",
- "serde",
- "serde-cw-value",
- "serde-json-wasm 1.0.1",
- "serde_json",
- "speedate",
- "tendermint-proto 0.34.1",
- "thiserror",
-]
-
-[[package]]
-name = "neutron-std"
-version = "4.2.2-rc"
-source = "git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c#f8168e5727bf8d397b144e700b9c22af40c9710c"
-dependencies = [
- "bech32 0.9.1",
- "chrono",
- "cosmos-sdk-proto 0.20.0",
- "cosmwasm-schema 2.1.4",
- "cosmwasm-std 2.1.4",
- "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings)",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "protobuf",
@@ -1200,7 +1176,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#a097d934ce27531be3bb7368f5fac90268a52f22"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#716ae7cf4913b1cfea34d49a9d74f898b3b1c179"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",
@@ -1212,19 +1188,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?rev=cc49ece967353bcae7ad29ce04f75d2cc167b028#cc49ece967353bcae7ad29ce04f75d2cc167b028"
-dependencies = [
- "itertools 0.10.5",
- "proc-macro2",
- "prost-types 0.12.6",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "neutron-std-derive"
-version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c#f8168e5727bf8d397b144e700b9c22af40c9710c"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings#f8168e5727bf8d397b144e700b9c22af40c9710c"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",
@@ -1244,7 +1208,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "prost 0.12.6",
  "schemars",
  "serde",
@@ -1278,7 +1242,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
@@ -1349,7 +1313,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "schemars",
  "serde",
 ]
@@ -1940,7 +1904,7 @@ dependencies = [
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "neutron-sdk",
- "neutron-std 4.2.2-rc (git+https://github.com/neutron-org/neutron-std?rev=f8168e5727bf8d397b144e700b9c22af40c9710c)",
+ "neutron-std",
  "schemars",
  "serde",
 ]

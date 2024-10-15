@@ -29,6 +29,7 @@ use neutron_sdk::interchain_queries::get_registered_query;
 use neutron_sdk::interchain_queries::types::{
     QueryPayload, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
+use neutron_sdk::interchain_queries::helpers::register_interchain_query;
 use neutron_sdk::interchain_queries::v045::types::HEIGHT_FIELD;
 use neutron_sdk::interchain_queries::v047::queries::{
     query_balance, query_bank_total, query_delegations, query_distribution_fee_pool,
@@ -50,7 +51,9 @@ use neutron_sdk::interchain_queries::v047::types::{COSMOS_SDK_TRANSFER_MSG_URL, 
 use neutron_sdk::sudo::msg::SudoMsg;
 use neutron_sdk::{NeutronError, NeutronResult};
 use neutron_sdk::bindings::types::Height;
+use neutron_std::types::neutron::interchainqueries::KvKey;
 use prost::Message as ProstMessage;
+use neutron_sdk::interchain_queries::helpers::{update_interchain_query as helpers_update_interchain_query, remove_interchain_query as helpers_remove_interchain_query};
 
 /// defines the incoming transfers limit to make a case of failed callback possible.
 const MAX_ALLOWED_TRANSFER: u64 = 20000;
@@ -145,14 +148,14 @@ pub fn execute(
             recipients,
             update_period,
             min_height,
-        } => register_transfers_query(connection_id, recipients, update_period, min_height),
+        } => register_transfers_query(env.contract.address, connection_id, recipients, update_period, min_height),
         ExecuteMsg::UpdateInterchainQuery {
             query_id,
             new_keys,
             new_update_period,
             new_recipient,
-        } => update_interchain_query(query_id, new_keys, new_update_period, new_recipient),
-        ExecuteMsg::RemoveInterchainQuery { query_id } => remove_interchain_query(query_id),
+        } => update_interchain_query(env.contract.address, query_id, new_keys, new_update_period, new_recipient),
+        ExecuteMsg::RemoveInterchainQuery { query_id } => remove_interchain_query(env.contract.address, query_id),
         ExecuteMsg::IntegrationTestsSetQueryMock {} => set_query_mock(deps),
         ExecuteMsg::IntegrationTestsUnsetQueryMock {} => unset_query_mock(deps),
         ExecuteMsg::IntegrationTestsRegisterQueryEmptyId { connection_id } => {
@@ -293,6 +296,7 @@ pub fn register_validators_signing_infos_query(
 }
 
 pub fn register_transfers_query(
+    contract: Addr,
     connection_id: String,
     recipients: Vec<String>,
     update_period: u64,
@@ -316,6 +320,7 @@ pub fn register_transfers_query(
     }
 
     let msg = register_interchain_query(
+        contract,
         QueryPayload::TX(query_data),
         connection_id,
         update_period,
@@ -326,46 +331,47 @@ pub fn register_transfers_query(
 
 pub fn register_query_empty_id(
     _: DepsMut,
-    _: Env,
+    env: Env,
     connection_id: String,
 ) -> NeutronResult<Response> {
-    let kv_key = KVKey {
+    let kv_key = KvKey {
         path: "test".to_string(),
-        key: Binary::new(vec![]),
+        key: vec![],
     };
     let msg =
-        register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
+        register_interchain_query(env.contract.address, QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
 
     Ok(Response::new().add_message(msg))
 }
 
 pub fn register_query_empty_path(
     _: DepsMut,
-    _: Env,
+    env: Env,
     connection_id: String,
 ) -> NeutronResult<Response> {
-    let kv_key = KVKey {
+    let kv_key = KvKey {
         path: "".to_string(),
-        key: Binary::new("test".as_bytes().to_vec()),
+        key: "test".as_bytes().to_vec(),
     };
     let msg =
-        register_interchain_query(QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
+        register_interchain_query(env.contract.address, QueryPayload::KV(vec![kv_key]), connection_id, 10)?;
     Ok(Response::new().add_message(msg))
 }
 
 pub fn register_query_empty_keys(
     _: DepsMut,
-    _: Env,
+    env: Env,
     connection_id: String,
 ) -> NeutronResult<Response> {
-    let msg = register_interchain_query(QueryPayload::KV(vec![]), connection_id, 10)?;
+    let msg = register_interchain_query(env.contract.address, QueryPayload::KV(vec![]), connection_id, 10)?;
     Ok(Response::new().add_message(msg))
 }
 
 pub fn update_interchain_query(
+    contract: Addr,
     query_id: u64,
-    new_keys: Option<Vec<KVKey>>,
-    new_update_period: Option<u64>,
+    new_keys: Vec<KvKey>,
+    new_update_period: u64,
     new_recipient: Option<String>,
 ) -> NeutronResult<Response> {
     let new_filter = new_recipient.map(|recipient| {
@@ -377,12 +383,12 @@ pub fn update_interchain_query(
     });
 
     let update_msg =
-        update_interchain_query(query_id, new_keys, new_update_period, new_filter)?;
+        helpers_update_interchain_query(contract, query_id, new_keys, new_update_period, new_filter)?;
     Ok(Response::new().add_message(update_msg))
 }
 
-pub fn remove_interchain_query(query_id: u64) -> NeutronResult<Response> {
-    let remove_msg = remove_interchain_query(query_id);
+pub fn remove_interchain_query(contract: Addr, query_id: u64) -> NeutronResult<Response> {
+    let remove_msg = helpers_remove_interchain_query(contract, query_id)?;
     Ok(Response::new().add_message(remove_msg))
 }
 
@@ -487,9 +493,9 @@ pub fn sudo_tx_query_result(
     let body: TxBody = TxBody::decode(tx.body_bytes.as_slice())?;
 
     // Get the registered query by ID and retrieve the raw query string
-    let registered_query: QueryRegisteredQueryResponse =
+    let registered_query =
         get_registered_query(deps.as_ref(), query_id)?;
-    let transactions_filter = registered_query.registered_query.transactions_filter;
+    let transactions_filter = registered_query.transactions_filter;
 
     #[allow(clippy::match_single_binding)]
     // Depending of the query type, check the transaction data to see whether is satisfies
@@ -497,7 +503,7 @@ pub fn sudo_tx_query_result(
     // all submitted results will be treated as valid.
     //
     // TODO: come up with solution to determine transactions filter type
-    match registered_query.registered_query.query_type {
+    match registered_query.query_type {
         _ => {
             // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =

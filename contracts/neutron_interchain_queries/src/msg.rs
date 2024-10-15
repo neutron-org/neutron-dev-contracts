@@ -65,8 +65,8 @@ pub enum ExecuteMsg {
     },
     UpdateInterchainQuery {
         query_id: u64,
-        new_keys: Option<Vec<KvKey>>,
-        new_update_period: Option<u64>,
+        new_keys: Vec<KvKey>,
+        new_update_period: u64,
         new_recipient: Option<String>,
     },
     RemoveInterchainQuery {

@@ -1,5 +1,5 @@
-use neutron_std::types::neutron::interchainqueries::KvKey;
 use crate::state::Transfer;
+use neutron_std::types::neutron::interchainqueries::KvKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

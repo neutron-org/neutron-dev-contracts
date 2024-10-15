@@ -5,7 +5,10 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use neutron_sdk::sudo::msg::SudoMsg;
-use neutron_std::types::neutron::dex::{DexQuerier, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder, MsgWithdrawFilledLimitOrder, MsgWithdrawal};
+use neutron_std::types::neutron::dex::{
+    DexQuerier, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
+    MsgWithdrawFilledLimitOrder, MsgWithdrawal,
+};
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -96,6 +99,7 @@ pub fn execute(
                 order_type,
                 expiration_time,
                 max_amount_out,
+                min_average_sell_price: "".to_string(), // TODO
             })),
         ),
         ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => Ok(Response::new().add_message(

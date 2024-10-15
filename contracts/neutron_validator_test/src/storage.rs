@@ -1,7 +1,6 @@
 use cosmwasm_std::{from_json, to_json_vec, Binary, StdResult, Storage, Uint128};
 use cw_storage_plus::{Item, Map};
-use neutron_sdk::bindings::msg::IbcFee;
-use neutron_std::types::ibc::applications::fee::v1::Fee;
+use neutron_std::types::neutron::feerefunder::Fee;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

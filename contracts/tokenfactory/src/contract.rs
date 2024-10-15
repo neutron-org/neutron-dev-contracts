@@ -1,10 +1,16 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use cosmwasm_std::{coins, entry_point, to_json_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult};
+use cosmwasm_std::{
+    coins, entry_point, to_json_binary, BankMsg, Binary, CosmosMsg, Deps, DepsMut, Env,
+    MessageInfo, Response, StdError, StdResult,
+};
 use neutron_sdk::NeutronError::Std;
 use neutron_sdk::NeutronResult;
 use neutron_std::types::cosmos::bank::v1beta1::Metadata;
-use neutron_std::types::osmosis::tokenfactory::v1beta1::{MsgChangeAdmin, MsgCreateDenom, MsgMint, TokenfactoryQuerier, MsgBurn, MsgSetBeforeSendHook, MsgForceTransfer, MsgSetDenomMetadata};
 use neutron_std::types::cosmos::base::v1beta1::Coin as CosmosCoin;
+use neutron_std::types::osmosis::tokenfactory::v1beta1::{
+    MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetBeforeSendHook,
+    MsgSetDenomMetadata, TokenfactoryQuerier,
+};
 
 #[entry_point]
 pub fn instantiate(
@@ -24,55 +30,55 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> StdResult<Response> {
     let msg: CosmosMsg = match msg {
-        ExecuteMsg::CreateDenom { subdenom } => {
-            MsgCreateDenom {
-                sender: info.sender.to_string(),
-                subdenom,
-            }.into()
-        },
+        ExecuteMsg::CreateDenom { subdenom } => MsgCreateDenom {
+            sender: info.sender.to_string(),
+            subdenom,
+        }
+        .into(),
         ExecuteMsg::ChangeAdmin {
             denom,
             new_admin_address,
-        } => {
-            MsgChangeAdmin{
-                sender: info.sender.to_string(),
-                denom,
-                new_admin: new_admin_address
-            }.into()
-        },
+        } => MsgChangeAdmin {
+            sender: info.sender.to_string(),
+            denom,
+            new_admin: new_admin_address,
+        }
+        .into(),
         ExecuteMsg::MintTokens {
             denom,
             amount,
             mint_to_address,
-        } => {
-            MsgMint{
-                sender: info.sender.to_string(),
-                amount: Some(CosmosCoin{ denom, amount: amount.to_string() }),
-                mint_to_address: mint_to_address.unwrap_or(env.contract.address.into()),
-            }
-            .into()
-        },
+        } => MsgMint {
+            sender: info.sender.to_string(),
+            amount: Some(CosmosCoin {
+                denom,
+                amount: amount.to_string(),
+            }),
+            mint_to_address: mint_to_address.unwrap_or(env.contract.address.into()),
+        }
+        .into(),
         ExecuteMsg::BurnTokens {
             denom,
             amount,
             burn_from_address,
-        } => {
-            MsgBurn{
-                sender: info.sender.to_string(),
-                amount: Some(CosmosCoin{ denom, amount: amount.to_string() }),
-                burn_from_address: burn_from_address.unwrap_or(env.contract.address.into()),
-            }.into()
-        },
+        } => MsgBurn {
+            sender: info.sender.to_string(),
+            amount: Some(CosmosCoin {
+                denom,
+                amount: amount.to_string(),
+            }),
+            burn_from_address: burn_from_address.unwrap_or(env.contract.address.into()),
+        }
+        .into(),
         ExecuteMsg::SetBeforeSendHook {
             denom,
             contract_addr,
-        } => {
-            MsgSetBeforeSendHook{
-                sender: info.sender.to_string(),
-                denom,
-                contract_addr
-            }.into()
-        },
+        } => MsgSetBeforeSendHook {
+            sender: info.sender.to_string(),
+            denom,
+            contract_addr,
+        }
+        .into(),
         ExecuteMsg::SendTokens {
             recipient,
             denom,
@@ -87,14 +93,16 @@ pub fn execute(
             amount,
             from,
             to,
-        } => {
-            MsgForceTransfer{
-                sender: info.sender.to_string(),
-                amount: Some(CosmosCoin{ denom, amount: amount.to_string() }),
-                transfer_from_address: from,
-                transfer_to_address: to,
-            }.into()
-        },
+        } => MsgForceTransfer {
+            sender: info.sender.to_string(),
+            amount: Some(CosmosCoin {
+                denom,
+                amount: amount.to_string(),
+            }),
+            transfer_from_address: from,
+            transfer_to_address: to,
+        }
+        .into(),
         ExecuteMsg::SetDenomMetadata {
             description,
             denom_units,
@@ -104,23 +112,20 @@ pub fn execute(
             symbol,
             uri,
             uri_hash,
-        } => {
-            MsgSetDenomMetadata{
-                sender: info.sender.to_string(),
-                metadata: Some(
-                    Metadata {
-                        description,
-                        denom_units,
-                        base,
-                        display,
-                        name,
-                        symbol,
-                        uri,
-                        uri_hash,
-                    }
-                )
-            }.into()
-        },
+        } => MsgSetDenomMetadata {
+            sender: info.sender.to_string(),
+            metadata: Some(Metadata {
+                description,
+                denom_units,
+                base,
+                display,
+                name,
+                symbol,
+                uri,
+                uri_hash,
+            }),
+        }
+        .into(),
     };
     Ok(Response::new().add_message(msg))
 }
@@ -135,11 +140,15 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
         } => {
             let res = &querier.full_denom(creator_addr, subdenom)?;
             to_json_binary(res)?
-        },
+        }
         QueryMsg::DenomAdmin { creator, subdenom } => {
             let authority = querier.denom_authority_metadata(creator, subdenom)?;
-            to_json_binary(&authority.authority_metadata.ok_or(Std(StdError::generic_err("authority metadata not found")))?)?
-        },
+            to_json_binary(
+                &authority
+                    .authority_metadata
+                    .ok_or(Std(StdError::generic_err("authority metadata not found")))?,
+            )?
+        }
         QueryMsg::BeforeSendHook { creator, denom } => {
             to_json_binary(&querier.before_send_hook_address(creator, denom)?)?
         }

@@ -1,3 +1,4 @@
+use crate::query::QueryMsg;
 use cosmwasm_std::{
     entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
@@ -5,7 +6,6 @@ use cw2::set_contract_version;
 use neutron_std::types::slinky::marketmap::v1::MarketmapQuerier;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use crate::query::QueryMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {}
@@ -47,17 +47,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 fn query_marketmap(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     let querier = MarketmapQuerier::new(&deps.querier);
     match msg {
-        QueryMsg::Params { .. } => {
-            to_json_binary(&querier.params()?)
-        }
-        QueryMsg::LastUpdated { .. } => {
-            to_json_binary(&querier.last_updated()?)
-        }
-        QueryMsg::MarketMap { .. } => {
-            to_json_binary(&querier.market_map()?)
-        }
-        QueryMsg::Market { currency_pair } => {
-            to_json_binary(&querier.market(Some(currency_pair))?)
-        }
+        QueryMsg::Params { .. } => to_json_binary(&querier.params()?),
+        QueryMsg::LastUpdated { .. } => to_json_binary(&querier.last_updated()?),
+        QueryMsg::MarketMap { .. } => to_json_binary(&querier.market_map()?),
+        QueryMsg::Market { currency_pair } => to_json_binary(&querier.market(Some(currency_pair))?),
     }
 }

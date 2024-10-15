@@ -1,6 +1,9 @@
 use neutron_std::shim::Timestamp;
 use neutron_std::types::cosmos::base::query::v1beta1::PageRequest;
-use neutron_std::types::neutron::dex::{DepositOptions, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder, MsgWithdrawFilledLimitOrder, MsgWithdrawal, MultiHopRoute};
+use neutron_std::types::neutron::dex::{
+    DepositOptions, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
+    MsgWithdrawFilledLimitOrder, MsgWithdrawal, MultiHopRoute,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

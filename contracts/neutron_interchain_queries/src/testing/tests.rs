@@ -35,9 +35,7 @@ use cosmwasm_std::{
 use neutron_sdk::bindings::query::{
     NeutronQuery, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse,
 };
-use neutron_sdk::bindings::types::{
-    decode_hex, Height, InterchainQueryResult, KVKey, KVKeys, RegisteredQuery, StorageValue,
-};
+use neutron_sdk::bindings::types::{decode_hex, Height};
 use neutron_sdk::interchain_queries::helpers::decode_and_convert;
 use neutron_sdk::interchain_queries::types::{
     QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,

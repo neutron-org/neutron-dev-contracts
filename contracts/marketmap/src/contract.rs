@@ -2,8 +2,10 @@ use cosmwasm_std::{
     entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 use cw2::set_contract_version;
+use neutron_std::types::slinky::marketmap::v1::MarketmapQuerier;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use crate::query::QueryMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {}
@@ -38,27 +40,24 @@ pub fn execute(
 }
 
 #[entry_point]
-pub fn query(deps: Deps, env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     query_marketmap(deps, env, msg)
 }
 
-fn query_marketmap(deps: Deps, _env: Env, msg: MarketMapQuery) -> StdResult<Binary> {
+fn query_marketmap(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    let querier = MarketmapQuerier::new(&deps.querier);
     match msg {
-        MarketMapQuery::Params { .. } => {
-            let query_response: ParamsResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
+        QueryMsg::Params { .. } => {
+            to_json_binary(&querier.params()?)
         }
-        MarketMapQuery::LastUpdated { .. } => {
-            let query_response: LastUpdatedResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
+        QueryMsg::LastUpdated { .. } => {
+            to_json_binary(&querier.last_updated()?)
         }
-        MarketMapQuery::MarketMap { .. } => {
-            let query_response: MarketMapResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
+        QueryMsg::MarketMap { .. } => {
+            to_json_binary(&querier.market_map()?)
         }
-        MarketMapQuery::Market { .. } => {
-            let query_response: MarketResponse = deps.querier.query(&msg.into())?;
-            to_json_binary(&query_response)
+        QueryMsg::Market { currency_pair } => {
+            to_json_binary(&querier.market(Some(currency_pair))?)
         }
     }
 }

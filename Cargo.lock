@@ -1090,6 +1090,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
+ "neutron-std",
  "schemars",
  "serde",
 ]
@@ -1152,7 +1153,7 @@ dependencies = [
 [[package]]
 name = "neutron-std"
 version = "4.2.2-rc"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings#f8168e5727bf8d397b144e700b9c22af40c9710c"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings#1e61039a6c59bc58292029c00bf4f7758dc31b4f"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1188,7 +1189,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings#f8168e5727bf8d397b144e700b9c22af40c9710c"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings#1e61039a6c59bc58292029c00bf4f7758dc31b4f"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

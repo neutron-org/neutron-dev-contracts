@@ -27,7 +27,6 @@ use cosmwasm_std::{coin, to_json_binary, Addr, Binary, CosmosMsg, CustomQuery, D
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use neutron_sdk::interchain_queries::queries::get_registered_query;
 use neutron_sdk::interchain_queries::types::{
@@ -38,7 +37,7 @@ use neutron_sdk::interchain_queries::v045::types::{COSMOS_SDK_TRANSFER_MSG_URL, 
 use neutron_sdk::interchain_queries::v045::{
     new_register_balances_query_msg, new_register_transfers_query_msg,
 };
-use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
+use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id, register_interchain_account};
 use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::{NeutronError, NeutronResult};
@@ -52,6 +51,7 @@ use crate::storage::{
 };
 use neutron_std::types::cosmos::base::v1beta1::Coin as CosmosCoin;
 use neutron_std::types::neutron::interchaintxs::v1::{InterchaintxsQuerier, MsgSubmitTxResponse};
+use neutron_sdk::interchain_queries::helpers::{update_interchain_query as helpers_update_interchain_query, remove_interchain_query as helpers_remove_interchain_query};
 
 // Default timeout for SubmitTX is two weeks
 const DEFAULT_TIMEOUT_SECONDS: u64 = 60 * 60 * 24 * 7 * 2;
@@ -258,11 +258,12 @@ fn execute_register_ica(
     interchain_account_id: String,
 ) -> NeutronResult<Response> {
     let register = register_interchain_account(
+        env.contract.address.clone(),
         connection_id,
         interchain_account_id.clone(),
-        None,
+        vec![],
         Some(ChannelOrdering::OrderOrdered),
-    );
+    )?;
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
     Ok(Response::new().add_message(register))
@@ -428,7 +429,7 @@ pub fn register_transfers_query(
 }
 
 pub fn remove_interchain_query(contract: Addr, query_id: u64) -> NeutronResult<Response> {
-    let remove_msg = remove_interchain_query_helper(contract, query_id)?;
+    let remove_msg = helpers_remove_interchain_query(contract, query_id)?;
     Ok(Response::new().add_message(remove_msg))
 }
 

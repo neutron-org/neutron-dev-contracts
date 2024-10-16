@@ -16,8 +16,14 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-use cosmwasm_std::{from_json, Binary, Coin, ContractResult, CustomQuery, FullDelegation, GrpcQuery, OwnedDeps, Querier, QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, Validator};
-use neutron_std::types::neutron::interchainqueries::{QueryRegisteredQueriesRequest, QueryRegisteredQueryRequest, QueryRegisteredQueryResultRequest, QueryRegisteredQueryResultResponse, QueryResult};
+use cosmwasm_std::{
+    from_json, Binary, Coin, ContractResult, CustomQuery, FullDelegation, GrpcQuery, OwnedDeps,
+    Querier, QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, Validator,
+};
+use neutron_std::types::neutron::interchainqueries::{
+    QueryRegisteredQueriesRequest, QueryRegisteredQueryRequest, QueryRegisteredQueryResultRequest,
+    QueryRegisteredQueryResultResponse, QueryResult,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -69,15 +75,19 @@ impl Querier for WasmMockQuerier {
 impl WasmMockQuerier {
     pub fn handle_query(&self, request: &QueryRequest) -> QuerierResult {
         match &request {
-            QueryRequest::Grpc(GrpcQuery{ path, data, }) => {
+            QueryRequest::Grpc(GrpcQuery { path, data }) => {
                 let quoted_path = path.trim_matches('"').to_string();
                 if quoted_path == "/neutron.interchainqueries.Query/QueryResult".to_string() {
-                    let request: QueryRegisteredQueryResultRequest = ::prost::Message::decode(&data[..]).unwrap();
+                    let request: QueryRegisteredQueryResultRequest =
+                        ::prost::Message::decode(&data[..]).unwrap();
                     SystemResult::Ok(ContractResult::Ok(
                         (*self.query_responses.get(&request.query_id).unwrap()).clone(),
                     ))
-                } else if quoted_path == "/neutron.interchainqueries.Query/RegisteredQuery".to_string() {
-                    let request: QueryRegisteredQueryRequest = ::prost::Message::decode(&data[..]).unwrap();
+                } else if quoted_path
+                    == "/neutron.interchainqueries.Query/RegisteredQuery".to_string()
+                {
+                    let request: QueryRegisteredQueryRequest =
+                        ::prost::Message::decode(&data[..]).unwrap();
                     SystemResult::Ok(ContractResult::Ok(
                         (*self.registered_queries.get(&request.query_id).unwrap()).clone(),
                     ))

@@ -29,10 +29,10 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::Validator as CosmosValidator;
 use cosmos_sdk_proto::Any;
 use cosmwasm_std::testing::{message_info, mock_env, MockApi, MockStorage};
 use cosmwasm_std::{
-    from_json, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError,
-    Uint128,
+    from_json, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError, Uint128,
 };
 use neutron_sdk::interchain_queries::helpers::{decode_and_convert, kv_key_from_string};
+use neutron_sdk::interchain_queries::hex::decode_hex;
 use neutron_sdk::interchain_queries::types::{
     QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -41,7 +41,6 @@ use neutron_sdk::interchain_queries::v047::helpers::{
     create_gov_proposal_votes_key, create_total_denom_key, create_validator_key,
     create_validator_signing_info_key,
 };
-use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
 use neutron_sdk::interchain_queries::v047::queries::{
     BalanceResponse, DelegatorDelegationsResponse, FeePoolResponse, ProposalResponse,
     ProposalVotesResponse, TotalSupplyResponse, ValidatorResponse, ValidatorSigningInfoResponse,
@@ -52,12 +51,15 @@ use neutron_sdk::interchain_queries::v047::types::{
     ValidatorSigningInfo, WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
 use neutron_sdk::NeutronError;
-use neutron_std::types::neutron::interchainqueries::{KvKey, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse, QueryResult, RegisteredQuery, StorageValue};
+use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
+use neutron_std::types::ibc::core::client::v1::Height;
+use neutron_std::types::neutron::interchainqueries::{
+    KvKey, QueryRegisteredQueryResponse, QueryRegisteredQueryResultResponse, QueryResult,
+    RegisteredQuery, StorageValue,
+};
 use prost::Message as ProstMessage;
 use schemars::_serde_json::to_string;
 use std::ops::Mul;
-use neutron_sdk::interchain_queries::hex::decode_hex;
-use neutron_std::types::ibc::core::client::v1::Height;
 
 enum QueryParam {
     Keys(Vec<KvKey>),
@@ -74,9 +76,7 @@ fn build_registered_query_response(
     let mut transactions_filter = "".to_string();
     match param {
         QueryParam::Keys(keys) => registered_keys = keys,
-        QueryParam::TransactionsFilter(filter) => {
-            transactions_filter = filter
-        }
+        QueryParam::TransactionsFilter(filter) => transactions_filter = filter,
     }
 
     let resp = QueryRegisteredQueryResponse {
@@ -383,8 +383,7 @@ fn test_query_balances() {
     );
     let query_balance = QueryMsg::Balance { query_id: 1 };
     let res = query(deps.as_ref(), mock_env(), query_balance);
-    let resp: BalanceResponse =
-        from_json(res.unwrap()).unwrap();
+    let resp: BalanceResponse = from_json(res.unwrap()).unwrap();
     assert_eq!(
         resp,
         BalanceResponse {
@@ -440,8 +439,10 @@ fn test_bank_total_supply_query() {
     };
 
     deps.querier.add_registered_queries(1, registered_query);
-    deps.querier
-        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&total_supply_response).as_slice()));
+    deps.querier.add_query_response(
+        1,
+        Binary::from(::prost::Message::encode_to_vec(&total_supply_response).as_slice()),
+    );
     let bank_total_balance = QueryMsg::BankTotalSupply { query_id: 1 };
 
     let resp: TotalSupplyResponse =
@@ -541,8 +542,10 @@ fn test_gov_proposals_query() {
     };
 
     deps.querier.add_registered_queries(1, registered_query);
-    deps.querier
-        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&proposals_response).as_slice()));
+    deps.querier.add_query_response(
+        1,
+        Binary::from(::prost::Message::encode_to_vec(&proposals_response).as_slice()),
+    );
 
     let government_proposal = QueryMsg::GovernmentProposals { query_id: 1 };
     let resp: ProposalResponse =
@@ -661,8 +664,10 @@ fn test_gov_proposal_votes_query() {
     };
 
     deps.querier.add_registered_queries(1, registered_query);
-    deps.querier
-        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&proposals_votes_response).as_slice()));
+    deps.querier.add_query_response(
+        1,
+        Binary::from(::prost::Message::encode_to_vec(&proposals_votes_response).as_slice()),
+    );
 
     let government_proposal_votes = QueryMsg::GovernmentProposalVotes { query_id: 1 };
     let resp: ProposalVotesResponse =
@@ -745,8 +750,10 @@ fn test_staking_validators_query() {
     };
 
     deps.querier.add_registered_queries(1, registered_query);
-    deps.querier
-        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&validators_response).as_slice()));
+    deps.querier.add_query_response(
+        1,
+        Binary::from(::prost::Message::encode_to_vec(&validators_response).as_slice()),
+    );
     let staking_validators = QueryMsg::StakingValidators { query_id: 1 };
     let resp: ValidatorResponse =
         from_json(query(deps.as_ref(), mock_env(), staking_validators).unwrap()).unwrap();
@@ -846,8 +853,10 @@ fn test_validators_signing_infos_query() {
     };
 
     deps.querier.add_registered_queries(1, registered_query);
-    deps.querier
-        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&validators_response).as_slice()));
+    deps.querier.add_query_response(
+        1,
+        Binary::from(::prost::Message::encode_to_vec(&validators_response).as_slice()),
+    );
     let validators_signing_infos = QueryMsg::ValidatorsSigningInfos { query_id: 1 };
     let resp: ValidatorSigningInfoResponse =
         from_json(query(deps.as_ref(), mock_env(), validators_signing_infos).unwrap()).unwrap();
@@ -982,8 +991,10 @@ fn test_query_delegator_delegations() {
     let registered_query =
         build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
-    deps.querier
-        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&delegations_response).as_slice()));
+    deps.querier.add_query_response(
+        1,
+        Binary::from(::prost::Message::encode_to_vec(&delegations_response).as_slice()),
+    );
     deps.querier.add_registered_queries(1, registered_query);
 
     let query_delegations = QueryMsg::GetDelegations { query_id: 1 };

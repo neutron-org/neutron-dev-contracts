@@ -29,7 +29,7 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::Validator as CosmosValidator;
 use cosmos_sdk_proto::Any;
 use cosmwasm_std::testing::{message_info, mock_env, MockApi, MockStorage};
 use cosmwasm_std::{
-    from_json, to_json_binary, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError,
+    from_json, Addr, Binary, Coin, Decimal, Env, MessageInfo, OwnedDeps, StdError,
     Uint128,
 };
 use neutron_sdk::interchain_queries::helpers::{decode_and_convert, kv_key_from_string};
@@ -101,8 +101,8 @@ fn build_registered_query_response(
             registered_at_height: 0,
         }),
     };
-
-    Binary::from(to_string(&resp).unwrap().as_bytes())
+    let res = ::prost::Message::encode_to_vec(&resp);
+    Binary::from(res.as_slice())
 }
 
 fn build_interchain_query_bank_total_denom_value(denom: String, amount: String) -> StorageValue {
@@ -139,19 +139,17 @@ fn build_interchain_query_distribution_fee_pool_response(denom: String, amount: 
         value: fee_pool.encode_to_vec(),
         proof: None,
     };
-    Binary::from(
-        to_string(&QueryRegisteredQueryResultResponse {
-            result: Some(QueryResult {
-                kv_results: vec![s],
-                block: None,
-                height: 123456,
-                revision: 1,
-                allow_kv_callbacks: false,
-            }),
-        })
-        .unwrap()
-        .as_bytes(),
-    )
+
+    let res = ::prost::Message::encode_to_vec(&QueryRegisteredQueryResultResponse {
+        result: Some(QueryResult {
+            kv_results: vec![s],
+            block: None,
+            height: 123456,
+            revision: 1,
+            allow_kv_callbacks: false,
+        }),
+    });
+    Binary::from(res.as_slice())
 }
 
 fn build_interchain_query_staking_validator_value(validator: String) -> StorageValue {
@@ -278,19 +276,17 @@ fn build_interchain_query_balances_response(addr: Addr, balances: Vec<Coin>) -> 
         })
         .collect();
 
-    Binary::from(
-        to_string(&QueryRegisteredQueryResultResponse {
-            result: Some(QueryResult {
-                kv_results: s,
-                block: None,
-                height: 123456,
-                revision: 2,
-                allow_kv_callbacks: false,
-            }),
-        })
-        .unwrap()
-        .as_bytes(),
-    )
+    let resp = QueryRegisteredQueryResultResponse {
+        result: Some(QueryResult {
+            kv_results: s,
+            block: None,
+            height: 123456,
+            revision: 2,
+            allow_kv_callbacks: false,
+        }),
+    };
+    let res = ::prost::Message::encode_to_vec(&resp);
+    Binary::from(res.as_slice())
 }
 
 // registers an interchain query
@@ -386,8 +382,9 @@ fn test_query_balances() {
         ),
     );
     let query_balance = QueryMsg::Balance { query_id: 1 };
+    let res = query(deps.as_ref(), mock_env(), query_balance);
     let resp: BalanceResponse =
-        from_json(query(deps.as_ref(), mock_env(), query_balance).unwrap()).unwrap();
+        from_json(res.unwrap()).unwrap();
     assert_eq!(
         resp,
         BalanceResponse {
@@ -444,7 +441,7 @@ fn test_bank_total_supply_query() {
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier
-        .add_query_response(1, to_json_binary(&total_supply_response).unwrap());
+        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&total_supply_response).as_slice()));
     let bank_total_balance = QueryMsg::BankTotalSupply { query_id: 1 };
 
     let resp: TotalSupplyResponse =
@@ -545,7 +542,7 @@ fn test_gov_proposals_query() {
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier
-        .add_query_response(1, to_json_binary(&proposals_response).unwrap());
+        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&proposals_response).as_slice()));
 
     let government_proposal = QueryMsg::GovernmentProposals { query_id: 1 };
     let resp: ProposalResponse =
@@ -665,7 +662,7 @@ fn test_gov_proposal_votes_query() {
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier
-        .add_query_response(1, to_json_binary(&proposals_votes_response).unwrap());
+        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&proposals_votes_response).as_slice()));
 
     let government_proposal_votes = QueryMsg::GovernmentProposalVotes { query_id: 1 };
     let resp: ProposalVotesResponse =
@@ -749,7 +746,7 @@ fn test_staking_validators_query() {
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier
-        .add_query_response(1, to_json_binary(&validators_response).unwrap());
+        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&validators_response).as_slice()));
     let staking_validators = QueryMsg::StakingValidators { query_id: 1 };
     let resp: ValidatorResponse =
         from_json(query(deps.as_ref(), mock_env(), staking_validators).unwrap()).unwrap();
@@ -850,7 +847,7 @@ fn test_validators_signing_infos_query() {
 
     deps.querier.add_registered_queries(1, registered_query);
     deps.querier
-        .add_query_response(1, to_json_binary(&validators_response).unwrap());
+        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&validators_response).as_slice()));
     let validators_signing_infos = QueryMsg::ValidatorsSigningInfos { query_id: 1 };
     let resp: ValidatorSigningInfoResponse =
         from_json(query(deps.as_ref(), mock_env(), validators_signing_infos).unwrap()).unwrap();
@@ -986,7 +983,7 @@ fn test_query_delegator_delegations() {
         build_registered_query_response(1, QueryParam::Keys(keys), QueryType::KV, 987);
 
     deps.querier
-        .add_query_response(1, to_json_binary(&delegations_response).unwrap());
+        .add_query_response(1, Binary::from(::prost::Message::encode_to_vec(&delegations_response).as_slice()));
     deps.querier.add_registered_queries(1, registered_query);
 
     let query_delegations = QueryMsg::GetDelegations { query_id: 1 };

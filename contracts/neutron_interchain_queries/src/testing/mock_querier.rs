@@ -73,13 +73,11 @@ impl WasmMockQuerier {
                 let quoted_path = path.trim_matches('"').to_string();
                 if quoted_path == "/neutron.interchainqueries.Query/QueryResult".to_string() {
                     let request: QueryRegisteredQueryResultRequest = ::prost::Message::decode(&data[..]).unwrap();
-                    println!("AAAAOKAAAAY");
                     SystemResult::Ok(ContractResult::Ok(
                         (*self.query_responses.get(&request.query_id).unwrap()).clone(),
                     ))
                 } else if quoted_path == "/neutron.interchainqueries.Query/RegisteredQuery".to_string() {
                     let request: QueryRegisteredQueryRequest = ::prost::Message::decode(&data[..]).unwrap();
-                    println!("BBBBOKAAAAY");
                     SystemResult::Ok(ContractResult::Ok(
                         (*self.registered_queries.get(&request.query_id).unwrap()).clone(),
                     ))
@@ -93,48 +91,7 @@ impl WasmMockQuerier {
             }
             _ => self.base.handle_query(request),
         }
-
-
-
-        // TODO: remove
-        // match &request {
-        //     QueryRequest::Grpc(GrpcQuery{ path: ref type_url, data: _, }) => {
-        //         SystemResult::Ok(ContractResult::Ok(
-        //             (*self.query_responses.get(query_id).unwrap()).clone(),
-        //         ))
-        //     }
-        //     QueryRequest::Custom(NeutronQuery::InterchainQueryResult { query_id }) => {
-        //         SystemResult::Ok(ContractResult::Ok(
-        //             (*self.query_responses.get(query_id).unwrap()).clone(),
-        //         ))
-        //     }
-        //     QueryRequest::Custom(NeutronQuery::RegisteredInterchainQuery { query_id }) => {
-        //         SystemResult::Ok(ContractResult::Ok(
-        //             (*self.registered_queries.get(query_id).unwrap()).clone(),
-        //         ))
-        //     }
-        //     QueryRequest::Custom(NeutronQuery::RegisteredInterchainQueries {
-        //         owners: _owners,
-        //         connection_id: _connection_id,
-        //         pagination: _pagination,
-        //     }) => {
-        //         todo!()
-        //     }
-        //     QueryRequest::Custom(NeutronQuery::InterchainAccountAddress { .. }) => {
-        //         todo!()
-        //     }
-        //     _ => self.base.handle_query(request),
-        // }
     }
-
-    // pub fn _update_staking(
-    //     &mut self,
-    //     denom: &str,
-    //     validators: &[Validator],
-    //     delegations: &[FullDelegation],
-    // ) {
-    //     self.base.staking.update(denom, validators, delegations);
-    // }
 
     pub fn add_query_response(&mut self, query_id: u64, response: Binary) {
         self.query_responses.insert(query_id, response);

@@ -36,6 +36,7 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use neutron_sdk::interchain_queries::helpers::remove_interchain_query as helpers_remove_interchain_query;
 use neutron_sdk::interchain_queries::queries::get_registered_query;
+use neutron_sdk::interchain_queries::sudo::Height;
 use neutron_sdk::interchain_queries::types::{
     TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -53,7 +54,6 @@ use neutron_sdk::{NeutronError, NeutronResult};
 use neutron_std::shim::Any;
 use neutron_std::types::cosmos::base::v1beta1::Coin as CosmosCoin;
 use neutron_std::types::ibc::core::channel::v1::Order;
-use neutron_std::types::ibc::core::client::v1::Height;
 use neutron_std::types::neutron::feerefunder::Fee;
 use neutron_std::types::neutron::interchainqueries::RegisteredQuery;
 use neutron_std::types::neutron::interchaintxs::v1::{InterchaintxsQuerier, MsgSubmitTxResponse};

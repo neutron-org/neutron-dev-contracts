@@ -33,6 +33,7 @@ use cosmwasm_std::{
 };
 use neutron_sdk::interchain_queries::helpers::{decode_and_convert, kv_key_from_string};
 use neutron_sdk::interchain_queries::hex::decode_hex;
+use neutron_sdk::interchain_queries::sudo::Height as QueriesHeight;
 use neutron_sdk::interchain_queries::types::{
     QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -1032,7 +1033,7 @@ fn test_sudo_tx_query_result_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height = Height {
+    let height = QueriesHeight {
         revision_number: 0u64,
         revision_height: 1u64,
     };
@@ -1136,7 +1137,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
     let env = mock_env();
     let watched_addr: String = "neutron1fj6yqrkpw6fmp7f7jhj57dujfpwal4m25dafzx".to_string();
     let query_id: u64 = 1u64;
-    let height = Height {
+    let height = QueriesHeight {
         revision_number: 0u64,
         revision_height: 1u64,
     };

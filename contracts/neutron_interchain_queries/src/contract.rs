@@ -34,6 +34,7 @@ use neutron_sdk::interchain_queries::helpers::{
     remove_interchain_query as helpers_remove_interchain_query,
     update_interchain_query as helpers_update_interchain_query,
 };
+use neutron_sdk::interchain_queries::sudo::Height;
 use neutron_sdk::interchain_queries::types::{
     QueryPayload, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -57,7 +58,6 @@ use neutron_sdk::interchain_queries::v047::register_queries::{
 use neutron_sdk::interchain_queries::v047::types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD};
 use neutron_sdk::sudo::msg::SudoMsg;
 use neutron_sdk::{NeutronError, NeutronResult};
-use neutron_std::types::ibc::core::client::v1::Height;
 use neutron_std::types::neutron::interchainqueries::KvKey;
 use prost::Message as ProstMessage;
 

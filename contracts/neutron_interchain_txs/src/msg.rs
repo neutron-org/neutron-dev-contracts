@@ -1,6 +1,6 @@
 use crate::storage::{AcknowledgementResult, IntegrationTestsSudoFailureMock};
 use cosmwasm_std::Uint128;
-use neutron_sdk::bindings::msg::ChannelOrdering;
+use neutron_std::types::ibc::core::channel::v1::Order;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -39,7 +39,7 @@ pub enum ExecuteMsg {
     Register {
         connection_id: String,
         interchain_account_id: String,
-        ordering: Option<ChannelOrdering>,
+        ordering: Option<Order>,
     },
     SetFees {
         denom: String,

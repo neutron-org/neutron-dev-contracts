@@ -3,17 +3,16 @@ use crate::storage::{
     INTEGRATION_TESTS_SUDO_FAILURE_MOCK, INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK,
 };
 use cosmwasm_std::{DepsMut, Response, StdResult};
-use neutron_sdk::bindings::msg::NeutronMsg;
 
 pub fn set_sudo_failure_mock(
     deps: DepsMut,
     state: IntegrationTestsSudoFailureMock,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     INTEGRATION_TESTS_SUDO_FAILURE_MOCK.save(deps.storage, &state)?;
     Ok(Response::default())
 }
 
-pub fn set_sudo_submsg_failure_mock(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+pub fn set_sudo_submsg_failure_mock(deps: DepsMut) -> StdResult<Response> {
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.save(
         deps.storage,
         &IntegrationTestsSudoSubmsgFailureMock::Enabled,
@@ -21,7 +20,7 @@ pub fn set_sudo_submsg_failure_mock(deps: DepsMut) -> StdResult<Response<Neutron
     Ok(Response::default())
 }
 
-pub fn set_sudo_submsg_failure_in_reply_mock(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+pub fn set_sudo_submsg_failure_in_reply_mock(deps: DepsMut) -> StdResult<Response> {
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.save(
         deps.storage,
         &IntegrationTestsSudoSubmsgFailureMock::EnabledInReply,
@@ -29,7 +28,7 @@ pub fn set_sudo_submsg_failure_in_reply_mock(deps: DepsMut) -> StdResult<Respons
     Ok(Response::default())
 }
 
-pub fn unset_sudo_failure_mock(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+pub fn unset_sudo_failure_mock(deps: DepsMut) -> StdResult<Response> {
     INTEGRATION_TESTS_SUDO_FAILURE_MOCK
         .save(deps.storage, &IntegrationTestsSudoFailureMock::Disabled)?;
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.save(

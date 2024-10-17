@@ -1,4 +1,5 @@
-use cosmwasm_std::{DenomUnit, Uint128};
+use cosmwasm_std::Uint128;
+use neutron_std::types::cosmos::bank::v1beta1::DenomUnit;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -60,9 +61,11 @@ pub enum QueryMsg {
         subdenom: String,
     },
     DenomAdmin {
+        creator: String,
         subdenom: String,
     },
     BeforeSendHook {
+        creator: String,
         denom: String,
     },
 }

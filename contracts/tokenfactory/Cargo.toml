@@ -23,6 +23,7 @@ cosmwasm-std = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
 neutron-sdk = { workspace = true }
+neutron-std = { workspace = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

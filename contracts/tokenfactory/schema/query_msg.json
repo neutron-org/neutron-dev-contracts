@@ -36,9 +36,13 @@
         "denom_admin": {
           "type": "object",
           "required": [
+            "creator",
             "subdenom"
           ],
           "properties": {
+            "creator": {
+              "type": "string"
+            },
             "subdenom": {
               "type": "string"
             }
@@ -57,9 +61,13 @@
         "before_send_hook": {
           "type": "object",
           "required": [
+            "creator",
             "denom"
           ],
           "properties": {
+            "creator": {
+              "type": "string"
+            },
             "denom": {
               "type": "string"
             }

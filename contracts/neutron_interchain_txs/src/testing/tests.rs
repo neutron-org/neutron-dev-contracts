@@ -22,11 +22,10 @@ use cosmwasm_std::testing::{
     MockStorage,
 };
 use cosmwasm_std::{from_json, Addr, OwnedDeps, StdError};
-use neutron_sdk::bindings::query::NeutronQuery;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use std::marker::PhantomData;
 
-pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, MockQuerier, NeutronQuery> {
+pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
     OwnedDeps {
         storage: MockStorage::default(),
         api: MockApi::default(),

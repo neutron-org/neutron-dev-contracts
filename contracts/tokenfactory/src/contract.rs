@@ -31,7 +31,7 @@ pub fn execute(
 ) -> StdResult<Response> {
     let msg: CosmosMsg = match msg {
         ExecuteMsg::CreateDenom { subdenom } => MsgCreateDenom {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             subdenom,
         }
         .into(),
@@ -39,7 +39,7 @@ pub fn execute(
             denom,
             new_admin_address,
         } => MsgChangeAdmin {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             denom,
             new_admin: new_admin_address,
         }
@@ -49,7 +49,7 @@ pub fn execute(
             amount,
             mint_to_address,
         } => MsgMint {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             amount: Some(CosmosCoin {
                 denom,
                 amount: amount.to_string(),
@@ -62,7 +62,7 @@ pub fn execute(
             amount,
             burn_from_address,
         } => MsgBurn {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             amount: Some(CosmosCoin {
                 denom,
                 amount: amount.to_string(),
@@ -74,7 +74,7 @@ pub fn execute(
             denom,
             contract_addr,
         } => MsgSetBeforeSendHook {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             denom,
             contract_addr,
         }
@@ -113,7 +113,7 @@ pub fn execute(
             uri,
             uri_hash,
         } => MsgSetDenomMetadata {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             metadata: Some(Metadata {
                 description,
                 denom_units,

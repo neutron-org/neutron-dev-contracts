@@ -1,21 +1,21 @@
-use cosmwasm_std::{
-    coin, entry_point, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, SubMsg, Uint128,
-};
-use cw2::set_contract_version;
-use neutron_sdk::interchain_txs::helpers::decode_message_response;
-use neutron_sdk::proto_types::neutron::transfer::MsgTransferResponse;
-use neutron_sdk::{
-    bindings::msg::{IbcFee, NeutronMsg},
-    sudo::msg::{RequestPacket, RequestPacketTimeoutHeight, TransferSudoMsg},
-};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
 use crate::state::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload, IBC_FEE,
     IBC_SUDO_ID_RANGE_END, IBC_SUDO_ID_RANGE_START, TEST_COUNTER_ITEM,
 };
+use cosmwasm_std::{
+    entry_point, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
+    StdResult, SubMsg, Uint128,
+};
+use cw2::set_contract_version;
+use neutron_sdk::interchain_txs::helpers::decode_message_response;
+use neutron_sdk::sudo::msg::{RequestPacket, TransferSudoMsg};
+use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
+use neutron_std::types::ibc::core::client::v1::Height;
+use neutron_std::types::neutron::contractmanager::MsgResubmitFailure;
+use neutron_std::types::neutron::feerefunder::Fee;
+use neutron_std::types::neutron::transfer::{MsgTransfer, MsgTransferResponse};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     integration_tests_mock_handlers::{set_sudo_failure_mock, unset_sudo_failure_mock},
@@ -74,12 +74,7 @@ pub enum ExecuteMsg {
 }
 
 #[entry_point]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    _: MessageInfo,
-    msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+pub fn execute(deps: DepsMut, env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -101,7 +96,9 @@ pub fn execute(
             denom,
         } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
 
-        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
+        ExecuteMsg::ResubmitFailure { failure_id } => {
+            execute_resubmit_failure(deps, env, failure_id)
+        }
 
         // Used only in integration tests framework to simulate failures.
         // After executing this message, contract fail, all of this happening
@@ -181,11 +178,15 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     }
 }
 
-fn get_fee_item(denom: String, amount: Uint128) -> Vec<Coin> {
+fn get_fee_item(denom: String, amount: Uint128) -> Vec<StdCoin> {
     if amount == Uint128::new(0) {
         vec![]
     } else {
-        vec![coin(amount.u128(), denom)]
+        let coin = StdCoin {
+            amount: amount.to_string(),
+            denom,
+        };
+        vec![coin]
     }
 }
 
@@ -195,8 +196,8 @@ fn execute_set_fees(
     ack_fee: Uint128,
     timeout_fee: Uint128,
     denom: String,
-) -> StdResult<Response<NeutronMsg>> {
-    let fee = IbcFee {
+) -> StdResult<Response> {
+    let fee = Fee {
         recv_fee: get_fee_item(denom.clone(), recv_fee),
         ack_fee: get_fee_item(denom.clone(), ack_fee),
         timeout_fee: get_fee_item(denom, timeout_fee),
@@ -215,36 +216,42 @@ fn execute_send(
     denom: String,
     amount: Uint128,
     timeout_height: Option<u64>,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     let fee = IBC_FEE.load(deps.storage)?;
-    let coin1 = coin(amount.u128(), denom.clone());
-    let msg1 = NeutronMsg::IbcTransfer {
+    let coin1 = StdCoin {
+        amount: amount.to_string(),
+        denom: denom.clone(),
+    };
+    let msg1 = MsgTransfer {
         source_port: "transfer".to_string(),
         source_channel: channel.clone(),
         sender: env.contract.address.to_string(),
         receiver: to.clone(),
-        token: coin1,
-        timeout_height: RequestPacketTimeoutHeight {
-            revision_number: Some(2),
-            revision_height: timeout_height.or(Some(DEFAULT_TIMEOUT_HEIGHT)),
-        },
+        token: Some(coin1),
+        timeout_height: Some(Height {
+            revision_number: 2,
+            revision_height: timeout_height.unwrap_or(DEFAULT_TIMEOUT_HEIGHT),
+        }),
         timeout_timestamp: 0,
-        fee: fee.clone(),
+        fee: Some(fee.clone()),
         memo: "".to_string(),
     };
-    let coin2 = coin(2 * amount.u128(), denom);
-    let msg2 = NeutronMsg::IbcTransfer {
+    let coin2 = StdCoin {
+        amount: (amount * Uint128::new(2)).to_string(),
+        denom: denom.clone(),
+    };
+    let msg2 = MsgTransfer {
         source_port: "transfer".to_string(),
         source_channel: channel,
         sender: env.contract.address.to_string(),
         receiver: to,
-        token: coin2,
-        timeout_height: RequestPacketTimeoutHeight {
-            revision_number: Some(2),
-            revision_height: timeout_height.or(Some(DEFAULT_TIMEOUT_HEIGHT)),
-        },
+        token: Some(coin2),
+        timeout_height: Some(Height {
+            revision_number: 2,
+            revision_height: timeout_height.unwrap_or(DEFAULT_TIMEOUT_HEIGHT),
+        }),
         timeout_timestamp: 0,
-        fee,
+        fee: Some(fee),
         memo: "".to_string(),
     };
     let submsg1 = msg_with_sudo_callback(
@@ -270,8 +277,12 @@ fn execute_send(
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
 }
 
-fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
-    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
+fn execute_resubmit_failure(_: DepsMut, env: Env, failure_id: u64) -> StdResult<Response> {
+    let msg: CosmosMsg = MsgResubmitFailure {
+        sender: env.contract.address.to_string(),
+        failure_id,
+    }
+    .into();
     Ok(Response::default().add_message(msg))
 }
 

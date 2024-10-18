@@ -20,6 +20,7 @@ library = []
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["stargate", "staking"] }
+neutron-std = { workspace = true }
 cw2 = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }

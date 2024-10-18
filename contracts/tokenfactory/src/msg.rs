@@ -1,4 +1,5 @@
-use cosmwasm_std::{DenomUnit, Uint128};
+use cosmwasm_std::Uint128;
+use neutron_std::types::cosmos::bank::v1beta1::DenomUnit;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -55,16 +56,9 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    FullDenom {
-        creator_addr: String,
-        subdenom: String,
-    },
-    DenomAdmin {
-        subdenom: String,
-    },
-    BeforeSendHook {
-        denom: String,
-    },
+    FullDenom { creator: String, subdenom: String },
+    DenomAdmin { creator: String, subdenom: String },
+    BeforeSendHook { creator: String, subdenom: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

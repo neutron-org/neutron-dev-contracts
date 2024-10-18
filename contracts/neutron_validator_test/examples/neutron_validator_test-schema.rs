@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use neutron_sdk::bindings::query::QueryInterchainAccountAddressResponse;
 use neutron_sdk::sudo::msg::SudoMsg;
+use neutron_std::types::neutron::interchaintxs::v1::QueryInterchainAccountAddressResponse;
 use neutron_validators_test::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use std::env::current_dir;
 use std::fs::create_dir_all;

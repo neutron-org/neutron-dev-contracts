@@ -5,7 +5,6 @@ use cosmwasm_std::{
 };
 
 use cw2::set_contract_version;
-use neutron_sdk::bindings::msg::NeutronMsg;
 
 use crate::state::TEST_ARGS;
 
@@ -25,12 +24,7 @@ pub fn instantiate(
 }
 
 #[entry_point]
-pub fn execute(
-    deps: DepsMut,
-    _: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+pub fn execute(deps: DepsMut, _: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -55,7 +49,7 @@ fn execute_test_arg(
     info: MessageInfo,
     return_err: bool,
     arg: String,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     if return_err {
         return Err(StdError::generic_err("return error"));
     }
@@ -76,7 +70,7 @@ fn execute_test_arg(
     Ok(Response::default().add_attribute("arg", arg))
 }
 
-fn execute_call_staking(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn execute_call_staking(deps: DepsMut) -> StdResult<Response> {
     deps.querier.query_bonded_denom()?; // should fail since Neutron does not have staking module
     Ok(Response::default())
 }

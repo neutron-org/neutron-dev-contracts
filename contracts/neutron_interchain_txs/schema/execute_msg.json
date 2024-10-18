@@ -24,7 +24,7 @@
             "ordering": {
               "anyOf": [
                 {
-                  "$ref": "#/definitions/ChannelOrdering"
+                  "$ref": "#/definitions/Order"
                 },
                 {
                   "type": "null"
@@ -309,19 +309,38 @@
     }
   ],
   "definitions": {
-    "ChannelOrdering": {
-      "type": "string",
-      "enum": [
-        "ORDER_ORDERED",
-        "ORDER_UNORDERED"
-      ]
-    },
     "IntegrationTestsSudoFailureMock": {
       "type": "string",
       "enum": [
         "enabled",
         "enabled_infinite_loop",
         "disabled"
+      ]
+    },
+    "Order": {
+      "description": "Order defines if a channel is ORDERED or UNORDERED",
+      "oneOf": [
+        {
+          "description": "zero-value for channel ordering",
+          "type": "string",
+          "enum": [
+            "NoneUnspecified"
+          ]
+        },
+        {
+          "description": "packets can be delivered in any order, which may differ from the order in which they were sent.",
+          "type": "string",
+          "enum": [
+            "Unordered"
+          ]
+        },
+        {
+          "description": "packets are delivered exactly in the order which they were sent",
+          "type": "string",
+          "enum": [
+            "Ordered"
+          ]
+        }
       ]
     },
     "Uint128": {

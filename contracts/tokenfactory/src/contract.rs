@@ -26,7 +26,7 @@ pub fn instantiate(
 pub fn execute(
     _deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> StdResult<Response> {
     let msg: CosmosMsg = match msg {
@@ -94,7 +94,7 @@ pub fn execute(
             from,
             to,
         } => MsgForceTransfer {
-            sender: info.sender.to_string(),
+            sender: env.contract.address.to_string(),
             amount: Some(CosmosCoin {
                 denom,
                 amount: amount.to_string(),

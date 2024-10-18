@@ -11,11 +11,11 @@
         "full_denom": {
           "type": "object",
           "required": [
-            "creator_addr",
+            "creator",
             "subdenom"
           ],
           "properties": {
-            "creator_addr": {
+            "creator": {
               "type": "string"
             },
             "subdenom": {
@@ -62,13 +62,13 @@
           "type": "object",
           "required": [
             "creator",
-            "denom"
+            "subdenom"
           ],
           "properties": {
             "creator": {
               "type": "string"
             },
-            "denom": {
+            "subdenom": {
               "type": "string"
             }
           },

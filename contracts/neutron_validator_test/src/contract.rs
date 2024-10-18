@@ -36,7 +36,6 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use neutron_sdk::interchain_queries::helpers::remove_interchain_query as helpers_remove_interchain_query;
 use neutron_sdk::interchain_queries::queries::get_registered_query;
-use neutron_sdk::interchain_queries::sudo::Height;
 use neutron_sdk::interchain_queries::types::{
     TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -49,6 +48,7 @@ use neutron_sdk::interchain_txs::helpers::{
     decode_message_response, get_port_id, register_interchain_account, submit_tx,
 };
 use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
+use neutron_sdk::sudo::msg::Height;
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use neutron_sdk::{NeutronError, NeutronResult};
 use neutron_std::shim::Any;

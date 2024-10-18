@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#b3095f3719c05268ca796bdcf7b77d3589bab394"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#c0fdaa1dbe82e28d738bf106f2c9acb1e4bd3e71"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1136,7 +1136,6 @@ dependencies = [
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "neutron-std",
- "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings)",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "protobuf",
@@ -1160,7 +1159,7 @@ dependencies = [
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
- "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-std?branch=feat/clean-bindings)",
+ "neutron-std-derive",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "protobuf",
@@ -1172,18 +1171,6 @@ dependencies = [
  "speedate",
  "tendermint-proto 0.34.1",
  "thiserror",
-]
-
-[[package]]
-name = "neutron-std-derive"
-version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#b3095f3719c05268ca796bdcf7b77d3589bab394"
-dependencies = [
- "itertools 0.10.5",
- "proc-macro2",
- "prost-types 0.12.6",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]

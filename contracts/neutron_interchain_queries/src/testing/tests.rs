@@ -33,7 +33,6 @@ use cosmwasm_std::{
 };
 use neutron_sdk::interchain_queries::helpers::{decode_and_convert, kv_key_from_string};
 use neutron_sdk::interchain_queries::hex::decode_hex;
-use neutron_sdk::interchain_queries::sudo::Height as QueriesHeight;
 use neutron_sdk::interchain_queries::types::{
     QueryType, TransactionFilterItem, TransactionFilterOp, TransactionFilterValue,
 };
@@ -51,6 +50,7 @@ use neutron_sdk::interchain_queries::v047::types::{
     SigningInfo, StakingValidator, StdDelegation, TallyResult, TotalSupply, Validator,
     ValidatorSigningInfo, WeightedVoteOption, DECIMAL_PLACES, RECIPIENT_FIELD,
 };
+use neutron_sdk::sudo::msg::Height as QueriesHeight;
 use neutron_sdk::NeutronError;
 use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
 use neutron_std::types::ibc::core::client::v1::Height;

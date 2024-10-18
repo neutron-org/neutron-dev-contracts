@@ -134,11 +134,8 @@ pub fn execute(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     let querier = TokenfactoryQuerier::new(&deps.querier);
     Ok(match msg {
-        QueryMsg::FullDenom {
-            creator_addr,
-            subdenom,
-        } => {
-            let res = &querier.full_denom(creator_addr, subdenom)?;
+        QueryMsg::FullDenom { creator, subdenom } => {
+            let res = &querier.full_denom(creator, subdenom)?;
             to_json_binary(res)?
         }
         QueryMsg::DenomAdmin { creator, subdenom } => {
@@ -149,8 +146,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
                     .ok_or(Std(StdError::generic_err("authority metadata not found")))?,
             )?
         }
-        QueryMsg::BeforeSendHook { creator, denom } => {
-            to_json_binary(&querier.before_send_hook_address(creator, denom)?)?
+        QueryMsg::BeforeSendHook { creator, subdenom } => {
+            to_json_binary(&querier.before_send_hook_address(creator, subdenom)?)?
         }
     })
 }

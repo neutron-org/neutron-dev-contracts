@@ -56,18 +56,9 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    FullDenom {
-        creator_addr: String,
-        subdenom: String,
-    },
-    DenomAdmin {
-        creator: String,
-        subdenom: String,
-    },
-    BeforeSendHook {
-        creator: String,
-        denom: String,
-    },
+    FullDenom { creator: String, subdenom: String },
+    DenomAdmin { creator: String, subdenom: String },
+    BeforeSendHook { creator: String, subdenom: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

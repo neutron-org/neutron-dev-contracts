@@ -1,7 +1,6 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 use cw2::set_contract_version;
 use neutron_sdk::sudo::msg::SudoMsg;
@@ -32,7 +31,8 @@ pub fn execute(
     _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> StdResult<Response> {
-    deps.api.debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
+    deps.api
+        .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
         ExecuteMsg::Deposit {
             receiver,
@@ -43,19 +43,17 @@ pub fn execute(
             tick_indexes_a_to_b,
             fees,
             options,
-        } => Ok(
-            Response::new().add_message(MsgDeposit {
-                creator: env.contract.address.to_string(),
-                receiver,
-                token_a,
-                token_b,
-                amounts_a,
-                amounts_b,
-                tick_indexes_a_to_b,
-                fees,
-                options,
-            }),
-        ),
+        } => Ok(Response::new().add_message(MsgDeposit {
+            creator: env.contract.address.to_string(),
+            receiver,
+            token_a,
+            token_b,
+            amounts_a,
+            amounts_b,
+            tick_indexes_a_to_b,
+            fees,
+            options,
+        })),
 
         ExecuteMsg::Withdrawal {
             receiver,
@@ -64,17 +62,15 @@ pub fn execute(
             shares_to_remove,
             tick_indexes_a_to_b,
             fees,
-        } => Ok(
-            Response::new().add_message(MsgWithdrawal {
-                creator: env.contract.address.to_string(),
-                receiver,
-                token_a,
-                token_b,
-                shares_to_remove,
-                tick_indexes_a_to_b,
-                fees,
-            }),
-        ),
+        } => Ok(Response::new().add_message(MsgWithdrawal {
+            creator: env.contract.address.to_string(),
+            receiver,
+            token_a,
+            token_b,
+            shares_to_remove,
+            tick_indexes_a_to_b,
+            fees,
+        })),
         #[allow(deprecated)]
         ExecuteMsg::PlaceLimitOrder {
             receiver,
@@ -86,35 +82,31 @@ pub fn execute(
             order_type,
             expiration_time,
             max_amount_out,
-        } => Ok(
-            Response::new().add_message(MsgPlaceLimitOrder {
-                creator: env.contract.address.to_string(),
-                receiver,
-                token_in,
-                token_out,
-                tick_index_in_to_out,
-                limit_sell_price,
-                amount_in,
-                order_type,
-                expiration_time,
-                max_amount_out,
-                min_average_sell_price: "".to_string(), // TODO
-            }),
-        ),
-        ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => Ok(Response::new().add_message(
-            MsgWithdrawFilledLimitOrder {
+        } => Ok(Response::new().add_message(MsgPlaceLimitOrder {
+            creator: env.contract.address.to_string(),
+            receiver,
+            token_in,
+            token_out,
+            tick_index_in_to_out,
+            limit_sell_price,
+            amount_in,
+            order_type,
+            expiration_time,
+            max_amount_out,
+            min_average_sell_price: "".to_string(), // TODO
+        })),
+        ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => {
+            Ok(Response::new().add_message(MsgWithdrawFilledLimitOrder {
                 creator: env.contract.address.to_string(),
                 tranche_key,
-            },
-        )),
+            }))
+        }
 
         ExecuteMsg::CancelLimitOrder { tranche_key } => {
-            Ok(
-                Response::new().add_message(MsgCancelLimitOrder {
-                    creator: env.contract.address.to_string(),
-                    tranche_key,
-                }),
-            )
+            Ok(Response::new().add_message(MsgCancelLimitOrder {
+                creator: env.contract.address.to_string(),
+                tranche_key,
+            }))
         }
 
         ExecuteMsg::MultiHopSwap {
@@ -123,16 +115,14 @@ pub fn execute(
             amount_in,
             exit_limit_price,
             pick_best_route,
-        } => Ok(
-            Response::new().add_message(MsgMultiHopSwap {
-                creator: env.contract.address.to_string(),
-                receiver,
-                routes,
-                amount_in,
-                exit_limit_price,
-                pick_best_route,
-            }),
-        ),
+        } => Ok(Response::new().add_message(MsgMultiHopSwap {
+            creator: env.contract.address.to_string(),
+            receiver,
+            routes,
+            amount_in,
+            exit_limit_price,
+            pick_best_route,
+        })),
     }
 }
 

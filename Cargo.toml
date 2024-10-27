@@ -1,5 +1,24 @@
 [workspace]
-members = ["contracts/*"]
+members = [
+    "contracts/balance-tracker",
+    "contracts/before-send-hook",
+    "contracts/client_updater",
+    "contracts/dex",
+    "contracts/dex_stargate",
+    "contracts/echo",
+    "contracts/ibc_transfer",
+    "contracts/marketmap",
+    "contracts/msg_receiver",
+    "contracts/neutron_interchain_queries",
+    "contracts/neutron_interchain_txs",
+    "contracts/neutron_validator_test",
+    "contracts/oracle",
+    "contracts/price-feed",
+    "contracts/reflect",
+    "contracts/stargate_querier",
+    "contracts/tokenfactory",
+    "contracts/docs/interchainqueries/howto/*",
+]
 
 [profile.release]
 opt-level = 3
@@ -14,6 +33,7 @@ overflow-checks = true
 
 [workspace.dependencies]
 neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "main" }
+neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "feat/clean-bindings" }
 prost = "0.12.4"
 prost-types = "0.12.4"
 cosmos-sdk-proto = { version = "0.20.0", default-features = false }

@@ -93,7 +93,7 @@ pub fn execute(
             order_type,
             expiration_time,
             max_amount_out,
-            min_average_sell_price: "".to_string(), // TODO
+            min_average_sell_price: "".to_string(),
         })),
         ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => {
             Ok(Response::new().add_message(MsgWithdrawFilledLimitOrder {

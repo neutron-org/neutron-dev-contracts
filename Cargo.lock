@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#c0fdaa1dbe82e28d738bf106f2c9acb1e4bd3e71"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/clean-bindings#67f20b6c7cf3521a2aad01fea94b324d71f556a7"
 dependencies = [
  "bech32 0.9.1",
  "chrono",

@@ -28,6 +28,10 @@ pub enum QueryMsg {
     TransferDenomTrace {
         hash: String,
     },
+    TransferEscrowAddress {
+        port_id: String,
+        channel_id: String,
+    },
     IbcClientState {
         client_id: String,
     },
@@ -42,7 +46,8 @@ pub enum QueryMsg {
     },
     TokenfactoryParams {},
     TokenfactoryDenomAuthorityMetadata {
-        denom: String,
+        creator: String,
+        subdenom: String,
     },
     TokenfactoryDenomsFromCreator {
         creator: String,
@@ -53,7 +58,7 @@ pub enum QueryMsg {
     ContractmanagerFailures {
         address: String,
     },
-    InterchaintxParams {},
+    InterchaintxsParams {},
     InterchainqueriesParams {},
     FeeburnerParams {},
     FeeburnerTotalBurnedNeutronsAmount {},

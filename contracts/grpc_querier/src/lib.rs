@@ -15,6 +15,5 @@
 #![warn(clippy::unwrap_used, clippy::expect_used)]
 
 pub mod contract;
+mod grpc;
 pub mod msg;
-mod stargate;
-pub mod state;

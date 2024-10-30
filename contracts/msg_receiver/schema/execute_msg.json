@@ -21,7 +21,8 @@
             "return_err": {
               "type": "boolean"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -33,7 +34,8 @@
       ],
       "properties": {
         "call_staking": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

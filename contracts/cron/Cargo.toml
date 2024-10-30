@@ -1,8 +1,8 @@
 [package]
-name = "dex_stargate"
+name = "cron"
 version = "0.1.0"
+authors = ["joldie777 <aleksandr.pismenski@hadronlabs.org>"]
 edition = "2021"
-
 
 exclude = [
   # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -15,30 +15,16 @@ exclude = [
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-opt-level = 3
-debug = false
-rpath = false
-lto = true
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
-overflow-checks = true
-
 [features]
-# for quicker tests, cargo test --lib
 library = []
 
 [dependencies]
-neutron-sdk = { workspace = true }
-cosmwasm-std = { workspace = true, features = ["stargate"] }
+cosmwasm-std = { workspace = true }
 cw2 = { workspace = true }
 schemars = { workspace = true }
-serde = { version = "1.0.188", default-features = false, features = ["derive"] }
-prost = "0.12.3"
-prost-types = "0.12.3"
-cosmos-sdk-proto = { version = "0.20.0", default-features = false }
+serde = { workspace = true }
+neutron-sdk = { workspace = true }
+cw-storage-plus = { workspace = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -133,7 +133,6 @@
           "required": [
             "amount_in",
             "limit_sell_price",
-            "max_amount_out",
             "order_type",
             "receiver",
             "tick_index_in_to_out",
@@ -158,7 +157,10 @@
               "type": "string"
             },
             "max_amount_out": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "order_type": {
               "type": "integer",

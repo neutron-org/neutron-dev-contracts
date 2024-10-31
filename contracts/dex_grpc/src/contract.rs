@@ -92,7 +92,7 @@ pub fn execute(
             amount_in,
             order_type,
             expiration_time,
-            max_amount_out: Some(max_amount_out),
+            max_amount_out,
             min_average_sell_price: None,
         })),
         ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => {

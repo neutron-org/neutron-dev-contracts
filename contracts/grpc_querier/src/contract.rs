@@ -3,21 +3,20 @@ use cosmwasm_std::{
     entry_point, to_json_binary, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
     QueryRequest, Response, StdError, StdResult, SystemResult,
 };
-use std::str::from_utf8;
-
-use crate::grpc;
 use cw2::set_contract_version;
-use neutron_sdk::proto_types::{
-    cosmos::{auth, bank},
-    ibc::{
-        applications::transfer,
-        core::{client, connection},
-    },
-    neutron::{feeburner, interchainqueries, interchaintxs},
-    osmosis::tokenfactory,
-};
+use neutron_std::types::cosmos::auth::v1beta1::AuthQuerier;
+use neutron_std::types::cosmos::bank::v1beta1::BankQuerier;
+use neutron_std::types::ibc::applications::transfer::v1::TransferQuerier;
+use neutron_std::types::ibc::core::client::v1::ClientQuerier;
+use neutron_std::types::ibc::core::connection::v1::ConnectionQuerier;
+use neutron_std::types::neutron::contractmanager::QueryFailuresRequest;
+use neutron_std::types::neutron::feeburner::FeeburnerQuerier;
+use neutron_std::types::neutron::interchainqueries::InterchainqueriesQuerier;
+use neutron_std::types::neutron::interchaintxs::v1::InterchaintxsQuerier;
+use neutron_std::types::osmosis::tokenfactory::v1beta1::TokenfactoryQuerier;
 use prost::Message;
 use serde_json_wasm::to_vec;
+use std::str::from_utf8;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -44,15 +43,15 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: query: received msg: {:?}", msg).as_str());
 
-    let bank_querier = bank::v1beta1::BankQuerier::new(&deps.querier);
-    let auth_querier = auth::v1beta1::AuthQuerier::new(&deps.querier);
-    let transfer_querier = transfer::v1::TransferQuerier::new(&deps.querier);
-    let client_querier = client::v1::ClientQuerier::new(&deps.querier);
-    let connection_querier = connection::v1::ConnectionQuerier::new(&deps.querier);
-    let tokenfactory_querier = tokenfactory::v1beta1::TokenfactoryQuerier::new(&deps.querier);
-    let interchaintxs_querier = interchaintxs::v1::InterchaintxsQuerier::new(&deps.querier);
-    let interchainqueries_querier = interchainqueries::InterchainqueriesQuerier::new(&deps.querier);
-    let feeburner_querier = feeburner::FeeburnerQuerier::new(&deps.querier);
+    let bank_querier = BankQuerier::new(&deps.querier);
+    let auth_querier = AuthQuerier::new(&deps.querier);
+    let transfer_querier = TransferQuerier::new(&deps.querier);
+    let client_querier = ClientQuerier::new(&deps.querier);
+    let connection_querier = ConnectionQuerier::new(&deps.querier);
+    let tokenfactory_querier = TokenfactoryQuerier::new(&deps.querier);
+    let interchaintxs_querier = InterchaintxsQuerier::new(&deps.querier);
+    let interchainqueries_querier = InterchainqueriesQuerier::new(&deps.querier);
+    let feeburner_querier = FeeburnerQuerier::new(&deps.querier);
 
     match msg {
         QueryMsg::BankBalance { address, denom } => {
@@ -138,7 +137,10 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 // Can be refactored after https://hadronlabs.atlassian.net/browse/NTRN-359 is done
 fn query_contractmanager_query_address_failures(deps: Deps, address: String) -> StdResult<Binary> {
-    let msg = grpc::contractmanager::QueryAddressFailuresRequest { address };
+    let msg = QueryFailuresRequest {
+        address,
+        pagination: None,
+    };
     let mut bytes = Vec::new();
     Message::encode(&msg, &mut bytes).map_err(|_| StdError::generic_err("cannot encode proto"))?;
 
@@ -151,9 +153,8 @@ fn query_contractmanager_query_address_failures(deps: Deps, address: String) -> 
     to_json_binary(&resp)
 }
 
-// Can be refactored after https://hadronlabs.atlassian.net/browse/NTRN-359 is done
 fn query_contractmanager_query_failures(deps: Deps, address: String) -> StdResult<Binary> {
-    let msg = grpc::contractmanager::QueryFailuresRequest {
+    let msg = QueryFailuresRequest {
         address,
         pagination: None,
     };

@@ -17,10 +17,12 @@ use std::marker::PhantomData;
 
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
 use cosmwasm_std::{
-    from_json, Binary, Coin, ContractResult, CustomQuery, FullDelegation, OwnedDeps, Querier,
-    QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, Validator,
+    from_json, Binary, Coin, ContractResult, CustomQuery, GrpcQuery, OwnedDeps, Querier,
+    QuerierResult, QueryRequest, SystemError, SystemResult, Uint128,
 };
-use neutron_sdk::bindings::query::NeutronQuery;
+use neutron_std::types::neutron::interchainqueries::{
+    QueryRegisteredQueryRequest, QueryRegisteredQueryResultRequest,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +37,7 @@ impl CustomQuery for CustomQueryWrapper {}
 
 pub fn mock_dependencies(
     contract_balance: &[Coin],
-) -> OwnedDeps<MockStorage, MockApi, WasmMockQuerier, NeutronQuery> {
+) -> OwnedDeps<MockStorage, MockApi, WasmMockQuerier> {
     let contract_addr = MOCK_CONTRACT_ADDR;
     let custom_querier: WasmMockQuerier =
         WasmMockQuerier::new(MockQuerier::new(&[(contract_addr, contract_balance)]));
@@ -49,14 +51,14 @@ pub fn mock_dependencies(
 }
 
 pub struct WasmMockQuerier {
-    base: MockQuerier<NeutronQuery>,
+    base: MockQuerier,
     query_responses: HashMap<u64, Binary>,
     registered_queries: HashMap<u64, Binary>,
 }
 
 impl Querier for WasmMockQuerier {
     fn raw_query(&self, bin_request: &[u8]) -> QuerierResult {
-        let request: QueryRequest<NeutronQuery> = match from_json(bin_request) {
+        let request: QueryRequest = match from_json(bin_request) {
             Ok(v) => v,
             Err(e) => {
                 return QuerierResult::Err(SystemError::InvalidRequest {
@@ -70,39 +72,27 @@ impl Querier for WasmMockQuerier {
 }
 
 impl WasmMockQuerier {
-    pub fn handle_query(&self, request: &QueryRequest<NeutronQuery>) -> QuerierResult {
+    pub fn handle_query(&self, request: &QueryRequest) -> QuerierResult {
         match &request {
-            QueryRequest::Custom(NeutronQuery::InterchainQueryResult { query_id }) => {
-                SystemResult::Ok(ContractResult::Ok(
-                    (*self.query_responses.get(query_id).unwrap()).clone(),
-                ))
-            }
-            QueryRequest::Custom(NeutronQuery::RegisteredInterchainQuery { query_id }) => {
-                SystemResult::Ok(ContractResult::Ok(
-                    (*self.registered_queries.get(query_id).unwrap()).clone(),
-                ))
-            }
-            QueryRequest::Custom(NeutronQuery::RegisteredInterchainQueries {
-                owners: _owners,
-                connection_id: _connection_id,
-                pagination: _pagination,
-            }) => {
-                todo!()
-            }
-            QueryRequest::Custom(NeutronQuery::InterchainAccountAddress { .. }) => {
-                todo!()
+            QueryRequest::Grpc(GrpcQuery { path, data }) => {
+                if path == "/neutron.interchainqueries.Query/QueryResult" {
+                    let request: QueryRegisteredQueryResultRequest =
+                        ::prost::Message::decode(&data[..]).unwrap();
+                    SystemResult::Ok(ContractResult::Ok(
+                        (*self.query_responses.get(&request.query_id).unwrap()).clone(),
+                    ))
+                } else if path == "/neutron.interchainqueries.Query/RegisteredQuery" {
+                    let request: QueryRegisteredQueryRequest =
+                        ::prost::Message::decode(&data[..]).unwrap();
+                    SystemResult::Ok(ContractResult::Ok(
+                        (*self.registered_queries.get(&request.query_id).unwrap()).clone(),
+                    ))
+                } else {
+                    self.base.handle_query(request)
+                }
             }
             _ => self.base.handle_query(request),
         }
-    }
-
-    pub fn _update_staking(
-        &mut self,
-        denom: &str,
-        validators: &[Validator],
-        delegations: &[FullDelegation],
-    ) {
-        self.base.staking.update(denom, validators, delegations);
     }
 
     pub fn add_query_response(&mut self, query_id: u64, response: Binary) {
@@ -124,7 +114,7 @@ pub struct TokenQuerier {
 }
 
 impl WasmMockQuerier {
-    pub fn new(base: MockQuerier<NeutronQuery>) -> Self {
+    pub fn new(base: MockQuerier) -> Self {
         WasmMockQuerier {
             base,
             query_responses: HashMap::new(),

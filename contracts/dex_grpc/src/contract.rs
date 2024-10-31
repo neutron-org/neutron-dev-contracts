@@ -1,11 +1,13 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response,
-    StdResult,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 use cw2::set_contract_version;
-use neutron_sdk::proto_types::neutron::dex;
 use neutron_sdk::sudo::msg::SudoMsg;
+use neutron_std::types::neutron::dex::{
+    DexQuerier, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
+    MsgWithdrawFilledLimitOrder, MsgWithdrawal,
+};
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -41,19 +43,17 @@ pub fn execute(
             tick_indexes_a_to_b,
             fees,
             options,
-        } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgDeposit {
-                creator: env.contract.address.to_string(),
-                receiver,
-                token_a,
-                token_b,
-                amounts_a,
-                amounts_b,
-                tick_indexes_a_to_b,
-                fees,
-                options,
-            })),
-        ),
+        } => Ok(Response::new().add_message(MsgDeposit {
+            creator: env.contract.address.to_string(),
+            receiver,
+            token_a,
+            token_b,
+            amounts_a,
+            amounts_b,
+            tick_indexes_a_to_b,
+            fees,
+            options,
+        })),
 
         ExecuteMsg::Withdrawal {
             receiver,
@@ -62,17 +62,15 @@ pub fn execute(
             shares_to_remove,
             tick_indexes_a_to_b,
             fees,
-        } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgWithdrawal {
-                creator: env.contract.address.to_string(),
-                receiver,
-                token_a,
-                token_b,
-                shares_to_remove,
-                tick_indexes_a_to_b,
-                fees,
-            })),
-        ),
+        } => Ok(Response::new().add_message(MsgWithdrawal {
+            creator: env.contract.address.to_string(),
+            receiver,
+            token_a,
+            token_b,
+            shares_to_remove,
+            tick_indexes_a_to_b,
+            fees,
+        })),
         #[allow(deprecated)]
         ExecuteMsg::PlaceLimitOrder {
             receiver,
@@ -84,34 +82,31 @@ pub fn execute(
             order_type,
             expiration_time,
             max_amount_out,
-        } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgPlaceLimitOrder {
-                creator: env.contract.address.to_string(),
-                receiver,
-                token_in,
-                token_out,
-                tick_index_in_to_out,
-                limit_sell_price,
-                amount_in,
-                order_type,
-                expiration_time,
-                max_amount_out,
-            })),
-        ),
-        ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => Ok(Response::new().add_message(
-            Into::<CosmosMsg>::into(dex::MsgWithdrawFilledLimitOrder {
+        } => Ok(Response::new().add_message(MsgPlaceLimitOrder {
+            creator: env.contract.address.to_string(),
+            receiver,
+            token_in,
+            token_out,
+            tick_index_in_to_out,
+            limit_sell_price,
+            amount_in,
+            order_type,
+            expiration_time,
+            max_amount_out,
+            min_average_sell_price: "".to_string(),
+        })),
+        ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => {
+            Ok(Response::new().add_message(MsgWithdrawFilledLimitOrder {
                 creator: env.contract.address.to_string(),
                 tranche_key,
-            }),
-        )),
+            }))
+        }
 
         ExecuteMsg::CancelLimitOrder { tranche_key } => {
-            Ok(
-                Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgCancelLimitOrder {
-                    creator: env.contract.address.to_string(),
-                    tranche_key,
-                })),
-            )
+            Ok(Response::new().add_message(MsgCancelLimitOrder {
+                creator: env.contract.address.to_string(),
+                tranche_key,
+            }))
         }
 
         ExecuteMsg::MultiHopSwap {
@@ -120,16 +115,14 @@ pub fn execute(
             amount_in,
             exit_limit_price,
             pick_best_route,
-        } => Ok(
-            Response::new().add_message(Into::<CosmosMsg>::into(dex::MsgMultiHopSwap {
-                creator: env.contract.address.to_string(),
-                receiver,
-                routes,
-                amount_in,
-                exit_limit_price,
-                pick_best_route,
-            })),
-        ),
+        } => Ok(Response::new().add_message(MsgMultiHopSwap {
+            creator: env.contract.address.to_string(),
+            receiver,
+            routes,
+            amount_in,
+            exit_limit_price,
+            pick_best_route,
+        })),
     }
 }
 
@@ -138,7 +131,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     deps.api
         .debug(format!("WASMDEBUG: query: received msg: {:?}", msg).as_str());
 
-    let dex_querier = dex::DexQuerier::new(&deps.querier);
+    let dex_querier = DexQuerier::new(&deps.querier);
 
     match msg {
         QueryMsg::Params {} => Ok(to_json_binary(&dex_querier.params()?)?),

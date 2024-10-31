@@ -1,20 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "OracleQuery",
+  "title": "QueryMsg",
   "oneOf": [
-    {
-      "type": "object",
-      "required": [
-        "get_all_currency_pairs"
-      ],
-      "properties": {
-        "get_all_currency_pairs": {
-          "type": "object",
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
     {
       "type": "object",
       "required": [
@@ -24,11 +11,15 @@
         "get_price": {
           "type": "object",
           "required": [
-            "currency_pair"
+            "base",
+            "quote"
           ],
           "properties": {
-            "currency_pair": {
-              "$ref": "#/definitions/CurrencyPair"
+            "base": {
+              "type": "string"
+            },
+            "quote": {
+              "type": "string"
             }
           },
           "additionalProperties": false
@@ -59,24 +50,19 @@
         }
       },
       "additionalProperties": false
-    }
-  ],
-  "definitions": {
-    "CurrencyPair": {
+    },
+    {
       "type": "object",
       "required": [
-        "Base",
-        "Quote"
+        "get_all_currency_pairs"
       ],
       "properties": {
-        "Base": {
-          "type": "string"
-        },
-        "Quote": {
-          "type": "string"
+        "get_all_currency_pairs": {
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
-  }
+  ]
 }

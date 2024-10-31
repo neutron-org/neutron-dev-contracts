@@ -88,12 +88,12 @@ pub fn execute(
             token_in,
             token_out,
             tick_index_in_to_out,
-            limit_sell_price,
+            limit_sell_price: Some(limit_sell_price),
             amount_in,
             order_type,
             expiration_time,
-            max_amount_out,
-            min_average_sell_price: "".to_string(),
+            max_amount_out: Some(max_amount_out),
+            min_average_sell_price: None,
         })),
         ExecuteMsg::WithdrawFilledLimitOrder { tranche_key } => {
             Ok(Response::new().add_message(MsgWithdrawFilledLimitOrder {

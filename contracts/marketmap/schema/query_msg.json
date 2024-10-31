@@ -1,9 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MarketMapQuery",
+  "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Parameters queries the parameters of the module.",
       "type": "object",
       "required": [
         "params"
@@ -66,16 +65,17 @@
   ],
   "definitions": {
     "CurrencyPair": {
+      "description": "CurrencyPair is the standard representation of a pair of assets, where one (Base) is priced in terms of the other (Quote)",
       "type": "object",
       "required": [
-        "Base",
-        "Quote"
+        "base",
+        "quote"
       ],
       "properties": {
-        "Base": {
+        "base": {
           "type": "string"
         },
-        "Quote": {
+        "quote": {
           "type": "string"
         }
       },

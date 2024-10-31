@@ -1,7 +1,8 @@
 use cosmwasm_std::Uint128;
-use cosmwasm_std::{from_json, to_json_vec, Binary, Coin, Order, StdResult, Storage};
+use cosmwasm_std::{from_json, to_json_vec, Binary, Order, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
-use neutron_sdk::bindings::msg::IbcFee;
+use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
+use neutron_std::types::neutron::feerefunder::Fee;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -27,8 +28,8 @@ pub const SUDO_FAILING_SUBMSG_REPLY_ID: u64 = 2;
 // only used to make sure `sudo()` handler gets OpenAck message with correct port_id and channel_id
 pub const REGISTER_ICA_REPLY_ID: u64 = 3;
 
-pub const IBC_FEE: Item<IbcFee> = Item::new("ibc_fee");
-pub const REGISTER_FEE: Item<Vec<Coin>> = Item::new("register_fee");
+pub const IBC_FEE: Item<Fee> = Item::new("ibc_fee");
+pub const REGISTER_FEE: Item<Vec<StdCoin>> = Item::new("register_fee");
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
 pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");
 pub const INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =

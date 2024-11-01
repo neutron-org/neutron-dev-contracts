@@ -15,8 +15,8 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::state::{ICQ_ID_TO_WATCHED_ADDR, REMOTE_BALANCES};
 use cosmwasm_std::{
-    entry_point, from_json, to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
-    Reply, ReplyOn, Response, StdError, StdResult, SubMsg,
+    entry_point, from_json, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply,
+    ReplyOn, Response, StdError, StdResult, SubMsg,
 };
 use cw2::set_contract_version;
 use neutron_sdk::interchain_queries::v047::{
@@ -50,7 +50,7 @@ pub fn execute(
     env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
-) -> NeutronResult<Response<CosmosMsg>> {
+) -> NeutronResult<Response> {
     match msg {
         ExecuteMsg::RegisterBalancesQuery {
             connection_id,
@@ -67,7 +67,7 @@ pub fn register_balances_query(
     addr: String,
     denoms: Vec<String>,
     update_period: u64,
-) -> NeutronResult<Response<CosmosMsg>> {
+) -> NeutronResult<Response> {
     let msg = new_register_balances_query_msg(
         env.contract.address,
         connection_id,
@@ -80,7 +80,7 @@ pub fn register_balances_query(
     Ok(Response::new().add_submessage(SubMsg {
         id: REGISTER_BALANCES_ICQ_REPLY_ID,
         payload: to_json_binary(&addr)?,
-        msg: CosmosMsg::Custom(msg),
+        msg: msg,
         gas_limit: None,
         reply_on: ReplyOn::Success,
     }))

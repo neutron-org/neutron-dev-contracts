@@ -80,7 +80,7 @@ pub fn register_balances_query(
     Ok(Response::new().add_submessage(SubMsg {
         id: REGISTER_BALANCES_ICQ_REPLY_ID,
         payload: to_json_binary(&addr)?,
-        msg: msg,
+        msg,
         gas_limit: None,
         reply_on: ReplyOn::Success,
     }))

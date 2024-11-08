@@ -166,6 +166,7 @@ pub fn sudo_tx_query_result(
             continue;
         }
 
+        #[allow(clippy::unwrap_used)]
         let undelegation_amount = undelegate_msg.amount.unwrap();
         new_undelegations.push(Coin {
             denom: undelegation_amount.denom,

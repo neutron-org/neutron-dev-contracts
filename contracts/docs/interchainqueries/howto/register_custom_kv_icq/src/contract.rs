@@ -83,7 +83,7 @@ pub fn register_account_query(
         query_type: QueryType::KV.into(),
         keys: vec![KvKey {
             path: AUTH_STORE_KEY.to_string(),
-            key: key,
+            key,
         }],
         transactions_filter: String::default(),
         connection_id,

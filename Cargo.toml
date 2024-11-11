@@ -13,8 +13,8 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/respect-gogoproto-nullable" }
-neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "feat/respect-gogoproto-nullable" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "main" }
+neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "main" }
 
 prost = "0.12.4"
 prost-types = "0.12.4"

@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/respect-gogoproto-nullable#0a2b67e66008bd9bb716513fca0257e0ecd4754d"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#3c831143e4eb7998433322e85f167c88166d087f"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1152,7 +1152,7 @@ dependencies = [
 [[package]]
 name = "neutron-std"
 version = "5.0.0"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/respect-gogoproto-nullable#dbfee8680e62a17840c9251e02e1fcf3ee2a71f3"
+source = "git+https://github.com/neutron-org/neutron-std?branch=main#b17f083c0617dab1daa5c6dfb69bc63255006499"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1176,7 +1176,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/respect-gogoproto-nullable#dbfee8680e62a17840c9251e02e1fcf3ee2a71f3"
+source = "git+https://github.com/neutron-org/neutron-std?branch=main#b17f083c0617dab1daa5c6dfb69bc63255006499"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

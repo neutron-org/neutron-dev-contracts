@@ -97,19 +97,6 @@ pub fn query_balances(deps: Deps, addr: String) -> NeutronResult<Binary> {
     Ok(to_json_binary(&REMOTE_BALANCES.load(deps.storage, addr)?)?)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
-    Ok(Response::default())
-}
-
-#[entry_point]
-pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> NeutronResult<Response> {
-    match msg {
-        SudoMsg::KVQueryResult { query_id } => sudo_kv_query_result(deps, env, query_id),
-        _ => Ok(Response::default()),
-    }
-}
-
 #[entry_point]
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> NeutronResult<Response> {
     match msg.id {
@@ -137,6 +124,14 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> NeutronResult<Response> {
     }
 }
 
+#[entry_point]
+pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> NeutronResult<Response> {
+    match msg {
+        SudoMsg::KVQueryResult { query_id } => sudo_kv_query_result(deps, env, query_id),
+        _ => Ok(Response::default()),
+    }
+}
+
 /// The contract's callback for KV query results. Note that only the query id is provided, so you
 /// need to read the query result from the state.
 pub fn sudo_kv_query_result(deps: DepsMut, env: Env, query_id: u64) -> NeutronResult<Response> {
@@ -149,5 +144,10 @@ pub fn sudo_kv_query_result(deps: DepsMut, env: Env, query_id: u64) -> NeutronRe
     // For this example we just preserve the freshly fetched balances in the contract's state
     REMOTE_BALANCES.save(deps.storage, addr, &balance_resp.balances)?;
 
+    Ok(Response::default())
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     Ok(Response::default())
 }

@@ -107,8 +107,8 @@ pub fn query_undelegated_amount(deps: Deps, addr: String) -> NeutronResult<Binar
     )?)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+#[entry_point]
+pub fn reply(_deps: DepsMut, _env: Env, _msg: Reply) -> NeutronResult<Response> {
     Ok(Response::default())
 }
 
@@ -122,11 +122,6 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> NeutronResult<Response> {
         } => sudo_tx_query_result(deps, env, query_id, height, data),
         _ => Ok(Response::default()),
     }
-}
-
-#[entry_point]
-pub fn reply(_deps: DepsMut, _env: Env, _msg: Reply) -> NeutronResult<Response> {
-    Ok(Response::default())
 }
 
 /// The contract's callback for TX query results.
@@ -154,6 +149,7 @@ pub fn sudo_tx_query_result(
         }
     };
 
+    // the contract's side verification of submitted TX Interchain Query results part
     let mut new_undelegations: Vec<Coin> = vec![];
     for msg in body.messages.iter() {
         // Narrow down the messages to only MsgUndelegate ones
@@ -174,6 +170,8 @@ pub fn sudo_tx_query_result(
         });
     }
 
+    // Put your business logic here
+    // For this example we just preserve the new undelegations in the state
     if !new_undelegations.is_empty() {
         let mut undelegations = UNDELEGATED_AMOUNTS
             .may_load(deps.storage, delegator.clone())?
@@ -182,5 +180,10 @@ pub fn sudo_tx_query_result(
         UNDELEGATED_AMOUNTS.save(deps.storage, delegator, &undelegations)?;
     }
 
+    Ok(Response::default())
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     Ok(Response::default())
 }

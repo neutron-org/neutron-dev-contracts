@@ -1,5 +1,5 @@
 use crate::state::Transfer;
-use neutron_sdk::bindings::types::KVKey;
+use neutron_std::types::neutron::interchainqueries::KvKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ pub enum ExecuteMsg {
     RegisterTransfersQuery {
         connection_id: String,
         update_period: u64,
-        recipient: String,
+        recipients: Vec<String>,
         min_height: Option<u64>,
     },
     RegisterDelegatorDelegationsQuery {
@@ -65,8 +65,8 @@ pub enum ExecuteMsg {
     },
     UpdateInterchainQuery {
         query_id: u64,
-        new_keys: Option<Vec<KVKey>>,
-        new_update_period: Option<u64>,
+        new_keys: Vec<KvKey>,
+        new_update_period: u64,
         new_recipient: Option<String>,
     },
     RemoveInterchainQuery {

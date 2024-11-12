@@ -5,7 +5,6 @@ use cosmwasm_std::{
     Uint128,
 };
 use cw2::set_contract_version;
-use neutron_sdk::bindings::msg::NeutronMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -34,19 +33,14 @@ pub fn instantiate(
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Send { to: String, amount: Uint128 },
-    ReflectMsg { msgs: Vec<CosmosMsg<NeutronMsg>> },
+    ReflectMsg { msgs: Vec<CosmosMsg> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
 #[entry_point]
-pub fn execute(
-    deps: DepsMut,
-    _env: Env,
-    _: MessageInfo,
-    msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+pub fn execute(deps: DepsMut, _env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -74,7 +68,14 @@ pub fn query(deps: Deps<InterchainQueries>, env: Env, msg: QueryMsg) -> StdResul
 pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         REFLECT_REPLY_ID => {
-            Ok(Response::default().set_data(msg.result.unwrap().msg_responses[0].clone().value))
+            let res = Response::default();
+
+            let msg_responses = msg.result.unwrap().msg_responses;
+            if msg_responses.is_empty() {
+                Ok(res)
+            } else {
+                Ok(res.set_data(msg_responses[0].clone().value))
+            }
         }
         _ => {
             unimplemented!()

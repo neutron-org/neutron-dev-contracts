@@ -11,17 +11,18 @@
         "full_denom": {
           "type": "object",
           "required": [
-            "creator_addr",
+            "creator",
             "subdenom"
           ],
           "properties": {
-            "creator_addr": {
+            "creator": {
               "type": "string"
             },
             "subdenom": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -35,13 +36,18 @@
         "denom_admin": {
           "type": "object",
           "required": [
+            "creator",
             "subdenom"
           ],
           "properties": {
+            "creator": {
+              "type": "string"
+            },
             "subdenom": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -55,13 +61,18 @@
         "before_send_hook": {
           "type": "object",
           "required": [
-            "denom"
+            "creator",
+            "subdenom"
           ],
           "properties": {
-            "denom": {
+            "creator": {
+              "type": "string"
+            },
+            "subdenom": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

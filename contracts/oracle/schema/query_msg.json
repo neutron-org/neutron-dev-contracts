@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "get_price"
+      ],
+      "properties": {
+        "get_price": {
+          "type": "object",
+          "required": [
+            "base",
+            "quote"
+          ],
+          "properties": {
+            "base": {
+              "type": "string"
+            },
+            "quote": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_prices"
+      ],
+      "properties": {
+        "get_prices": {
+          "type": "object",
+          "required": [
+            "currency_pair_ids"
+          ],
+          "properties": {
+            "currency_pair_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_all_currency_pairs"
+      ],
+      "properties": {
+        "get_all_currency_pairs": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

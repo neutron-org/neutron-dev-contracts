@@ -102,7 +102,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
 pub fn query_undelegated_amount(deps: Deps, addr: String) -> NeutronResult<Binary> {
     Ok(to_json_binary(
         &UNDELEGATED_AMOUNTS
-            .may_load(deps.storage, addr)?
+            .may_load(deps.storage, addr)
             .unwrap_or_default(),
     )?)
 }

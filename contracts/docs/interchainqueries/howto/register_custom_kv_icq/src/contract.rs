@@ -109,7 +109,11 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
 }
 
 pub fn query_account(deps: Deps, addr: String) -> NeutronResult<Binary> {
-    Ok(to_json_binary(&REMOTE_ACCOUNTS.load(deps.storage, addr)?)?)
+    Ok(to_json_binary(
+        &REMOTE_ACCOUNTS
+            .may_load(deps.storage, addr)
+            .unwrap_or_default(),
+    )?)
 }
 
 #[entry_point]

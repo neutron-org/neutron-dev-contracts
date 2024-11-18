@@ -1,5 +1,23 @@
 [workspace]
-members = ["contracts/*"]
+members = [
+    "contracts/balance-tracker",
+    "contracts/before-send-hook",
+    "contracts/cron",
+    "contracts/dex_grpc",
+    "contracts/echo",
+    "contracts/grpc_querier",
+    "contracts/ibc_transfer",
+    "contracts/marketmap",
+    "contracts/msg_receiver",
+    "contracts/neutron_interchain_queries",
+    "contracts/neutron_interchain_txs",
+    "contracts/neutron_validator_test",
+    "contracts/oracle",
+    "contracts/price-feed",
+    "contracts/reflect",
+    "contracts/tokenfactory",
+    "contracts/docs/interchainqueries/howto/*",
+]
 
 [profile.release]
 opt-level = 3
@@ -13,8 +31,8 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "main" }
-neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "main" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/refactor-icq-module-documentation" }
+neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "feat/refactor-icq-module-documentation" }
 
 prost = "0.12.4"
 prost-types = "0.12.4"

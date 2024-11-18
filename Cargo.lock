@@ -1182,7 +1182,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#b83c182e8688f826c313cae318ff8ae908b87c81"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#3c831143e4eb7998433322e85f167c88166d087f"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1206,7 +1206,7 @@ dependencies = [
 [[package]]
 name = "neutron-std"
 version = "5.0.0"
-source = "git+https://github.com/neutron-org/neutron-std?branch=main#25e0d0c1e7f56d40ba62908d9e2c03b5d3779bd2"
+source = "git+https://github.com/neutron-org/neutron-std?branch=main#b17f083c0617dab1daa5c6dfb69bc63255006499"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1230,7 +1230,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?branch=main#25e0d0c1e7f56d40ba62908d9e2c03b5d3779bd2"
+source = "git+https://github.com/neutron-org/neutron-std?branch=main#b17f083c0617dab1daa5c6dfb69bc63255006499"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

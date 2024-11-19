@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "dao",
+    "description",
+    "info",
+    "name"
+  ],
+  "properties": {
+    "dao": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "info": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    }
+  }
+}

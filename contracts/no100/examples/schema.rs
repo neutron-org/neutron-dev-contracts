@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use no100::msg::{InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+use no100::msg::{InstantiateMsg, MigrateMsg, QueryMsg};
 use std::{env::current_dir, fs::create_dir_all};
 
 fn main() {

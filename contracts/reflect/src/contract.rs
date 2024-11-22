@@ -1,5 +1,9 @@
 use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
-use cosmwasm_std::{entry_point, to_json_binary, to_json_vec, BankMsg, Binary, ContractResult, CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, SystemResult, Uint128};
+use cosmwasm_std::{
+    entry_point, to_json_binary, to_json_vec, BankMsg, Binary, ContractResult, CosmosMsg, Deps,
+    DepsMut, Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg,
+    SystemResult, Uint128,
+};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -51,7 +55,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
 
             Ok(Response::default().add_submessages(submsgs))
         }
-        ExecuteMsg::Burn {  } => burn_tokens(deps, env, info)
+        ExecuteMsg::Burn {} => burn_tokens(deps, env, info),
     }
 }
 
@@ -61,7 +65,6 @@ pub fn burn_tokens(_deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Respo
     let msg = BankMsg::Burn { amount: funds };
 
     Ok(Response::new().add_message(msg))
-
 }
 
 #[entry_point]

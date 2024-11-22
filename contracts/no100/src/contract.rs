@@ -1,5 +1,8 @@
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, SudoMsg};
-use cosmwasm_std::{entry_point, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Uint128};
+use cosmwasm_std::{
+    entry_point, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    Uint128,
+};
 
 #[entry_point]
 pub fn instantiate(
@@ -41,7 +44,7 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Respons
 
 fn sudo_result_track_before(amount: Coin) -> StdResult<Response> {
     if amount.amount >= Uint128::from(100u8) {
-        return Err(StdError::generic_err("sending >100 tokens is not allowed"))
+        return Err(StdError::generic_err("sending >100 tokens is not allowed"));
     }
 
     Ok(Response::new())
@@ -49,7 +52,7 @@ fn sudo_result_track_before(amount: Coin) -> StdResult<Response> {
 
 fn sudo_result_block_before(amount: Coin) -> StdResult<Response> {
     if amount.amount >= Uint128::from(100u8) {
-        return Err(StdError::generic_err("sending >100 tokens is not allowed"))
+        return Err(StdError::generic_err("sending >100 tokens is not allowed"));
     }
 
     Ok(Response::new())

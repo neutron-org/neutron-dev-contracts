@@ -1,9 +1,5 @@
 use crate::query::{ChainResponse, InterchainQueries, QueryMsg};
-use cosmwasm_std::{
-    entry_point, to_json_binary, to_json_vec, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
-    Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, SystemResult,
-    Uint128,
-};
+use cosmwasm_std::{entry_point, to_json_binary, to_json_vec, BankMsg, Binary, ContractResult, CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, SystemResult, Uint128};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -34,13 +30,14 @@ pub fn instantiate(
 pub enum ExecuteMsg {
     Send { to: String, amount: Uint128 },
     ReflectMsg { msgs: Vec<CosmosMsg> },
+    Burn {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
 #[entry_point]
-pub fn execute(deps: DepsMut, _env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -54,7 +51,17 @@ pub fn execute(deps: DepsMut, _env: Env, _: MessageInfo, msg: ExecuteMsg) -> Std
 
             Ok(Response::default().add_submessages(submsgs))
         }
+        ExecuteMsg::Burn {  } => burn_tokens(deps, env, info)
     }
+}
+
+pub fn burn_tokens(_deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, StdError> {
+    let funds = info.funds;
+
+    let msg = BankMsg::Burn { amount: funds };
+
+    Ok(Response::new().add_message(msg))
+
 }
 
 #[entry_point]

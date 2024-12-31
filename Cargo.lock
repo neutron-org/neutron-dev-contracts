@@ -1152,7 +1152,7 @@ dependencies = [
 [[package]]
 name = "neutron-std"
 version = "5.0.1-rc0"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/prec_dec#74ad2975359d337bae89f48d4cd2155d3b867748"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/prec_dec#ef8ba0b2009f8e7f950f106b8aac9881bf7cdb77"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1176,7 +1176,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/prec_dec#74ad2975359d337bae89f48d4cd2155d3b867748"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/prec_dec#ef8ba0b2009f8e7f950f106b8aac9881bf7cdb77"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

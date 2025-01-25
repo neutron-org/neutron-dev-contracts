@@ -39,7 +39,7 @@ pub enum ExecuteMsg {
         amount_in: String,
         order_type: i32,
         expiration_time: Option<Timestamp>,
-        max_amount_out: String,
+        max_amount_out: Option<String>,
         limit_sell_price: String,
     },
     WithdrawFilledLimitOrder {

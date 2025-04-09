@@ -1,18 +1,13 @@
-use std::hash;
 use std::str;
 
 use crate::{
-    msg::{ExecuteMsg, InstantiateMsg, MigrateMsg},
-    state::CHUNKS,
+    msg::{ExecuteMsg, InstantiateMsg},
+    state::{Config, CONFIG},
 };
-use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-    StdResult,
-};
+use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response, StdError};
 
 use cw2::set_contract_version;
-use neutron_sdk::bindings::msg::NeutronMsg;
-use neutron_sdk::bindings::types::encode_hex;
+use neutron_sdk::{NeutronError, NeutronResult};
 use sha2::{Digest, Sha256};
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
@@ -23,10 +18,16 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _msg: InstantiateMsg,
-) -> StdResult<Response> {
-    deps.api.debug("WASMDEBUG: instantiate");
+    msg: InstantiateMsg,
+) -> NeutronResult<Response> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            owner: msg.owner,
+            hash_iterations: msg.hash_iterations,
+        },
+    )?;
     Ok(Response::default())
 }
 
@@ -36,51 +37,45 @@ pub fn execute(
     _: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
-    deps.api
-        .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
+) -> NeutronResult<Response> {
     match msg {
-        ExecuteMsg::ConsumeGas {
-            chunks,
-            chunk_size,
-            payload,
-        } => execute_test_arg(deps, info, chunks, chunk_size),
-        ExecuteMsg::Hashes { iterations,save } => execute_hashes(deps,iterations,save),
+        ExecuteMsg::UpdateConfig {
+            owner,
+            hash_iterations,
+        } => execute_update_config(deps, info, owner, hash_iterations),
+        ExecuteMsg::Hashes {} => execute_hashes(deps),
     }
 }
 
-fn execute_test_arg(
+fn execute_update_config(
     deps: DepsMut,
     info: MessageInfo,
-    chunks: u64,
-    chunk_size: Option<u64>,
-) -> StdResult<Response<NeutronMsg>> {
-    let (last_chank_id, _) = CHUNKS.last(deps.storage)?.unwrap_or_default();
-    for i in last_chank_id + 1..last_chank_id + chunks {
-        CHUNKS.save(
-            deps.storage,
-            i,
-            &"s".repeat(chunk_size.unwrap_or(1) as usize),
-        )?
+    owner: String,
+    hash_iterations: u64,
+) -> NeutronResult<Response> {
+    if info.sender.to_string() != CONFIG.load(deps.storage)?.owner {
+        return Err(NeutronError::Std(StdError::generic_err("Unauthorized")));
     }
 
-    Ok(Response::default()
-        .add_attribute("chunks", format!("{}", chunks))
-        .add_attribute("chunk_size", format!("{}", chunk_size.unwrap_or(1))))
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            owner,
+            hash_iterations,
+        },
+    )?;
+    Ok(Response::default())
 }
 
-fn execute_hashes(deps: DepsMut, iterations: u64,save:bool) -> StdResult<Response<NeutronMsg>> {
-    let (last_chank_id, _) = CHUNKS.last(deps.storage)?.unwrap_or_default();
-    for i in last_chank_id + 1..last_chank_id + iterations {
+fn execute_hashes(deps: DepsMut) -> NeutronResult<Response> {
+    let config = CONFIG.load(deps.storage)?;
+    for i in 0..config.hash_iterations {
         let mut hasher = Sha256::new();
 
         hasher.update(i.to_le_bytes());
 
         // read hash digest and consume hasher
-        let result = hasher.finalize();
-        if save {
-            CHUNKS.save(deps.storage, i, &encode_hex(&result.to_vec()))?
-        }
+        hasher.finalize();
     }
-    Ok(Response::default())
+    Ok(Response::default().add_attribute("hash_iterations", format!("{}", config.hash_iterations)))
 }

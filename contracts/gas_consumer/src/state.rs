@@ -1,3 +1,10 @@
-use cw_storage_plus::Map;
+use cosmwasm_schema::cw_serde;
+use cw_storage_plus::Item;
 
-pub const CHUNKS: Map<u64, String> = Map::new("chunks");
+#[cw_serde]
+pub struct Config {
+    pub owner: String,
+    pub hash_iterations: u64,
+}
+
+pub const CONFIG: Item<Config> = Item::new("config");

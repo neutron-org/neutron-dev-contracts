@@ -1,22 +1,17 @@
-use cosmwasm_std::Coin;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub owner: String,
+    pub hash_iterations: u64,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    ConsumeGas {
-        chunks: u64,
-        chunk_size: Option<u64>,
-        payload: Option<String>,
-    },
-    Hashes {
-        iterations: u64,
-        save:bool
-    },
+    UpdateConfig { owner: String, hash_iterations: u64 },
+    Hashes {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/*"]
+members = ["contracts/gas_consumer"]
 
 [profile.release]
 opt-level = 3

@@ -1,5 +1,6 @@
 use crate::storage::{AcknowledgementResult, IntegrationTestsSudoFailureMock};
 use cosmwasm_std::Uint128;
+use neutron_std::types::ibc::core::channel::v1::Order;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -38,6 +39,7 @@ pub enum ExecuteMsg {
     Register {
         connection_id: String,
         interchain_account_id: String,
+        ordering: Option<Order>,
     },
     SetFees {
         denom: String,
@@ -76,11 +78,11 @@ pub enum ExecuteMsg {
         state: IntegrationTestsSudoFailureMock,
     },
     /// Used only in integration tests framework to simulate failures.
-    /// After executing this message, any sudo call to the contract will result in an submessage
+    /// After executing this message, any sudo call to the contract will result in a submessage
     /// processing error.
     IntegrationTestsSetSudoSubmsgFailureMock {},
     /// Used only in integration tests framework to simulate failures.
-    /// After executing this message, any sudo call to the contract will result in an submessage
+    /// After executing this message, any sudo call to the contract will result in a submessage
     /// reply processing error.
     IntegrationTestsSetSudoSubmsgReplyFailureMock {},
     /// Used only in integration tests framework to simulate failures.

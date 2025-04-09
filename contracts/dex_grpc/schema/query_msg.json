@@ -1,0 +1,1051 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "params"
+      ],
+      "properties": {
+        "params": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_limit_order_tranche_user"
+      ],
+      "properties": {
+        "get_limit_order_tranche_user": {
+          "type": "object",
+          "required": [
+            "address",
+            "calc_withdrawable_shares",
+            "tranche_key"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "calc_withdrawable_shares": {
+              "type": "boolean"
+            },
+            "tranche_key": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_limit_order_tranche_user"
+      ],
+      "properties": {
+        "all_limit_order_tranche_user": {
+          "type": "object",
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_limit_order_tranche_user_by_address"
+      ],
+      "properties": {
+        "all_limit_order_tranche_user_by_address": {
+          "type": "object",
+          "required": [
+            "address"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_limit_order_tranche"
+      ],
+      "properties": {
+        "get_limit_order_tranche": {
+          "type": "object",
+          "required": [
+            "pair_id",
+            "tick_index",
+            "token_in",
+            "tranche_key"
+          ],
+          "properties": {
+            "pair_id": {
+              "type": "string"
+            },
+            "tick_index": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "token_in": {
+              "type": "string"
+            },
+            "tranche_key": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_limit_order_tranche"
+      ],
+      "properties": {
+        "all_limit_order_tranche": {
+          "type": "object",
+          "required": [
+            "pair_id",
+            "token_in"
+          ],
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pair_id": {
+              "type": "string"
+            },
+            "token_in": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_user_deposits"
+      ],
+      "properties": {
+        "all_user_deposits": {
+          "type": "object",
+          "required": [
+            "address",
+            "include_pool_data"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "include_pool_data": {
+              "type": "boolean"
+            },
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_tick_liquidity"
+      ],
+      "properties": {
+        "all_tick_liquidity": {
+          "type": "object",
+          "required": [
+            "pair_id",
+            "token_in"
+          ],
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pair_id": {
+              "type": "string"
+            },
+            "token_in": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_inactive_limit_order_tranche"
+      ],
+      "properties": {
+        "get_inactive_limit_order_tranche": {
+          "type": "object",
+          "required": [
+            "pair_id",
+            "tick_index",
+            "token_in",
+            "tranche_key"
+          ],
+          "properties": {
+            "pair_id": {
+              "type": "string"
+            },
+            "tick_index": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "token_in": {
+              "type": "string"
+            },
+            "tranche_key": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_inactive_limit_order_tranche"
+      ],
+      "properties": {
+        "all_inactive_limit_order_tranche": {
+          "type": "object",
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_pool_reserves"
+      ],
+      "properties": {
+        "all_pool_reserves": {
+          "type": "object",
+          "required": [
+            "pair_id",
+            "token_in"
+          ],
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pair_id": {
+              "type": "string"
+            },
+            "token_in": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_pool_reserves"
+      ],
+      "properties": {
+        "get_pool_reserves": {
+          "type": "object",
+          "required": [
+            "fee",
+            "pair_id",
+            "tick_index",
+            "token_in"
+          ],
+          "properties": {
+            "fee": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "pair_id": {
+              "type": "string"
+            },
+            "tick_index": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "token_in": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "estimate_multi_hop_swap"
+      ],
+      "properties": {
+        "estimate_multi_hop_swap": {
+          "type": "object",
+          "required": [
+            "amount_in",
+            "creator",
+            "exit_limit_price",
+            "pick_best_route",
+            "receiver",
+            "routes"
+          ],
+          "properties": {
+            "amount_in": {
+              "type": "string"
+            },
+            "creator": {
+              "type": "string"
+            },
+            "exit_limit_price": {
+              "type": "string"
+            },
+            "pick_best_route": {
+              "type": "boolean"
+            },
+            "receiver": {
+              "type": "string"
+            },
+            "routes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MultiHopRoute"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "estimate_place_limit_order"
+      ],
+      "properties": {
+        "estimate_place_limit_order": {
+          "type": "object",
+          "required": [
+            "amount_in",
+            "creator",
+            "max_amount_out",
+            "order_type",
+            "receiver",
+            "tick_index_in_to_out",
+            "token_in",
+            "token_out"
+          ],
+          "properties": {
+            "amount_in": {
+              "type": "string"
+            },
+            "creator": {
+              "type": "string"
+            },
+            "expiration_time": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "max_amount_out": {
+              "type": "string"
+            },
+            "order_type": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "receiver": {
+              "type": "string"
+            },
+            "tick_index_in_to_out": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "token_in": {
+              "type": "string"
+            },
+            "token_out": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "pool"
+      ],
+      "properties": {
+        "pool": {
+          "type": "object",
+          "required": [
+            "fee",
+            "pair_id",
+            "tick_index"
+          ],
+          "properties": {
+            "fee": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "pair_id": {
+              "type": "string"
+            },
+            "tick_index": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "pool_by_id"
+      ],
+      "properties": {
+        "pool_by_id": {
+          "type": "object",
+          "required": [
+            "pool_id"
+          ],
+          "properties": {
+            "pool_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_pool_metadata"
+      ],
+      "properties": {
+        "get_pool_metadata": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "all_pool_metadata"
+      ],
+      "properties": {
+        "all_pool_metadata": {
+          "type": "object",
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/PageRequest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_deposit"
+      ],
+      "properties": {
+        "simulate_deposit": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgDeposit"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_withdrawal"
+      ],
+      "properties": {
+        "simulate_withdrawal": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgWithdrawal"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_place_limit_order"
+      ],
+      "properties": {
+        "simulate_place_limit_order": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgPlaceLimitOrder"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_withdraw_filled_limit_order"
+      ],
+      "properties": {
+        "simulate_withdraw_filled_limit_order": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgWithdrawFilledLimitOrder"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_cancel_limit_order"
+      ],
+      "properties": {
+        "simulate_cancel_limit_order": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgCancelLimitOrder"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "simulate_multi_hop_swap"
+      ],
+      "properties": {
+        "simulate_multi_hop_swap": {
+          "type": "object",
+          "required": [
+            "msg"
+          ],
+          "properties": {
+            "msg": {
+              "$ref": "#/definitions/MsgMultiHopSwap"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "DepositOptions": {
+      "type": "object",
+      "required": [
+        "disable_autoswap",
+        "fail_tx_on_bel"
+      ],
+      "properties": {
+        "disable_autoswap": {
+          "type": "boolean"
+        },
+        "fail_tx_on_bel": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgCancelLimitOrder": {
+      "type": "object",
+      "required": [
+        "creator",
+        "tranche_key"
+      ],
+      "properties": {
+        "creator": {
+          "type": "string"
+        },
+        "tranche_key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgDeposit": {
+      "type": "object",
+      "required": [
+        "amounts_a",
+        "amounts_b",
+        "creator",
+        "fees",
+        "options",
+        "receiver",
+        "tick_indexes_a_to_b",
+        "token_a",
+        "token_b"
+      ],
+      "properties": {
+        "amounts_a": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amounts_b": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "creator": {
+          "type": "string"
+        },
+        "fees": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DepositOptions"
+          }
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "tick_indexes_a_to_b": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "token_a": {
+          "type": "string"
+        },
+        "token_b": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgMultiHopSwap": {
+      "type": "object",
+      "required": [
+        "amount_in",
+        "creator",
+        "exit_limit_price",
+        "pick_best_route",
+        "receiver",
+        "routes"
+      ],
+      "properties": {
+        "amount_in": {
+          "type": "string"
+        },
+        "creator": {
+          "type": "string"
+        },
+        "exit_limit_price": {
+          "type": "string"
+        },
+        "pick_best_route": {
+          "description": "If pickBestRoute == true then all routes are run and the route with the best price is chosen otherwise, the first succesful route is used.",
+          "type": "boolean"
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultiHopRoute"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgPlaceLimitOrder": {
+      "type": "object",
+      "required": [
+        "amount_in",
+        "creator",
+        "order_type",
+        "receiver",
+        "tick_index_in_to_out",
+        "token_in",
+        "token_out"
+      ],
+      "properties": {
+        "amount_in": {
+          "type": "string"
+        },
+        "creator": {
+          "type": "string"
+        },
+        "expiration_time": {
+          "description": "expirationTime is only valid iff orderType == GOOD_TIL_TIME.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limit_sell_price": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "max_amount_out": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "min_average_sell_price": {
+          "description": "min_average_sell_price is an optional parameter that sets a required minimum average price for the entire trade. if the min_average_sell_price is not met the trade will fail. If min_average_sell_price is omitted limit_sell_price will be used instead",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "order_type": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "tick_index_in_to_out": {
+          "description": "DEPRECATED: tick_index_in_to_out will be removed in future release; limit_sell_price should be used instead.",
+          "deprecated": true,
+          "type": "integer",
+          "format": "int64"
+        },
+        "token_in": {
+          "type": "string"
+        },
+        "token_out": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgWithdrawFilledLimitOrder": {
+      "type": "object",
+      "required": [
+        "creator",
+        "tranche_key"
+      ],
+      "properties": {
+        "creator": {
+          "type": "string"
+        },
+        "tranche_key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MsgWithdrawal": {
+      "type": "object",
+      "required": [
+        "creator",
+        "fees",
+        "receiver",
+        "shares_to_remove",
+        "tick_indexes_a_to_b",
+        "token_a",
+        "token_b"
+      ],
+      "properties": {
+        "creator": {
+          "type": "string"
+        },
+        "fees": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "shares_to_remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tick_indexes_a_to_b": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "token_a": {
+          "type": "string"
+        },
+        "token_b": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MultiHopRoute": {
+      "type": "object",
+      "required": [
+        "hops"
+      ],
+      "properties": {
+        "hops": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PageRequest": {
+      "description": "PageRequest is to be embedded in gRPC request messages for efficient pagination. Ex:\n\nmessage SomeRequest { Foo some_parameter = 1; PageRequest pagination = 2; }",
+      "type": "object",
+      "required": [
+        "count_total",
+        "key",
+        "limit",
+        "offset",
+        "reverse"
+      ],
+      "properties": {
+        "count_total": {
+          "description": "count_total is set to true  to indicate that the result set should include a count of the total number of items available for pagination in UIs. count_total is only respected when offset is used. It is ignored when key is set.",
+          "type": "boolean"
+        },
+        "key": {
+          "description": "key is a value returned in PageResponse.next_key to begin querying the next page most efficiently. Only one of offset or key should be set.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          }
+        },
+        "limit": {
+          "description": "limit is the total number of results to be returned in the result page. If left empty it will default to a value to be set by each app.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "offset": {
+          "description": "offset is a numeric offset that can be used when key is unavailable. It is less efficient than using key. Only one of offset or key should be set.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "reverse": {
+          "description": "reverse is set to true if results are to be returned in the descending order.\n\nSince: cosmos-sdk 0.43",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Timestamp": {
+      "type": "object",
+      "required": [
+        "nanos",
+        "seconds"
+      ],
+      "properties": {
+        "nanos": {
+          "description": "Non-negative fractions of a second at nanosecond resolution. Negative second values with fractions must still have non-negative nanos values that count forward in time. Must be from 0 to 999,999,999 inclusive.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "seconds": {
+          "description": "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -36,6 +36,7 @@ cw2 = { workspace = true }
 schemars = { workspace = true }
 serde = { version = "1.0.180", default-features = false, features = ["derive"] }
 neutron-sdk = { workspace = true }
+neutron-std = { workspace = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

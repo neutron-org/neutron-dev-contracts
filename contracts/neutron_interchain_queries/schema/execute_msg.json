@@ -34,7 +34,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -67,7 +68,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -93,7 +95,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -126,7 +129,8 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -161,7 +165,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -203,7 +208,8 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -218,7 +224,7 @@
           "type": "object",
           "required": [
             "connection_id",
-            "recipient",
+            "recipients",
             "update_period"
           ],
           "properties": {
@@ -233,15 +239,19 @@
               "format": "uint64",
               "minimum": 0.0
             },
-            "recipient": {
-              "type": "string"
+            "recipients": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
             "update_period": {
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -278,7 +288,8 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -315,7 +326,8 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -348,7 +360,8 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -362,16 +375,15 @@
         "update_interchain_query": {
           "type": "object",
           "required": [
+            "new_keys",
+            "new_update_period",
             "query_id"
           ],
           "properties": {
             "new_keys": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": "array",
               "items": {
-                "$ref": "#/definitions/KVKey"
+                "$ref": "#/definitions/KvKey"
               }
             },
             "new_recipient": {
@@ -381,10 +393,7 @@
               ]
             },
             "new_update_period": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "uint64",
               "minimum": 0.0
             },
@@ -393,7 +402,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -415,7 +425,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -436,7 +447,8 @@
             "connection_id": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -457,7 +469,8 @@
             "connection_id": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -478,7 +491,8 @@
             "connection_id": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -491,7 +505,8 @@
       ],
       "properties": {
         "integration_tests_set_query_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -504,19 +519,15 @@
       ],
       "properties": {
         "integration_tests_unset_query_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "Binary": {
-      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-      "type": "string"
-    },
-    "KVKey": {
-      "description": "Describes a KV key for which you want to get value from the storage on remote chain",
+    "KvKey": {
       "type": "object",
       "required": [
         "key",
@@ -524,18 +535,20 @@
       ],
       "properties": {
         "key": {
-          "description": "*key** is a key you want to read from the storage",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Binary"
-            }
-          ]
+          "description": "Key you want to read from the storage",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          }
         },
         "path": {
-          "description": "*path** is a path to the storage (storage prefix) where you want to read value by key (usually name of cosmos-packages module: 'staking', 'bank', etc.)",
+          "description": "Path (storage prefix) to the storage where you want to read value by key (usually name of cosmos-sdk module: 'staking', 'bank', etc.)",
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

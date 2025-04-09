@@ -20,8 +20,19 @@
             },
             "interchain_account_id": {
               "type": "string"
+            },
+            "ordering": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Order"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -53,7 +64,8 @@
             "timeout_fee": {
               "$ref": "#/definitions/Uint128"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -93,7 +105,8 @@
             "validator": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -133,7 +146,8 @@
             "validator": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -173,7 +187,8 @@
             "validator": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -185,7 +200,8 @@
       ],
       "properties": {
         "clean_ack_results": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -207,7 +223,8 @@
               "format": "uint64",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -228,33 +245,36 @@
             "state": {
               "$ref": "#/definitions/IntegrationTestsSudoFailureMock"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage processing error.",
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in a submessage processing error.",
       "type": "object",
       "required": [
         "integration_tests_set_sudo_submsg_failure_mock"
       ],
       "properties": {
         "integration_tests_set_sudo_submsg_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in an submessage reply processing error.",
+      "description": "Used only in integration tests framework to simulate failures. After executing this message, any sudo call to the contract will result in a submessage reply processing error.",
       "type": "object",
       "required": [
         "integration_tests_set_sudo_submsg_reply_failure_mock"
       ],
       "properties": {
         "integration_tests_set_sudo_submsg_reply_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -267,7 +287,8 @@
       ],
       "properties": {
         "integration_tests_unset_sudo_failure_mock": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -280,7 +301,8 @@
       ],
       "properties": {
         "integration_tests_sudo_submsg": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -293,6 +315,32 @@
         "enabled",
         "enabled_infinite_loop",
         "disabled"
+      ]
+    },
+    "Order": {
+      "description": "Order defines if a channel is ORDERED or UNORDERED",
+      "oneOf": [
+        {
+          "description": "zero-value for channel ordering",
+          "type": "string",
+          "enum": [
+            "NoneUnspecified"
+          ]
+        },
+        {
+          "description": "packets can be delivered in any order, which may differ from the order in which they were sent.",
+          "type": "string",
+          "enum": [
+            "Unordered"
+          ]
+        },
+        {
+          "description": "packets are delivered exactly in the order which they were sent",
+          "type": "string",
+          "enum": [
+            "Ordered"
+          ]
+        }
       ]
     },
     "Uint128": {

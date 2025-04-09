@@ -19,10 +19,11 @@ use cosmos_sdk_proto::cosmos::staking::v1beta1::{
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coins, to_json_binary, Binary, Coin as CosmosCoin, CosmosMsg, CustomQuery, Deps, DepsMut, Env,
-    MessageInfo, Reply, ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
+    to_json_binary, Binary, CosmosMsg, CustomQuery, Deps, DepsMut, Env, MessageInfo, Reply,
+    ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
 };
 use cw2::set_contract_version;
+use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
 use prost::Message;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -34,17 +35,6 @@ use crate::integration_tests_mock_handlers::{
 use crate::msg::{
     AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use neutron_sdk::bindings::msg::{IbcFee, NeutronMsg};
-use neutron_sdk::bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse};
-use neutron_sdk::bindings::types::ProtobufAny;
-use neutron_sdk::interchain_txs::helpers::{decode_message_response, get_port_id};
-use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
-use neutron_sdk::proto_types::neutron::interchaintxs::v1::{
-    MsgRegisterInterchainAccountResponse, MsgSubmitTxResponse,
-};
-use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
-use neutron_sdk::NeutronResult;
-
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
     save_reply_payload, save_sudo_payload, AcknowledgementResult, DoubleDelegateInfo,
@@ -52,6 +42,19 @@ use crate::storage::{
     ACKNOWLEDGEMENT_RESULTS, IBC_FEE, ICA_CHANNELS, INTEGRATION_TESTS_SUDO_FAILURE_MOCK,
     INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK, INTERCHAIN_ACCOUNTS, REGISTER_FEE,
     REGISTER_ICA_REPLY_ID, SUDO_FAILING_SUBMSG_REPLY_ID, SUDO_PAYLOAD_REPLY_ID, TEST_COUNTER_ITEM,
+};
+use neutron_sdk::interchain_txs::helpers::{
+    decode_message_response, get_port_id, register_interchain_account, submit_tx,
+};
+use neutron_sdk::interchain_txs::v047::helpers::decode_acknowledgement_response;
+use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
+use neutron_sdk::NeutronResult;
+use neutron_std::shim::Any;
+use neutron_std::types::ibc::core::channel::v1::Order;
+use neutron_std::types::neutron::contractmanager::MsgResubmitFailure;
+use neutron_std::types::neutron::feerefunder::Fee;
+use neutron_std::types::neutron::interchaintxs::v1::{
+    InterchaintxsQuerier, MsgRegisterInterchainAccountResponse, MsgSubmitTxResponse,
 };
 
 // Default timeout for SubmitTX is two weeks
@@ -88,27 +91,29 @@ pub fn instantiate(
     _env: Env,
     _info: MessageInfo,
     _msg: InstantiateMsg,
-) -> NeutronResult<Response<NeutronMsg>> {
+) -> NeutronResult<Response> {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    REGISTER_FEE.save(deps.storage, &coins(1_000_000, "untrn"))?;
+    REGISTER_FEE.save(
+        deps.storage,
+        &vec![StdCoin {
+            amount: 1_000_000.to_string(),
+            denom: "untrn".to_string(),
+        }],
+    )?;
     Ok(Response::default())
 }
 
 #[entry_point]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    _: MessageInfo,
-    msg: ExecuteMsg,
-) -> StdResult<Response<NeutronMsg>> {
+pub fn execute(deps: DepsMut, env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
         ExecuteMsg::Register {
             connection_id,
             interchain_account_id,
-        } => execute_register_ica(deps, env, connection_id, interchain_account_id),
+            ordering,
+        } => execute_register_ica(deps, env, connection_id, interchain_account_id, ordering),
         ExecuteMsg::Delegate {
             validator,
             interchain_account_id,
@@ -172,7 +177,9 @@ pub fn execute(
             timeout_fee,
         } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
-        ExecuteMsg::ResubmitFailure { failure_id } => execute_resubmit_failure(deps, failure_id),
+        ExecuteMsg::ResubmitFailure { failure_id } => {
+            execute_resubmit_failure(deps, env, failure_id)
+        }
 
         // The section below is used only in integration tests framework to simulate failures.
         ExecuteMsg::IntegrationTestsSetSudoFailureMock { state } => {
@@ -190,7 +197,7 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
     match msg {
         QueryMsg::InterchainAccountAddress {
             interchain_account_id,
@@ -209,23 +216,22 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
 }
 
 pub fn query_interchain_address(
-    deps: Deps<NeutronQuery>,
+    deps: Deps,
     env: Env,
     interchain_account_id: String,
     connection_id: String,
 ) -> NeutronResult<Binary> {
-    let query = NeutronQuery::InterchainAccountAddress {
-        owner_address: env.contract.address.to_string(),
+    let querier = InterchaintxsQuerier::new(&deps.querier);
+    let res = querier.interchain_account_address(
+        env.contract.address.to_string(),
         interchain_account_id,
         connection_id,
-    };
-
-    let res: QueryInterchainAccountAddressResponse = deps.querier.query(&query.into())?;
+    )?;
     Ok(to_json_binary(&res)?)
 }
 
 pub fn query_interchain_address_contract(
-    deps: Deps<NeutronQuery>,
+    deps: Deps,
     env: Env,
     interchain_account_id: String,
 ) -> NeutronResult<Binary> {
@@ -237,7 +243,7 @@ pub fn query_interchain_address_contract(
 }
 
 pub fn query_acknowledgement_result(
-    deps: Deps<NeutronQuery>,
+    deps: Deps,
     env: Env,
     interchain_account_id: String,
     sequence_id: u64,
@@ -247,7 +253,7 @@ pub fn query_acknowledgement_result(
     Ok(to_json_binary(&res)?)
 }
 
-pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
+pub fn query_acknowledgement_results(deps: Deps) -> NeutronResult<Binary> {
     let results: Vec<AcknowledgementResultsResponse> = ACKNOWLEDGEMENT_RESULTS
         .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
         .take(100)
@@ -263,7 +269,7 @@ pub fn query_acknowledgement_results(deps: Deps<NeutronQuery>) -> NeutronResult<
     Ok(to_json_binary(&results)?)
 }
 
-pub fn query_errors_queue(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
+pub fn query_errors_queue(deps: Deps) -> NeutronResult<Binary> {
     let res = read_errors_from_queue(deps.storage)?;
     Ok(to_json_binary(&res)?)
 }
@@ -283,19 +289,19 @@ fn execute_set_fees(
     recv_fee: Uint128,
     ack_fee: Uint128,
     timeout_fee: Uint128,
-) -> StdResult<Response<NeutronMsg>> {
-    let fees = IbcFee {
-        recv_fee: vec![CosmosCoin {
+) -> StdResult<Response> {
+    let fees = Fee {
+        recv_fee: vec![StdCoin {
             denom: denom.clone(),
-            amount: recv_fee,
+            amount: recv_fee.to_string(),
         }],
-        ack_fee: vec![CosmosCoin {
+        ack_fee: vec![StdCoin {
             denom: denom.clone(),
-            amount: ack_fee,
+            amount: ack_fee.to_string(),
         }],
-        timeout_fee: vec![CosmosCoin {
+        timeout_fee: vec![StdCoin {
             denom,
-            amount: timeout_fee,
+            amount: timeout_fee.to_string(),
         }],
     };
     IBC_FEE.save(deps.storage, &fees)?;
@@ -307,23 +313,22 @@ fn execute_register_ica(
     env: Env,
     connection_id: String,
     interchain_account_id: String,
-) -> StdResult<Response<NeutronMsg>> {
+    ordering: Option<Order>,
+) -> StdResult<Response> {
     let register_fee = REGISTER_FEE.load(deps.storage)?;
-    let register = NeutronMsg::register_interchain_account(
+    let register = register_interchain_account(
+        env.contract.address.clone(),
         connection_id,
         interchain_account_id.clone(),
-        Option::from(register_fee),
+        register_fee,
+        ordering,
     );
     let key = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     INTERCHAIN_ACCOUNTS.save(deps.storage, key, &None)?;
     Ok(Response::new().add_submessage(SubMsg::reply_on_success(register, REGISTER_ICA_REPLY_ID)))
 }
 
-fn execute_delegate(
-    deps: DepsMut,
-    env: Env,
-    info: ExecuteDelegateInfo,
-) -> StdResult<Response<NeutronMsg>> {
+fn execute_delegate(deps: DepsMut, env: Env, info: ExecuteDelegateInfo) -> StdResult<Response> {
     do_delegate(deps, env, info)
 }
 
@@ -335,7 +340,7 @@ fn execute_undelegate(
     amount: Uint128,
     denom: String,
     timeout: Option<u64>,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     let fee = IBC_FEE.load(deps.storage)?;
     let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
     let delegate_msg = MsgUndelegate {
@@ -346,19 +351,20 @@ fn execute_undelegate(
             amount: amount.to_string(),
         }),
     };
-    let mut buf = Vec::new();
+    let mut buf = Vec::with_capacity(delegate_msg.encoded_len());
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
         return Err(StdError::generic_err(format!("Encode error: {}", e)));
     }
 
-    let any_msg = ProtobufAny {
+    let any_msg = Any {
         type_url: "/cosmos.staking.v1beta1.MsgUndelegate".to_string(),
-        value: Binary::from(buf),
+        value: buf,
     };
 
-    let cosmos_msg = NeutronMsg::submit_tx(
+    let cosmos_msg = submit_tx(
+        env.contract.address.clone(),
         connection_id,
         interchain_account_id.clone(),
         vec![any_msg],
@@ -384,15 +390,11 @@ fn execute_delegate_double_ack(
     deps: DepsMut,
     env: Env,
     info: ExecuteDelegateInfo,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     do_delegate(deps, env, info)
 }
 
-fn do_delegate(
-    mut deps: DepsMut,
-    env: Env,
-    info: ExecuteDelegateInfo,
-) -> StdResult<Response<NeutronMsg>> {
+fn do_delegate(mut deps: DepsMut, env: Env, info: ExecuteDelegateInfo) -> StdResult<Response> {
     let fee = IBC_FEE.load(deps.storage)?;
     let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &info.interchain_account_id)?;
     let delegate_msg = MsgDelegate {
@@ -403,19 +405,20 @@ fn do_delegate(
             amount: info.amount.to_string(),
         }),
     };
-    let mut buf = Vec::new();
+    let mut buf = Vec::with_capacity(delegate_msg.encoded_len());
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
         return Err(StdError::generic_err(format!("Encode error: {}", e)));
     }
 
-    let any_msg = ProtobufAny {
+    let any_msg = Any {
         type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
-        value: Binary::from(buf),
+        value: buf,
     };
 
-    let cosmos_msg = NeutronMsg::submit_tx(
+    let cosmos_msg = submit_tx(
+        env.contract.address.clone(),
         connection_id,
         info.interchain_account_id.clone(),
         vec![any_msg],
@@ -439,7 +442,7 @@ fn do_delegate(
     Ok(Response::default().add_submessages(vec![submsg]))
 }
 
-fn execute_clean_ack_results(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn execute_clean_ack_results(deps: DepsMut) -> StdResult<Response> {
     let keys: Vec<StdResult<(String, u64)>> = ACKNOWLEDGEMENT_RESULTS
         .keys(deps.storage, None, None, cosmwasm_std::Order::Descending)
         .collect();
@@ -449,12 +452,16 @@ fn execute_clean_ack_results(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
     Ok(Response::default())
 }
 
-fn execute_resubmit_failure(_: DepsMut, failure_id: u64) -> StdResult<Response<NeutronMsg>> {
-    let msg = NeutronMsg::submit_resubmit_failure(failure_id);
+fn execute_resubmit_failure(_: DepsMut, env: Env, failure_id: u64) -> StdResult<Response> {
+    let msg: CosmosMsg = MsgResubmitFailure {
+        sender: env.contract.address.to_string(),
+        failure_id,
+    }
+    .into();
     Ok(Response::default().add_message(msg))
 }
 
-fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg>> {
+fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response> {
     if let Some(IntegrationTestsSudoSubmsgFailureMock::Enabled {}) =
         INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
     {
@@ -470,10 +477,10 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response<NeutronMsg
 }
 
 // Err result returned from the `sudo()` handler will result in the `Failure` object stored in the chain state.
-// It can be resubmitted later using `NeutronMsg::ResubmitFailure { failure_id }` message.
+// It can be resubmitted later using `MsgResubmitFailure { failure_id }` message.
 #[allow(unreachable_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<NeutronMsg>> {
+pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
     let api = deps.api;
     api.debug(format!("WASMDEBUG: sudo: received sudo msg: {:?}", msg).as_str());
 
@@ -485,7 +492,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response<Neu
             || m == Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply {})
     };
 
-    let mut resp: Response<NeutronMsg> = match msg.clone() {
+    let mut resp: Response = match msg.clone() {
         SudoMsg::Response { request, data } => {
             sudo_response(deps.branch(), env.clone(), request, data)?
         }
@@ -572,7 +579,7 @@ fn sudo_open_ack(
     channel_id: String,
     _counterparty_channel_id: String,
     counterparty_version: String,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     let expected_channel_id = ICA_CHANNELS.load(deps.storage, port_id.clone())?;
 
     if channel_id != expected_channel_id {
@@ -600,7 +607,7 @@ fn sudo_response(
     env: Env,
     request: RequestPacket,
     data: Binary,
-) -> StdResult<Response<NeutronMsg>> {
+) -> StdResult<Response> {
     deps.api.debug(
         format!(
             "WASMDEBUG: sudo_response: sudo received: {:?} {:?}",
@@ -712,11 +719,7 @@ fn sudo_response(
     Ok(Response::default())
 }
 
-fn sudo_timeout(
-    deps: DepsMut,
-    _env: Env,
-    request: RequestPacket,
-) -> StdResult<Response<NeutronMsg>> {
+fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: sudo timeout request: {:?}", request).as_str());
 
@@ -751,11 +754,7 @@ fn sudo_timeout(
     Ok(Response::default())
 }
 
-fn sudo_error(
-    deps: DepsMut,
-    request: RequestPacket,
-    details: String,
-) -> StdResult<Response<NeutronMsg>> {
+fn sudo_error(deps: DepsMut, request: RequestPacket, details: String) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: sudo error: {}", details).as_str());
     deps.api

@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "params"
+      ],
+      "properties": {
+        "params": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "last_updated"
+      ],
+      "properties": {
+        "last_updated": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "market_map"
+      ],
+      "properties": {
+        "market_map": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "market"
+      ],
+      "properties": {
+        "market": {
+          "type": "object",
+          "required": [
+            "currency_pair"
+          ],
+          "properties": {
+            "currency_pair": {
+              "$ref": "#/definitions/CurrencyPair"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "CurrencyPair": {
+      "description": "CurrencyPair is the standard representation of a pair of assets, where one (Base) is priced in terms of the other (Quote)",
+      "type": "object",
+      "required": [
+        "base",
+        "quote"
+      ],
+      "properties": {
+        "base": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

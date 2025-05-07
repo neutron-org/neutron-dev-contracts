@@ -773,7 +773,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "schemars",
@@ -967,7 +967,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "prost 0.12.6",
  "schemars",
  "serde",
@@ -1032,7 +1032,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
@@ -1090,7 +1090,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "schemars",
  "serde",
 ]
@@ -1135,7 +1135,7 @@ dependencies = [
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
- "neutron-std",
+ "neutron-std 5.0.0",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "protobuf",
@@ -1159,7 +1159,7 @@ dependencies = [
  "cosmos-sdk-proto 0.20.0",
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
- "neutron-std-derive",
+ "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-std?branch=main)",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "protobuf",
@@ -1171,6 +1171,42 @@ dependencies = [
  "speedate",
  "tendermint-proto 0.34.1",
  "thiserror",
+]
+
+[[package]]
+name = "neutron-std"
+version = "6.0.0"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/swap_on_deposit#ae138174faf6660a9cacee70c68a6b62a3be3419"
+dependencies = [
+ "bech32 0.9.1",
+ "chrono",
+ "cosmos-sdk-proto 0.20.0",
+ "cosmwasm-schema 2.1.4",
+ "cosmwasm-std 2.1.4",
+ "neutron-std-derive 0.20.1 (git+https://github.com/neutron-org/neutron-std?branch=feat/swap_on_deposit)",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
+ "protobuf",
+ "schemars",
+ "serde",
+ "serde-cw-value",
+ "serde-json-wasm 1.0.1",
+ "serde_json",
+ "speedate",
+ "tendermint-proto 0.34.1",
+ "thiserror",
+]
+
+[[package]]
+name = "neutron-std-derive"
+version = "0.20.1"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/swap_on_deposit#ae138174faf6660a9cacee70c68a6b62a3be3419"
+dependencies = [
+ "itertools 0.10.5",
+ "proc-macro2",
+ "prost-types 0.12.6",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -1196,7 +1232,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "prost 0.12.6",
  "schemars",
  "serde",
@@ -1213,7 +1249,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "schemars",
@@ -1231,7 +1267,7 @@ dependencies = [
  "cw-storage-plus 2.0.0",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "schemars",
  "serde",
  "serde-json-wasm 1.0.1",
@@ -1302,7 +1338,7 @@ dependencies = [
  "cosmwasm-std 2.1.4",
  "cw2 2.0.0",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "schemars",
  "serde",
 ]
@@ -1893,7 +1929,7 @@ dependencies = [
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
  "neutron-sdk",
- "neutron-std",
+ "neutron-std 6.0.0",
  "schemars",
  "serde",
 ]

@@ -317,10 +317,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let mut msg = msg;
             msg.exit_limit_price = PrecDec::from_str(&msg.exit_limit_price)?.to_prec_dec_string();
             Ok(to_json_binary(
-            &dex_querier.simulate_multi_hop_swap(Some(msg))?,
-        )?)
+                &dex_querier.simulate_multi_hop_swap(Some(msg))?,
+            )?)
+        }
     }
-}
 }
 
 #[entry_point]

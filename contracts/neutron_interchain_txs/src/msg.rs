@@ -42,10 +42,7 @@ pub enum ExecuteMsg {
         ordering: Option<Order>,
     },
     SetFees {
-        denom: String,
-        recv_fee: Uint128,
-        ack_fee: Uint128,
-        timeout_fee: Uint128,
+        fees: Option<Fees>,
     },
     Delegate {
         interchain_account_id: String,
@@ -98,4 +95,12 @@ pub struct AcknowledgementResultsResponse {
     pub ack_result: AcknowledgementResult,
     pub port_id: String,
     pub sequence_id: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct Fees {
+    pub denom: String,
+    pub recv_fee: Uint128,
+    pub ack_fee: Uint128,
+    pub timeout_fee: Uint128,
 }

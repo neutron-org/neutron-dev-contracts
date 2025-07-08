@@ -14,7 +14,7 @@ pub struct SudoPayload {
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 
-pub const IBC_FEE: Item<Fee> = Item::new("ibc_fee");
+pub const IBC_FEE: Item<Option<Fee>> = Item::new("ibc_fee");
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
 pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");
 pub const LAST_SEQ_ID: Item<u64> = Item::new("last_seq_id");

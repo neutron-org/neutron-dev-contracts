@@ -54,10 +54,7 @@ pub enum ExecuteMsg {
         timeout_height: Option<u64>,
     },
     SetFees {
-        recv_fee: Uint128,
-        ack_fee: Uint128,
-        timeout_fee: Uint128,
-        denom: String,
+        fees: Option<Fees>,
     },
     ResubmitFailure {
         failure_id: u64,
@@ -71,6 +68,14 @@ pub enum ExecuteMsg {
     /// Used only in integration tests framework to simulate failures.
     /// After executing this message, contract will revert back to normal behaviour.
     IntegrationTestsUnsetSudoFailureMock {},
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct Fees {
+    pub denom: String,
+    pub recv_fee: Uint128,
+    pub ack_fee: Uint128,
+    pub timeout_fee: Uint128,
 }
 
 #[entry_point]
@@ -89,12 +94,7 @@ pub fn execute(deps: DepsMut, env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdR
             timeout_height,
         } => execute_send(deps, env, channel, to, denom, amount, timeout_height),
 
-        ExecuteMsg::SetFees {
-            recv_fee,
-            ack_fee,
-            timeout_fee,
-            denom,
-        } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
+        ExecuteMsg::SetFees { fees } => execute_set_fees(deps, fees),
 
         ExecuteMsg::ResubmitFailure { failure_id } => {
             execute_resubmit_failure(deps, env, failure_id)
@@ -190,18 +190,12 @@ fn get_fee_item(denom: String, amount: Uint128) -> Vec<StdCoin> {
     }
 }
 
-fn execute_set_fees(
-    deps: DepsMut,
-    recv_fee: Uint128,
-    ack_fee: Uint128,
-    timeout_fee: Uint128,
-    denom: String,
-) -> StdResult<Response> {
-    let fee = Fee {
-        recv_fee: get_fee_item(denom.clone(), recv_fee),
-        ack_fee: get_fee_item(denom.clone(), ack_fee),
-        timeout_fee: get_fee_item(denom, timeout_fee),
-    };
+fn execute_set_fees(deps: DepsMut, fees: Option<Fees>) -> StdResult<Response> {
+    let fee = fees.map(|fee| Fee {
+        recv_fee: get_fee_item(fee.denom.clone(), fee.recv_fee),
+        ack_fee: get_fee_item(fee.denom.clone(), fee.ack_fee),
+        timeout_fee: get_fee_item(fee.denom, fee.timeout_fee),
+    });
 
     IBC_FEE.save(deps.storage, &fee)?;
 
@@ -233,7 +227,7 @@ fn execute_send(
             revision_height: timeout_height.unwrap_or(DEFAULT_TIMEOUT_HEIGHT),
         }),
         timeout_timestamp: 0,
-        fee: Some(fee.clone()),
+        fee: fee.clone(),
         memo: "".to_string(),
     };
     let coin2 = StdCoin {
@@ -251,7 +245,7 @@ fn execute_send(
             revision_height: timeout_height.unwrap_or(DEFAULT_TIMEOUT_HEIGHT),
         }),
         timeout_timestamp: 0,
-        fee: Some(fee),
+        fee,
         memo: "".to_string(),
     };
     let submsg1 = msg_with_sudo_callback(

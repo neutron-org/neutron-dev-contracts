@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, Fees, InstantiateMsg, QueryMsg};
 use crate::storage::{
     read_reply_payload, read_sudo_payload, save_reply_payload, save_sudo_payload,
     AcknowledgementResult, GetRecipientTxsResponse, SudoPayload, Transfer, ACKNOWLEDGEMENT_RESULTS,
@@ -135,12 +135,7 @@ pub fn execute(
         ),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
         ExecuteMsg::CleanRecipientTxs {} => execute_clean_recipient_txs(deps),
-        ExecuteMsg::SetFees {
-            denom,
-            recv_fee,
-            ack_fee,
-            timeout_fee,
-        } => execute_set_fees(deps, recv_fee, ack_fee, timeout_fee, denom),
+        ExecuteMsg::SetFees { fees } => execute_set_fees(deps, fees),
         ExecuteMsg::RegisterBalanceQuery {
             connection_id,
             addr,
@@ -261,18 +256,12 @@ fn get_fee_item(denom: String, amount: Uint128) -> Vec<CosmosCoin> {
     }
 }
 
-fn execute_set_fees(
-    deps: DepsMut,
-    recv_fee: Uint128,
-    ack_fee: Uint128,
-    timeout_fee: Uint128,
-    denom: String,
-) -> NeutronResult<Response> {
-    let fee = Fee {
-        recv_fee: get_fee_item(denom.clone(), recv_fee),
-        ack_fee: get_fee_item(denom.clone(), ack_fee),
-        timeout_fee: get_fee_item(denom, timeout_fee),
-    };
+fn execute_set_fees(deps: DepsMut, fees: Option<Fees>) -> NeutronResult<Response> {
+    let fee = fees.map(|fee| Fee {
+        recv_fee: get_fee_item(fee.denom.clone(), fee.recv_fee),
+        ack_fee: get_fee_item(fee.denom.clone(), fee.ack_fee),
+        timeout_fee: get_fee_item(fee.denom, fee.timeout_fee),
+    });
 
     IBC_FEE.save(deps.storage, &fee)?;
 

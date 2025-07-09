@@ -273,7 +273,9 @@
       "type": "object",
       "required": [
         "disable_autoswap",
-        "fail_tx_on_bel"
+        "fail_tx_on_bel",
+        "swap_on_deposit",
+        "swap_on_deposit_slop_tolerance_bps"
       ],
       "properties": {
         "disable_autoswap": {
@@ -281,6 +283,14 @@
         },
         "fail_tx_on_bel": {
           "type": "boolean"
+        },
+        "swap_on_deposit": {
+          "type": "boolean"
+        },
+        "swap_on_deposit_slop_tolerance_bps": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
         }
       },
       "additionalProperties": false

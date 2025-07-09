@@ -46,6 +46,47 @@
     {
       "type": "object",
       "required": [
+        "send_native"
+      ],
+      "properties": {
+        "send_native": {
+          "type": "object",
+          "required": [
+            "amount",
+            "channel",
+            "denom",
+            "to"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "channel": {
+              "type": "string"
+            },
+            "denom": {
+              "type": "string"
+            },
+            "timeout_height": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "to": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "set_fees"
       ],
       "properties": {

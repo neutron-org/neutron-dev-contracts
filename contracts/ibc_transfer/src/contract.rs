@@ -10,6 +10,7 @@ use cw2::set_contract_version;
 use neutron_sdk::interchain_txs::helpers::decode_message_response;
 use neutron_sdk::sudo::msg::{RequestPacket, TransferSudoMsg};
 use neutron_std::types::cosmos::base::v1beta1::Coin as StdCoin;
+use neutron_std::types::ibc::applications::transfer::v1::MsgTransfer as NativeMsgTransfer;
 use neutron_std::types::ibc::core::client::v1::Height;
 use neutron_std::types::neutron::contractmanager::MsgResubmitFailure;
 use neutron_std::types::neutron::feerefunder::Fee;
@@ -47,6 +48,14 @@ pub fn instantiate(
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Send {
+        channel: String,
+        to: String,
+        denom: String,
+        amount: Uint128,
+        timeout_height: Option<u64>,
+    },
+    // uses original MsgTransfer instead of neutron one (no fees argument)
+    SendNative {
         channel: String,
         to: String,
         denom: String,
@@ -93,6 +102,14 @@ pub fn execute(deps: DepsMut, env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdR
             amount,
             timeout_height,
         } => execute_send(deps, env, channel, to, denom, amount, timeout_height),
+
+        ExecuteMsg::SendNative {
+            channel,
+            to,
+            denom,
+            amount,
+            timeout_height,
+        } => execute_send_native(deps, env, channel, to, denom, amount, timeout_height),
 
         ExecuteMsg::SetFees { fees } => execute_set_fees(deps, fees),
 
@@ -269,6 +286,46 @@ fn execute_send(
         .debug(format!("WASMDEBUG: execute_send: sent submsg2: {:?}", submsg2).as_str());
 
     Ok(Response::default().add_submessages(vec![submsg1, submsg2]))
+}
+
+fn execute_send_native(
+    mut deps: DepsMut,
+    env: Env,
+    channel: String,
+    to: String,
+    denom: String,
+    amount: Uint128,
+    timeout_height: Option<u64>,
+) -> StdResult<Response> {
+    let coin = StdCoin {
+        amount: amount.to_string(),
+        denom: denom.clone(),
+    };
+    let msg = NativeMsgTransfer {
+        source_port: "transfer".to_string(),
+        source_channel: channel.clone(),
+        sender: env.contract.address.to_string(),
+        receiver: to.clone(),
+        token: Some(coin),
+        timeout_height: Some(Height {
+            revision_number: 2,
+            revision_height: timeout_height.unwrap_or(DEFAULT_TIMEOUT_HEIGHT),
+        }),
+        timeout_timestamp: 0,
+        memo: "".to_string(),
+    };
+    let submsg = msg_with_sudo_callback(
+        deps.branch(),
+        msg,
+        SudoPayload::HandlerPayload1(Type1 {
+            message: "message".to_string(),
+        }),
+    )?;
+    deps.as_ref()
+        .api
+        .debug(format!("WASMDEBUG: execute_send_native: sent submsg: {:?}", submsg).as_str());
+
+    Ok(Response::default().add_submessage(submsg))
 }
 
 fn execute_resubmit_failure(_: DepsMut, env: Env, failure_id: u64) -> StdResult<Response> {

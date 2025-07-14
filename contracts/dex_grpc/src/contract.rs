@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{
     entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
@@ -8,6 +10,7 @@ use neutron_std::types::neutron::dex::{
     DexQuerier, MsgCancelLimitOrder, MsgDeposit, MsgMultiHopSwap, MsgPlaceLimitOrder,
     MsgWithdrawFilledLimitOrder, MsgWithdrawal,
 };
+use neutron_std::types::neutron::util::precdec::PrecDec;
 
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-contracts__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -88,7 +91,7 @@ pub fn execute(
             token_in,
             token_out,
             tick_index_in_to_out,
-            limit_sell_price: Some(limit_sell_price),
+            limit_sell_price: Some(PrecDec::from_str(&limit_sell_price)?.to_prec_dec_string()),
             amount_in,
             order_type,
             expiration_time,
@@ -120,7 +123,7 @@ pub fn execute(
             receiver,
             routes,
             amount_in,
-            exit_limit_price,
+            exit_limit_price: PrecDec::from_str(&exit_limit_price)?.to_prec_dec_string(),
             pick_best_route,
         })),
     }
@@ -241,7 +244,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             receiver,
             routes,
             amount_in,
-            exit_limit_price,
+            PrecDec::from_str(&exit_limit_price)?.to_prec_dec_string(),
             pick_best_route,
         )?)?),
 
@@ -292,9 +295,15 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             &dex_querier.simulate_withdrawal(Some(msg))?,
         )?),
 
-        QueryMsg::SimulatePlaceLimitOrder { msg } => Ok(to_json_binary(
-            &dex_querier.simulate_place_limit_order(Some(msg))?,
-        )?),
+        QueryMsg::SimulatePlaceLimitOrder { msg } => {
+            let mut msg = msg;
+            if let Some(price) = msg.limit_sell_price {
+                msg.limit_sell_price = Some(PrecDec::from_str(&price)?.to_prec_dec_string());
+            }
+            Ok(to_json_binary(
+                &dex_querier.simulate_place_limit_order(Some(msg))?,
+            )?)
+        }
 
         QueryMsg::SimulateWithdrawFilledLimitOrder { msg } => Ok(to_json_binary(
             &dex_querier.simulate_withdraw_filled_limit_order(Some(msg))?,
@@ -304,9 +313,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             &dex_querier.simulate_cancel_limit_order(Some(msg))?,
         )?),
 
-        QueryMsg::SimulateMultiHopSwap { msg } => Ok(to_json_binary(
-            &dex_querier.simulate_multi_hop_swap(Some(msg))?,
-        )?),
+        QueryMsg::SimulateMultiHopSwap { msg } => {
+            let mut msg = msg;
+            msg.exit_limit_price = PrecDec::from_str(&msg.exit_limit_price)?.to_prec_dec_string();
+            Ok(to_json_binary(
+                &dex_querier.simulate_multi_hop_swap(Some(msg))?,
+            )?)
+        }
     }
 }
 

@@ -45,24 +45,16 @@
       "properties": {
         "set_fees": {
           "type": "object",
-          "required": [
-            "ack_fee",
-            "denom",
-            "recv_fee",
-            "timeout_fee"
-          ],
           "properties": {
-            "ack_fee": {
-              "$ref": "#/definitions/Uint128"
-            },
-            "denom": {
-              "type": "string"
-            },
-            "recv_fee": {
-              "$ref": "#/definitions/Uint128"
-            },
-            "timeout_fee": {
-              "$ref": "#/definitions/Uint128"
+            "fees": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Fees"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "additionalProperties": false
@@ -309,6 +301,30 @@
     }
   ],
   "definitions": {
+    "Fees": {
+      "type": "object",
+      "required": [
+        "ack_fee",
+        "denom",
+        "recv_fee",
+        "timeout_fee"
+      ],
+      "properties": {
+        "ack_fee": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "denom": {
+          "type": "string"
+        },
+        "recv_fee": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "timeout_fee": {
+          "$ref": "#/definitions/Uint128"
+        }
+      },
+      "additionalProperties": false
+    },
     "IntegrationTestsSudoFailureMock": {
       "type": "string",
       "enum": [

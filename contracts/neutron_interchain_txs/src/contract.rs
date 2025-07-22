@@ -33,7 +33,7 @@ use crate::integration_tests_mock_handlers::{
     unset_sudo_failure_mock,
 };
 use crate::msg::{
-    AcknowledgementResultsResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    AcknowledgementResultsResponse, ExecuteMsg, Fees, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 use crate::storage::{
     add_error_to_queue, read_errors_from_queue, read_reply_payload, read_sudo_payload,
@@ -170,12 +170,7 @@ pub fn execute(deps: DepsMut, env: Env, _: MessageInfo, msg: ExecuteMsg) -> StdR
             denom,
             timeout,
         ),
-        ExecuteMsg::SetFees {
-            denom,
-            recv_fee,
-            ack_fee,
-            timeout_fee,
-        } => execute_set_fees(deps, denom, recv_fee, ack_fee, timeout_fee),
+        ExecuteMsg::SetFees { fees } => execute_set_fees(deps, fees),
         ExecuteMsg::CleanAckResults {} => execute_clean_ack_results(deps),
         ExecuteMsg::ResubmitFailure { failure_id } => {
             execute_resubmit_failure(deps, env, failure_id)
@@ -283,27 +278,21 @@ fn msg_with_sudo_callback<C: Into<CosmosMsg<T>>, T>(
     Ok(SubMsg::reply_on_success(msg, SUDO_PAYLOAD_REPLY_ID))
 }
 
-fn execute_set_fees(
-    deps: DepsMut,
-    denom: String,
-    recv_fee: Uint128,
-    ack_fee: Uint128,
-    timeout_fee: Uint128,
-) -> StdResult<Response> {
-    let fees = Fee {
+fn execute_set_fees(deps: DepsMut, fees: Option<Fees>) -> StdResult<Response> {
+    let fees = fees.map(|fee| Fee {
         recv_fee: vec![StdCoin {
-            denom: denom.clone(),
-            amount: recv_fee.to_string(),
+            denom: fee.denom.clone(),
+            amount: fee.recv_fee.to_string(),
         }],
         ack_fee: vec![StdCoin {
-            denom: denom.clone(),
-            amount: ack_fee.to_string(),
+            denom: fee.denom.clone(),
+            amount: fee.ack_fee.to_string(),
         }],
         timeout_fee: vec![StdCoin {
-            denom,
-            amount: timeout_fee.to_string(),
+            denom: fee.denom,
+            amount: fee.timeout_fee.to_string(),
         }],
-    };
+    });
     IBC_FEE.save(deps.storage, &fees)?;
     Ok(Response::default())
 }

@@ -28,7 +28,7 @@ pub const SUDO_FAILING_SUBMSG_REPLY_ID: u64 = 2;
 // only used to make sure `sudo()` handler gets OpenAck message with correct port_id and channel_id
 pub const REGISTER_ICA_REPLY_ID: u64 = 3;
 
-pub const IBC_FEE: Item<Fee> = Item::new("ibc_fee");
+pub const IBC_FEE: Item<Option<Fee>> = Item::new("ibc_fee");
 pub const REGISTER_FEE: Item<Vec<StdCoin>> = Item::new("register_fee");
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
 pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");

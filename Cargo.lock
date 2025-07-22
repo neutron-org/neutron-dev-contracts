@@ -1128,7 +1128,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=main#3c831143e4eb7998433322e85f167c88166d087f"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/disable-feerefunder-fee#b9f5bb86d8a7cf5e58c15bc9a081abd8a59e505d"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1151,8 +1151,8 @@ dependencies = [
 
 [[package]]
 name = "neutron-std"
-version = "5.0.0"
-source = "git+https://github.com/neutron-org/neutron-std?branch=main#b17f083c0617dab1daa5c6dfb69bc63255006499"
+version = "6.0.0"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/disable-feerefunder-fee#76867c4c9967e04a89d2cc227c359610ec8c1647"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1176,7 +1176,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?branch=main#b17f083c0617dab1daa5c6dfb69bc63255006499"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/disable-feerefunder-fee#76867c4c9967e04a89d2cc227c359610ec8c1647"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

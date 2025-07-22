@@ -56,10 +56,7 @@ pub enum ExecuteMsg {
     CleanAckResults {},
     CleanRecipientTxs {},
     SetFees {
-        denom: String,
-        recv_fee: Uint128,
-        ack_fee: Uint128,
-        timeout_fee: Uint128,
+        fees: Option<Fees>,
     },
     RegisterBalanceQuery {
         connection_id: String,
@@ -76,4 +73,12 @@ pub enum ExecuteMsg {
     RemoveInterchainQuery {
         query_id: u64,
     },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct Fees {
+    pub denom: String,
+    pub recv_fee: Uint128,
+    pub ack_fee: Uint128,
+    pub timeout_fee: Uint128,
 }

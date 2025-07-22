@@ -10,7 +10,7 @@ pub const IBC_SUDO_ID_RANGE_START: u64 = 1_000_000_000;
 pub const IBC_SUDO_ID_RANGE_SIZE: u64 = 1_000;
 pub const IBC_SUDO_ID_RANGE_END: u64 = IBC_SUDO_ID_RANGE_START + IBC_SUDO_ID_RANGE_SIZE;
 
-pub const IBC_FEE: Item<Fee> = Item::new("ibc_fee");
+pub const IBC_FEE: Item<Option<Fee>> = Item::new("ibc_fee");
 
 pub const REPLY_QUEUE_ID: Map<u64, Vec<u8>> = Map::new("reply_queue_id");
 

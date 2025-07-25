@@ -1,0 +1,40 @@
+[package]
+name = "no100"
+version = "0.1.0"
+edition = "2021"
+
+
+exclude = [
+    # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+    "contract.wasm",
+    "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[features]
+# for quicker tests, cargo test --lib
+library = []
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+serde = { version = "1.0.180", default-features = false, features = ["derive"] }
+schemars = { workspace = true }
+cw-storage-plus = { workspace = true }
+
+[dev-dependencies]
+cosmwasm-schema = { workspace = true }

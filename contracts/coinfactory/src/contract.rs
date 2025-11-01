@@ -8,8 +8,8 @@ use neutron_sdk::NeutronResult;
 use neutron_std::types::cosmos::bank::v1beta1::Metadata;
 use neutron_std::types::cosmos::base::v1beta1::Coin as CosmosCoin;
 use neutron_std::types::neutron::coinfactory::v1beta1::{
-    MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetBeforeSendHook,
-    MsgSetDenomMetadata, CoinfactoryQuerier,
+    CoinfactoryQuerier, MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint,
+    MsgSetBeforeSendHook, MsgSetDenomMetadata,
 };
 
 #[entry_point]

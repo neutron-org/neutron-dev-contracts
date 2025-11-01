@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use coinfactory::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 use std::{env::current_dir, fs::create_dir_all};
-use coinfactory::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

@@ -35,6 +35,7 @@ cosmwasm-std = { workspace = true }
 serde = { version = "1.0.180", default-features = false, features = ["derive"] }
 schemars = { workspace = true }
 cw-storage-plus = { workspace = true }
+getrandom = {workspace = true}
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

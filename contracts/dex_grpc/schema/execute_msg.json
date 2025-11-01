@@ -288,6 +288,7 @@
           "type": "boolean"
         },
         "swap_on_deposit_slop_tolerance_bps": {
+          "deprecated": true,
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0

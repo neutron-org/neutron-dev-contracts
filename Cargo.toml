@@ -13,8 +13,8 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/disable-feerefunder-fee" }
-neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "feat/disable-feerefunder-fee" }
+neutron-sdk = { package = "neutron-sdk", git = "https://github.com/neutron-org/neutron-sdk", branch = "feat/tf2" }
+neutron-std = { git = "https://github.com/neutron-org/neutron-std", branch = "feat/tf2" }
 
 prost = "0.12.4"
 prost-types = "0.12.4"
@@ -36,3 +36,4 @@ cosmwasm-schema = { version = "2.1.0", default-features = false }
 serde-json-wasm = "1.0.0"
 base64 = "0.21.7"
 thiserror = "1.0.49"
+getrandom = { version = "0.2.16", features = ["js"]}

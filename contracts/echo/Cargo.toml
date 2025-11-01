@@ -23,6 +23,7 @@ library = []
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
+getrandom = {workspace = true}
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -1,4 +1,4 @@
 # coinfactory
 
-This contract exposes all Token Factory wasm messages through its ExecuteMsg and QueryMsg APIs.
-It is used for testing Token Factory and its corresponding bindings.
+This contract exposes all coinfactory wasm messages through its ExecuteMsg and QueryMsg APIs.
+It is used for testing coinfactory and its corresponding bindings.

@@ -28,6 +28,7 @@ serde = { workspace = true }
 serde-json-wasm = { workspace = true }
 neutron-sdk = { workspace = true }
 prost = { workspace = true }
+getrandom = {workspace = true}
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

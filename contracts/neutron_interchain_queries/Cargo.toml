@@ -29,6 +29,7 @@ cosmos-sdk-proto = { workspace = true }
 cw-storage-plus = { workspace = true }
 prost = { workspace = true }
 serde-json-wasm = { workspace = true }
+getrandom = {workspace = true}
 
 [dev-dependencies]
 base64 = { workspace = true }

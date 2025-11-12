@@ -920,6 +920,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "fake-vault"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw2",
+ "neutron-sdk",
+ "schemars",
+ "serde",
+]
+
+[[package]]
 name = "ff"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

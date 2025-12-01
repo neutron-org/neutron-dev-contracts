@@ -1169,7 +1169,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/tf2#a2c2fb213dcaa4507553d763655ae04f3328ea41"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat/cosmos-sdk-53#abc8a2dbb7632af9eaa67406e6e91f957bf84713"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1192,8 +1192,8 @@ dependencies = [
 
 [[package]]
 name = "neutron-std"
-version = "8.0.0"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/tf2#66d3989a214ed4185e876dce94b8d0f4a08a2524"
+version = "9.0.0"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/cosmos-sdk-53#37c58fa616a5fcde81cb7cee58a6cc1bcd4bb983"
 dependencies = [
  "bech32 0.9.1",
  "chrono",
@@ -1218,7 +1218,7 @@ dependencies = [
 [[package]]
 name = "neutron-std-derive"
 version = "0.20.1"
-source = "git+https://github.com/neutron-org/neutron-std?branch=feat/tf2#66d3989a214ed4185e876dce94b8d0f4a08a2524"
+source = "git+https://github.com/neutron-org/neutron-std?branch=feat/cosmos-sdk-53#37c58fa616a5fcde81cb7cee58a6cc1bcd4bb983"
 dependencies = [
  "itertools 0.10.5",
  "proc-macro2",

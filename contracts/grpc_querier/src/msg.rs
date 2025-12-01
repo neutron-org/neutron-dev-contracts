@@ -25,7 +25,7 @@ pub enum QueryMsg {
     AuthAccount {
         address: String,
     },
-    TransferDenomTrace {
+    TransferDenom {
         hash: String,
     },
     TransferEscrowAddress {

@@ -68,9 +68,7 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::AuthAccount { address } => Ok(to_json_binary(&auth_querier.account(address)?)?),
 
-        QueryMsg::TransferDenomTrace { hash } => {
-            Ok(to_json_binary(&transfer_querier.denom_trace(hash)?)?)
-        }
+        QueryMsg::TransferDenom { hash } => Ok(to_json_binary(&transfer_querier.denom(hash)?)?),
 
         QueryMsg::TransferEscrowAddress {
             port_id,

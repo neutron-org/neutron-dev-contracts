@@ -313,6 +313,7 @@ fn execute_send_native(
         }),
         timeout_timestamp: 0,
         memo: "".to_string(),
+        encoding: "".to_string(),
     };
     let submsg = msg_with_sudo_callback(
         deps.branch(),

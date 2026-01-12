@@ -451,7 +451,7 @@ fn execute_resubmit_failure(_: DepsMut, env: Env, failure_id: u64) -> StdResult<
 }
 
 fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response> {
-    if let Some(IntegrationTestsSudoSubmsgFailureMock::Enabled {}) =
+    if let Some(IntegrationTestsSudoSubmsgFailureMock::Enabled) =
         INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
     {
         // Used only in integration tests framework to simulate failures.
@@ -477,7 +477,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
 
     let failure_submsg_mock_enabled = {
         let m = INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?;
-        m == Some(IntegrationTestsSudoSubmsgFailureMock::Enabled {})
+        m == Some(IntegrationTestsSudoSubmsgFailureMock::Enabled)
             || m == Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply {})
     };
 
@@ -835,7 +835,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         SUDO_PAYLOAD_REPLY_ID => prepare_sudo_payload(deps, env, msg),
         SUDO_FAILING_SUBMSG_REPLY_ID => {
-            if let Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply {}) =
+            if let Some(IntegrationTestsSudoSubmsgFailureMock::EnabledInReply) =
                 INTEGRATION_TESTS_SUDO_SUBMSG_FAILURE_MOCK.may_load(deps.storage)?
             {
                 // Used only in integration tests framework to simulate failures.

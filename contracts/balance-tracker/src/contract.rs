@@ -85,6 +85,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
 /// - if from == module_address -> mint
 /// - if to == module_address -> burn
 /// - other scenarios are simple transfers between addresses
+///
 /// Possible errors:
 /// - serialization/deserialization errors. Should never happen if both BALANCES and TOTAL_SUPPLY_HISTORY storage keys and data layout are not changed.
 /// - attempt to subtract from zero balance or reduce empty total supply. Highly unlikely possible. Might happen due to errors in the tokenfactory module.

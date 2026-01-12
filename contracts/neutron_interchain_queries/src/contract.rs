@@ -570,7 +570,7 @@ pub fn sudo_tx_query_result(
     _height: Height,
     data: Binary,
 ) -> NeutronResult<Response> {
-    if let Some(IntegrationTestsQueryMock::Enabled {}) =
+    if let Some(IntegrationTestsQueryMock::Enabled) =
         INTEGRATION_TESTS_QUERY_MOCK.may_load(deps.storage)?
     {
         // simulate error on tx query submit for integration tests
@@ -697,7 +697,7 @@ pub fn sudo_kv_query_result(deps: DepsMut, env: Env, query_id: u64) -> NeutronRe
         .as_str(),
     );
 
-    if let Some(IntegrationTestsQueryMock::Enabled {}) =
+    if let Some(IntegrationTestsQueryMock::Enabled) =
         INTEGRATION_TESTS_QUERY_MOCK.may_load(deps.storage)?
     {
         // doesn't really matter whatever data we try to save here, it should all be reverted

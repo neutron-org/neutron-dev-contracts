@@ -1,0 +1,195 @@
+---
+name: Build Contracts (Parallel)
+
+on:
+  workflow_dispatch:
+    inputs:
+      toolchain:
+        description: 'Default Rust Toolchain'
+        default: "1.78.0"
+        required: true
+        type: string
+      target:
+        description: 'Default Rust Target'
+        default: "wasm32-unknown-unknown"
+        required: true
+        type: string
+      branch:
+        description: 'Default Branch or Commit hash to use'
+        default: "main"
+        required: true
+        type: string
+      id:
+        description: 'Workflow ID (Optional)'
+        default: "scheduled"
+        required: false
+        type: string
+
+env:
+  TOOLCHAIN: ${{ inputs.toolchain || '1.78.0' }}
+  TARGET: ${{ inputs.target || 'wasm32-unknown-unknown' }}
+  REF: ${{ inputs.branch || 'main' }}
+  ID: ${{ inputs.id || 'scheduled' }}
+
+jobs:
+  # Check if artifacts already exist to skip unnecessary work
+  check-artifacts:
+    name: Check existing artifacts
+    runs-on: ubicloud-standard-4
+    outputs:
+      artifacts_exist: ${{ steps.check.outputs.exists }}
+      sha: ${{ steps.get-sha.outputs.sha }}
+      branch: ${{ steps.get-branch.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+          fetch-depth: 0
+
+      - name: Get SHA
+        id: get-sha
+        run: echo "sha=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_OUTPUT
+
+      - name: Get branch name
+        id: get-branch
+        run: |
+          if git show-ref --quiet --heads $REF; then
+            BRANCH_NAME="${REF#refs/heads/}"
+          else
+            BRANCH_NAME="$(git show -s --pretty=%d "${REF}" | sed -n 's/^.*[(,]\s*origin\/\([^),]*\).*$/\1/p')"
+          fi
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+        env:
+          REF: ${{ env.REF }}
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Check artifacts in GCP
+        id: check
+        run: |
+          if gsutil -q stat gs://neutron-contracts/${{ github.repository }}/${{ steps.get-sha.outputs.sha }}/*.wasm; then
+            if [ "${{ env.ID }}" != 'scheduled' ]; then
+              echo "Force build requested"
+              echo "exists=false" >> $GITHUB_OUTPUT
+            else
+              echo "Artifacts exist, skipping build"
+              echo "exists=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No artifacts found, will build"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Job 1: Compile contracts (the slow step - ~9 min)
+  compile:
+    name: Compile contracts
+    needs: [check-artifacts]
+    if: needs.check-artifacts.outputs.artifacts_exist == 'false'
+    runs-on: ubicloud-standard-30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+
+      - name: Compile contracts
+        run: make compile
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-artifacts
+          path: artifacts/
+          retention-days: 1
+
+  # Job 2: Lint and test (runs in parallel with compile - ~5 min)
+  lint-test:
+    name: Lint & Test
+    needs: [check-artifacts]
+    if: needs.check-artifacts.outputs.artifacts_exist == 'false'
+    runs-on: ubicloud-standard-16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.TOOLCHAIN }}
+          target: ${{ env.TARGET }}
+          components: rustfmt, clippy
+
+      - run: make schema
+
+      - run: cargo fetch --verbose
+
+      - run: cargo clippy --all --all-targets -- -D warnings
+
+      - run: cargo test --verbose --all
+        env:
+          RUST_BACKTRACE: 1
+
+      - run: cargo fmt -- --check
+
+  # Job 3: Check and upload (needs both compile and lint-test - ~2 min)
+  check-upload:
+    name: Check & Upload
+    needs: [check-artifacts, compile, lint-test]
+    if: needs.check-artifacts.outputs.artifacts_exist == 'false'
+    runs-on: ubicloud-standard-8
+    env:
+      SHA: ${{ needs.check-artifacts.outputs.sha }}
+      BRANCH: ${{ needs.check-artifacts.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-artifacts
+          path: artifacts/
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.TOOLCHAIN }}
+          target: ${{ env.TARGET }}
+
+      - name: Check contracts
+        run: make -j$(nproc) check_contracts
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Upload to GCS (repo/branch/sha)
+        run: |
+          gsutil -h "Cache-Control:no-cache, no-store, must-revalidate" cp -r artifacts/* gs://neutron-contracts/${{ github.repository }}/${{ env.BRANCH }}/${{ env.SHA }}/
+          gsutil setmeta -r -h "x-goog-meta-Neutron-Repo: ${{ github.repository }}" -h "x-goog-meta-Neutron-Commit: ${{ env.SHA }}" gs://neutron-contracts/${{ github.repository }}/${{ env.BRANCH }}/${{ env.SHA }}/
+
+      - name: Upload to GCS (repo/branch/WF/ID)
+        run: |
+          gsutil -h "Cache-Control:no-cache, no-store, must-revalidate" cp -r artifacts/* gs://neutron-contracts/${{ github.repository }}/${{ env.BRANCH }}/WF/${{ env.ID }}/
+          gsutil setmeta -r -h "x-goog-meta-Neutron-Repo: ${{ github.repository }}" -h "x-goog-meta-Neutron-Commit: ${{ env.SHA }}" gs://neutron-contracts/${{ github.repository }}/${{ env.BRANCH }}/WF/${{ env.ID }}/
+
+      - name: Upload to GCS (repo/sha)
+        run: |
+          gsutil -h "Cache-Control:no-cache, no-store, must-revalidate" cp -r artifacts/* gs://neutron-contracts/${{ github.repository }}/${{ env.SHA }}/
+          gsutil setmeta -r -h "x-goog-meta-Neutron-Repo: ${{ github.repository }}" -h "x-goog-meta-Neutron-Commit: ${{ env.SHA }}" gs://neutron-contracts/${{ github.repository }}/${{ env.SHA }}/
+
+  # Skip notification when artifacts already exist
+  skip-notification:
+    name: Skip (artifacts exist)
+    needs: [check-artifacts]
+    if: needs.check-artifacts.outputs.artifacts_exist == 'true'
+    runs-on: ubicloud-standard-4
+    steps:
+      - run: echo "::notice::Artifacts already exist in GCP Bucket, skipping build."

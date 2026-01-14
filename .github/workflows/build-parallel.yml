@@ -6,7 +6,7 @@ on:
     inputs:
       toolchain:
         description: 'Default Rust Toolchain'
-        default: "1.86.0"
+        default: "1.82.0"
         required: true
         type: string
       target:
@@ -26,7 +26,7 @@ on:
         type: string
 
 env:
-  TOOLCHAIN: ${{ inputs.toolchain || '1.86.0' }}
+  TOOLCHAIN: ${{ inputs.toolchain || '1.82.0' }}
   TARGET: ${{ inputs.target || 'wasm32-unknown-unknown' }}
   REF: ${{ inputs.branch || 'main' }}
   ID: ${{ inputs.id || 'scheduled' }}

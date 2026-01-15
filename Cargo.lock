@@ -1065,7 +1065,7 @@ dependencies = [
 [[package]]
 name = "neutron-sdk"
 version = "0.11.0"
-source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat%2Fcosmwasm-3#3a681526163f37fe6bcb1f40ae087925a5bbe15b"
+source = "git+https://github.com/neutron-org/neutron-sdk?branch=feat%2Fcosmwasm-3#72aa066420c3e3ca3f4238196ac955684ef343ff"
 dependencies = [
  "bech32 0.9.1",
  "chrono",

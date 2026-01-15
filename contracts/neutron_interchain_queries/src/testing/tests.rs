@@ -1091,7 +1091,7 @@ fn test_sudo_tx_query_result_callback() {
     // ensure the callback has returned an error and contract's state hasn't changed
     assert_eq!(
         res.unwrap_err(),
-        NeutronError::Std(StdError::generic_err(
+        NeutronError::Std(StdError::msg(
             "failed to find a matching transaction message",
         ))
     );
@@ -1195,7 +1195,7 @@ fn test_sudo_tx_query_result_min_height_callback() {
     // ensure the callback has returned an error and contract's state hasn't changed
     assert_eq!(
         res.unwrap_err(),
-        NeutronError::Std(StdError::generic_err(
+        NeutronError::Std(StdError::msg(
             "failed to find a matching transaction message",
         ))
     );

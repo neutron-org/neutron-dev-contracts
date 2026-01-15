@@ -51,7 +51,7 @@ fn execute_test_arg(
     arg: String,
 ) -> StdResult<Response> {
     if return_err {
-        return Err(StdError::generic_err("return error"));
+        return Err(StdError::msg("return error"));
     }
 
     TEST_ARGS.update::<_, StdError>(deps.storage, &arg, |maybe_t| match maybe_t {

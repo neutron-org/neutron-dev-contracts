@@ -122,5 +122,5 @@ fn test_failure_mocks() {
     };
 
     let err = sudo(deps.as_mut(), mock_env(), sudo_resp).unwrap_err();
-    assert_eq!(err, StdError::generic_err("Integrations test mock error"));
+    assert_eq!(err, StdError::msg("Integrations test mock error"));
 }

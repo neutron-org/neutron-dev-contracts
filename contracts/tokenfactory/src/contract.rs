@@ -143,7 +143,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
             to_json_binary(
                 &authority
                     .authority_metadata
-                    .ok_or(Std(StdError::generic_err("authority metadata not found")))?,
+                    .ok_or(Std(StdError::msg("authority metadata not found")))?,
             )?
         }
         QueryMsg::BeforeSendHook { creator, subdenom } => {

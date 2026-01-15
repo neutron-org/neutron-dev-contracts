@@ -349,9 +349,7 @@ pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Respons
             deps.api
                 .debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-            return Err(StdError::msg(
-                "Integrations test mock error".to_string(),
-            ));
+            return Err(StdError::msg("Integrations test mock error".to_string()));
         }
         Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
             // Used only in integration tests framework to simulate failures.

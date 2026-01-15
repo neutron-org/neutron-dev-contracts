@@ -21,7 +21,7 @@ use cosmwasm_std::testing::{
     message_info, mock_dependencies as cw_mock_dependencies, mock_env, MockApi, MockQuerier,
     MockStorage,
 };
-use cosmwasm_std::{from_json, Addr, OwnedDeps, StdError};
+use cosmwasm_std::{from_json, Addr, OwnedDeps};
 use neutron_sdk::sudo::msg::{RequestPacket, SudoMsg};
 use std::marker::PhantomData;
 
@@ -122,5 +122,5 @@ fn test_failure_mocks() {
     };
 
     let err = sudo(deps.as_mut(), mock_env(), sudo_resp).unwrap_err();
-    assert_eq!(err, StdError::msg("Integrations test mock error"));
+    assert!(err.to_string().contains("Integrations test mock error"));
 }

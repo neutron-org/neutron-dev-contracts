@@ -1,10 +1,8 @@
+use crate::msg::{ConfigResponse, QueryMsg};
+use crate::state::{BALANCES, CONFIG, TOTAL_SUPPLY_HISTORY};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult, Uint256};
-
-use astroport::tokenfactory_tracker::{ConfigResponse, QueryMsg};
-
-use crate::state::{BALANCES, CONFIG, TOTAL_SUPPLY_HISTORY};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {

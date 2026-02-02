@@ -344,7 +344,7 @@ fn execute_undelegate(
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(StdError::generic_err(format!("Encode error: {}", e)));
+        return Err(StdError::msg(format!("Encode error: {}", e)));
     }
 
     let any_msg = Any {
@@ -398,7 +398,7 @@ fn do_delegate(mut deps: DepsMut, env: Env, info: ExecuteDelegateInfo) -> StdRes
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(StdError::generic_err(format!("Encode error: {}", e)));
+        return Err(StdError::msg(format!("Encode error: {}", e)));
     }
 
     let any_msg = Any {
@@ -458,7 +458,7 @@ fn integration_tests_sudo_submsg(deps: DepsMut) -> StdResult<Response> {
         deps.api
             .debug("WASMDEBUG: sudo: mocked submsg failure on the handler");
 
-        return Err(StdError::generic_err(
+        return Err(StdError::msg(
             "Integrations test mock submsg error".to_string(),
         ));
     }
@@ -508,9 +508,7 @@ pub fn sudo(mut deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
             // Used only in integration tests framework to simulate failures.
             api.debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-            return Err(StdError::generic_err(
-                "Integrations test mock error".to_string(),
-            ));
+            return Err(StdError::msg("Integrations test mock error".to_string()));
         }
         Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
             // Used only in integration tests framework to simulate failures.
@@ -572,7 +570,7 @@ fn sudo_open_ack(
     let expected_channel_id = ICA_CHANNELS.load(deps.storage, port_id.clone())?;
 
     if channel_id != expected_channel_id {
-        return Err(StdError::generic_err("channel_id is not as expected"));
+        return Err(StdError::msg("channel_id is not as expected"));
     }
 
     let parsed_version: Result<OpenAckVersion, _> =
@@ -588,7 +586,7 @@ fn sudo_open_ack(
         )?;
         return Ok(Response::default());
     }
-    Err(StdError::generic_err("Can't parse counterparty_version"))
+    Err(StdError::msg("Can't parse counterparty_version"))
 }
 
 fn sudo_response(
@@ -607,11 +605,11 @@ fn sudo_response(
 
     let seq_id = request
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
 
     let channel_id = request
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
 
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id).ok();
     if payload.is_none() {
@@ -666,7 +664,7 @@ fn sudo_response(
             (payload.clone().port_id, seq_id),
             |maybe_ack| -> StdResult<AcknowledgementResult> {
                 match maybe_ack {
-                    Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                    Some(_ack) => Err(StdError::msg("trying to update same seq_id")),
                     None => Ok(AcknowledgementResult::Success(item_types)),
                 }
             },
@@ -714,11 +712,11 @@ fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResult<R
 
     let seq_id = request
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
 
     let channel_id = request
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
 
     // update but also check that we don't update same seq_id twice
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id).ok();
@@ -729,7 +727,7 @@ fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResult<R
             (payload.port_id, seq_id),
             |maybe_ack| -> StdResult<AcknowledgementResult> {
                 match maybe_ack {
-                    Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                    Some(_ack) => Err(StdError::msg("trying to update same seq_id")),
                     None => Ok(AcknowledgementResult::Timeout(payload.message)),
                 }
             },
@@ -751,11 +749,11 @@ fn sudo_error(deps: DepsMut, request: RequestPacket, details: String) -> StdResu
 
     let seq_id = request
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
 
     let channel_id = request
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id).ok();
 
     if let Some(payload) = payload {
@@ -765,7 +763,7 @@ fn sudo_error(deps: DepsMut, request: RequestPacket, details: String) -> StdResu
             (payload.port_id, seq_id),
             |maybe_ack| -> StdResult<AcknowledgementResult> {
                 match maybe_ack {
-                    Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                    Some(_ack) => Err(StdError::msg("trying to update same seq_id")),
                     None => Ok(AcknowledgementResult::Error((payload.message, details))),
                 }
             },
@@ -784,13 +782,13 @@ fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<R
     let resp: MsgSubmitTxResponse = decode_message_response(
         &msg.result
             .into_result()
-            .map_err(StdError::generic_err)?
+            .map_err(StdError::msg)?
             .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L443
             .clone()
             .value
             .to_vec(),
     )
-    .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
+    .map_err(|e| StdError::msg(format!("failed to parse response: {:?}", e)))?;
     deps.api
         .debug(format!("WASMDEBUG: reply msg: {:?}", resp).as_str());
     let seq_id = resp.sequence_id;
@@ -803,13 +801,13 @@ fn prepare_register_ica(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     let resp: MsgRegisterInterchainAccountResponse = decode_message_response(
         &msg.result
             .into_result()
-            .map_err(StdError::generic_err)?
+            .map_err(StdError::msg)?
             .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L863
             .clone()
             .value
             .to_vec(),
     )
-    .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
+    .map_err(|e| StdError::msg(format!("failed to parse response: {:?}", e)))?;
 
     ICA_CHANNELS.save(deps.storage, resp.port_id, &resp.channel_id)?;
 
@@ -825,7 +823,7 @@ fn get_ica(
 
     INTERCHAIN_ACCOUNTS
         .load(deps.storage, key)?
-        .ok_or_else(|| StdError::generic_err("Interchain account is not created yet"))
+        .ok_or_else(|| StdError::msg("Interchain account is not created yet"))
 }
 
 #[entry_point]
@@ -842,14 +840,14 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
                 deps.api
                     .debug("WASMDEBUG: sudo: mocked reply failure on the handler");
 
-                return Err(StdError::generic_err(
+                return Err(StdError::msg(
                     "Integrations test mock reply error".to_string(),
                 ));
             }
             Ok(Response::default())
         }
         REGISTER_ICA_REPLY_ID => prepare_register_ica(deps, msg),
-        _ => Err(StdError::generic_err(format!(
+        _ => Err(StdError::msg(format!(
             "unsupported reply message id {}",
             msg.id
         ))),

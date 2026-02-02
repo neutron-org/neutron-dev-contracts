@@ -1,10 +1,8 @@
+use crate::msg::{ConfigResponse, QueryMsg};
+use crate::state::{BALANCES, CONFIG, TOTAL_SUPPLY_HISTORY};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult, Uint128};
-
-use astroport::tokenfactory_tracker::{ConfigResponse, QueryMsg};
-
-use crate::state::{BALANCES, CONFIG, TOTAL_SUPPLY_HISTORY};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult, Uint256};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
@@ -24,7 +22,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-fn balance_at(deps: Deps, env: Env, address: String, unit: Option<u64>) -> StdResult<Uint128> {
+fn balance_at(deps: Deps, env: Env, address: String, unit: Option<u64>) -> StdResult<Uint256> {
     let block_time = env.block.time.seconds();
     match unit.unwrap_or(block_time) {
         timestamp if timestamp == block_time => BALANCES.may_load(deps.storage, &address),
@@ -33,7 +31,7 @@ fn balance_at(deps: Deps, env: Env, address: String, unit: Option<u64>) -> StdRe
     .map(|balance| balance.unwrap_or_default())
 }
 
-fn total_supply_at(deps: Deps, env: Env, unit: Option<u64>) -> StdResult<Uint128> {
+fn total_supply_at(deps: Deps, env: Env, unit: Option<u64>) -> StdResult<Uint256> {
     let block_time = env.block.time.seconds();
     match unit.unwrap_or(block_time) {
         timestamp if timestamp == block_time => TOTAL_SUPPLY_HISTORY.may_load(deps.storage),

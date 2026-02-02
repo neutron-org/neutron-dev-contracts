@@ -29,7 +29,7 @@ pub fn execute(deps: DepsMut, _: Env, info: MessageInfo, msg: ExecuteMsg) -> Std
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
 
     if info.sender.as_str() != MODULE_ACCOUNT {
-        return Err(StdError::generic_err("Unauthorized"));
+        return Err(StdError::msg("Unauthorized"));
     }
 
     match msg {

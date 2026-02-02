@@ -595,7 +595,7 @@ pub fn sudo_tx_query_result(
             // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =
                 serde_json_wasm::from_str(transactions_filter.as_str()).map_err(|e| {
-                    StdError::generic_err(format!("failed to parse transactions_filter: {:?}", e))
+                    StdError::msg(format!("failed to parse transactions_filter: {:?}", e))
                 })?;
 
             let recipient = query_data
@@ -611,7 +611,7 @@ pub fn sudo_tx_query_result(
             // If we didn't find a Send message with the correct recipient, return an error, and
             // this query result will be rejected by Neutron: no data will be saved to state.
             if deposits.is_empty() {
-                return Err(NeutronError::Std(StdError::generic_err(
+                return Err(NeutronError::Std(StdError::msg(
                     "failed to find a matching transaction message",
                 )));
             }
@@ -669,14 +669,14 @@ fn check_deposits_size(deposits: &Vec<Transfer>) -> StdResult<()> {
         match deposit.amount.parse::<u64>() {
             Ok(amount) => {
                 if amount > MAX_ALLOWED_TRANSFER {
-                    return Err(StdError::generic_err(format!(
+                    return Err(StdError::msg(format!(
                         "maximum allowed transfer is {}",
                         MAX_ALLOWED_TRANSFER
                     )));
                 };
             }
             Err(error) => {
-                return Err(StdError::generic_err(format!(
+                return Err(StdError::msg(format!(
                     "failed to cast transfer amount to u64: {}",
                     error
                 )));

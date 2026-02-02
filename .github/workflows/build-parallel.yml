@@ -1,12 +1,7 @@
 ---
-name: Build Contracts
+name: Build Contracts (Parallel)
 
 on:
-  schedule:
-    - cron: '0 5 * * 1-5'
-  push:
-    branches:
-      - '**'
   workflow_dispatch:
     inputs:
       toolchain:
@@ -33,7 +28,7 @@ on:
 env:
   TOOLCHAIN: ${{ inputs.toolchain || '1.86.0' }}
   TARGET: ${{ inputs.target || 'wasm32-unknown-unknown' }}
-  REF: ${{ github.event_name == 'push' && github.ref || inputs.branch || 'main' }}
+  REF: ${{ inputs.branch || 'main' }}
   ID: ${{ inputs.id || 'scheduled' }}
 
 jobs:

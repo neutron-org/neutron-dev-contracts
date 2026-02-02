@@ -89,14 +89,14 @@ fn query_with_payload(
     icq_query: QueryRequest<InterchainQueries>,
 ) -> StdResult<ChainResponse> {
     let raw = to_json_vec(&icq_query).map_err(|serialize_err| {
-        StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
+        StdError::msg(format!("Serializing QueryRequest: {}", serialize_err))
     })?;
     match deps.querier.raw_query(&raw) {
-        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+        SystemResult::Err(system_err) => Err(StdError::msg(format!(
             "Querier system error: {}",
             system_err
         ))),
-        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
+        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::msg(format!(
             "Querier contract error: {}",
             contract_err
         ))),

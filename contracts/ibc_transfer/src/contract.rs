@@ -171,13 +171,13 @@ fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<R
     let resp: MsgTransferResponse = decode_message_response(
         &msg.result
             .into_result()
-            .map_err(StdError::generic_err)?
+            .map_err(StdError::msg)?
             .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L307
             .clone()
             .value
             .to_vec(),
     )
-    .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
+    .map_err(|e| StdError::msg(format!("failed to parse response: {:?}", e)))?;
     let seq_id = resp.sequence_id;
     let channel_id = resp.channel;
     save_sudo_payload(deps.branch().storage, channel_id, seq_id, payload)?;
@@ -188,7 +188,7 @@ fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<R
 pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         IBC_SUDO_ID_RANGE_START..=IBC_SUDO_ID_RANGE_END => prepare_sudo_payload(deps, env, msg),
-        _ => Err(StdError::generic_err(format!(
+        _ => Err(StdError::msg(format!(
             "unsupported reply message id {}",
             msg.id
         ))),
@@ -313,6 +313,7 @@ fn execute_send_native(
         }),
         timeout_timestamp: 0,
         memo: "".to_string(),
+        encoding: "".to_string(),
     };
     let submsg = msg_with_sudo_callback(
         deps.branch(),
@@ -348,9 +349,7 @@ pub fn sudo(deps: DepsMut, _env: Env, msg: TransferSudoMsg) -> StdResult<Respons
             deps.api
                 .debug("WASMDEBUG: sudo: mocked failure on the handler");
 
-            return Err(StdError::generic_err(
-                "Integrations test mock error".to_string(),
-            ));
+            return Err(StdError::msg("Integrations test mock error".to_string()));
         }
         Some(IntegrationTestsSudoFailureMock::EnabledInfiniteLoop) => {
             // Used only in integration tests framework to simulate failures.
@@ -419,10 +418,10 @@ fn sudo_response(deps: DepsMut, req: RequestPacket, data: Binary) -> StdResult<R
     );
     let seq_id = req
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
     let channel_id = req
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
     match read_sudo_payload(deps.storage, channel_id, seq_id)? {
         SudoPayload::HandlerPayload1(t1) => sudo_callback1(deps.as_ref(), t1),
         SudoPayload::HandlerPayload2(t2) => sudo_callback2(deps.as_ref(), t2),

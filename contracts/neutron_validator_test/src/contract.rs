@@ -308,7 +308,7 @@ fn execute_delegate(
     let mut buf = Vec::with_capacity(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(NeutronError::Std(StdError::generic_err(format!(
+        return Err(NeutronError::Std(StdError::msg(format!(
             "Encode error: {}",
             e
         ))));
@@ -367,7 +367,7 @@ fn execute_undelegate(
     buf.reserve(delegate_msg.encoded_len());
 
     if let Err(e) = delegate_msg.encode(&mut buf) {
-        return Err(NeutronError::Std(StdError::generic_err(format!(
+        return Err(NeutronError::Std(StdError::msg(format!(
             "Encode error: {}",
             e
         ))));
@@ -509,7 +509,7 @@ fn sudo_open_ack(
         )?;
         return Ok(Response::default());
     }
-    Err(NeutronError::Std(StdError::generic_err(
+    Err(NeutronError::Std(StdError::msg(
         "Can't parse counterparty_version",
     )))
 }
@@ -540,7 +540,7 @@ pub fn sudo_tx_query_result(
             // For transfer queries, query data looks like `[{"field:"transfer.recipient", "op":"eq", "value":"some_address"}]`
             let query_data: Vec<TransactionFilterItem> =
                 serde_json_wasm::from_str(transactions_filter.as_str()).map_err(|e| {
-                    StdError::generic_err(format!("failed to parse transactions_filter: {:?}", e))
+                    StdError::msg(format!("failed to parse transactions_filter: {:?}", e))
                 })?;
 
             let recipient = query_data
@@ -556,7 +556,7 @@ pub fn sudo_tx_query_result(
             // If we didn't find a Send message with the correct recipient, return an error, and
             // this query result will be rejected by Neutron: no data will be saved to state.
             if deposits.is_empty() {
-                return Err(NeutronError::Std(StdError::generic_err(
+                return Err(NeutronError::Std(StdError::msg(
                     "failed to find a matching transaction message",
                 )));
             }
@@ -612,10 +612,10 @@ fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> Neutron
     );
     let seq_id = request
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
     let channel_id = request
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id)?;
     deps.api
         .debug(format!("WASMDEBUG: sudo_response: sudo payload: {:?}", payload).as_str());
@@ -623,7 +623,7 @@ fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> Neutron
     if payload.amount == Uint128::new(6666) {
         // This one is for testing contract failures
         deps.api.debug("WASMDEBUG: This is a expected test error");
-        return Err(NeutronError::Std(StdError::generic_err(
+        return Err(NeutronError::Std(StdError::msg(
             "This is a expected test error",
         )));
     }
@@ -642,7 +642,7 @@ fn sudo_response(deps: DepsMut, request: RequestPacket, data: Binary) -> Neutron
         (payload.port_id, seq_id),
         |maybe_ack| -> StdResult<AcknowledgementResult> {
             match maybe_ack {
-                Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                Some(_ack) => Err(StdError::msg("trying to update same seq_id")),
                 None => Ok(AcknowledgementResult::Success(item_types)),
             }
         },
@@ -658,10 +658,10 @@ fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> NeutronResu
 
     let seq_id = request
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
     let channel_id = request
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id)?;
 
     // update but also check that we don't update same seq_id twice
@@ -670,7 +670,7 @@ fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> NeutronResu
         (payload.port_id, seq_id),
         |maybe_ack| -> StdResult<AcknowledgementResult> {
             match maybe_ack {
-                Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                Some(_ack) => Err(StdError::msg("trying to update same seq_id")),
                 None => Ok(AcknowledgementResult::Timeout(payload.message)),
             }
         },
@@ -687,10 +687,10 @@ fn sudo_error(deps: DepsMut, request: RequestPacket, details: String) -> Neutron
         .debug(format!("WASMDEBUG: request packet: {:?}", request).as_str());
     let seq_id = request
         .sequence
-        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
+        .ok_or_else(|| StdError::msg("sequence not found"))?;
     let channel_id = request
         .source_channel
-        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+        .ok_or_else(|| StdError::msg("channel_id not found"))?;
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id)?;
 
     // update but also check that we don't update same seq_id twice
@@ -699,7 +699,7 @@ fn sudo_error(deps: DepsMut, request: RequestPacket, details: String) -> Neutron
         (payload.port_id, seq_id),
         |maybe_ack| -> StdResult<AcknowledgementResult> {
             match maybe_ack {
-                Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                Some(_ack) => Err(StdError::msg("trying to update same seq_id")),
                 None => Ok(AcknowledgementResult::Error((payload.message, details))),
             }
         },
@@ -714,13 +714,13 @@ fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<R
     let resp: MsgSubmitTxResponse = decode_message_response(
         &msg.result
             .into_result()
-            .map_err(StdError::generic_err)?
+            .map_err(StdError::msg)?
             .msg_responses[0] // msg_responses must have exactly one Msg response: https://github.com/neutron-org/neutron/blob/28b1d2ce968aaf1866e92d5286487f079eba3370/wasmbinding/message_plugin.go#L443
             .clone()
             .value
             .to_vec(),
     )
-    .map_err(|e| StdError::generic_err(format!("failed to parse response: {:?}", e)))?;
+    .map_err(|e| StdError::msg(format!("failed to parse response: {:?}", e)))?;
     deps.api
         .debug(format!("WASMDEBUG: reply msg: {:?}", resp).as_str());
     let seq_id = resp.sequence_id;
@@ -738,7 +738,7 @@ fn get_ica(
 
     INTERCHAIN_ACCOUNTS
         .load(deps.storage, key)?
-        .ok_or_else(|| StdError::generic_err("Interchain account is not created yet"))
+        .ok_or_else(|| StdError::msg("Interchain account is not created yet"))
 }
 
 #[entry_point]
@@ -747,7 +747,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
         .debug(format!("WASMDEBUG: reply msg: {:?}", msg).as_str());
     match msg.id {
         SUDO_PAYLOAD_REPLY_ID => prepare_sudo_payload(deps, env, msg),
-        _ => Err(StdError::generic_err(format!(
+        _ => Err(StdError::msg(format!(
             "unsupported reply message id {}",
             msg.id
         ))),

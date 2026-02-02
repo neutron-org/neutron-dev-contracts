@@ -1,11 +1,10 @@
-use astroport::asset::validate_native_denom;
-use astroport::tokenfactory_tracker::{InstantiateMsg, SudoMsg};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, Storage, Uint128};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint256};
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
+use crate::msg::{InstantiateMsg, SudoMsg};
 use crate::state::{Config, BALANCES, CONFIG, TOTAL_SUPPLY_HISTORY};
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
@@ -85,6 +84,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> Result<Response, ContractE
 /// - if from == module_address -> mint
 /// - if to == module_address -> burn
 /// - other scenarios are simple transfers between addresses
+///
 /// Possible errors:
 /// - serialization/deserialization errors. Should never happen if both BALANCES and TOTAL_SUPPLY_HISTORY storage keys and data layout are not changed.
 /// - attempt to subtract from zero balance or reduce empty total supply. Highly unlikely possible. Might happen due to errors in the tokenfactory module.
@@ -95,7 +95,7 @@ pub fn track_balances(
     config: &Config,
     from: String,
     to: String,
-    amount: Uint128,
+    amount: Uint256,
 ) -> Result<Response, ContractError> {
     // If the token is minted directly to an address, we don't need to subtract
     // as the sender is the module address
@@ -105,7 +105,7 @@ pub fn track_balances(
                 .unwrap_or_default()
                 .checked_sub(amount)
                 .map_err(|err| {
-                    StdError::generic_err(format!(
+                    StdError::msg(format!(
                         "{err}: send from {from} to {to} amount {amount} block_seconds {block_seconds}"
                     ))
                 })
@@ -130,7 +130,7 @@ pub fn track_balances(
                 .unwrap_or_default()
                 .checked_sub(amount)
                 .map_err(|err| {
-                    StdError::generic_err(format!(
+                    StdError::msg(format!(
                         "{err}: from {from} to {to} amount {amount} block_seconds {block_seconds}"
                     ))
                 })
@@ -138,4 +138,37 @@ pub fn track_balances(
     }
 
     Ok(Response::default())
+}
+
+pub const DENOM_MAX_LENGTH: usize = 128;
+
+/// Taken from https://github.com/mars-protocol/red-bank/blob/5bb0fe145588352b281803f7b870103bc6832621/packages/utils/src/helpers.rs#L68
+/// Follows cosmos SDK validation logic where denom can be 3 - 128 characters long
+/// and starts with a letter, followed but either a letter, number, or separator ( ‘/' , ‘:' , ‘.’ , ‘_’ , or '-')
+/// reference: https://github.com/cosmos/cosmos-sdk/blob/7728516abfab950dc7a9120caad4870f1f962df5/types/coin.go#L865-L867
+pub fn validate_native_denom(denom: &str) -> StdResult<()> {
+    if denom.len() < 3 || denom.len() > DENOM_MAX_LENGTH {
+        return Err(StdError::msg(format!(
+            "Invalid denom length [3,{DENOM_MAX_LENGTH}]: {denom}"
+        )));
+    }
+
+    let mut chars = denom.chars();
+    let first = chars.next().unwrap();
+    if !first.is_ascii_alphabetic() {
+        return Err(StdError::msg(format!(
+            "First character is not ASCII alphabetic: {denom}"
+        )));
+    }
+
+    let set = ['/', ':', '.', '_', '-'];
+    for c in chars {
+        if !(c.is_ascii_alphanumeric() || set.contains(&c)) {
+            return Err(StdError::msg(format!(
+                "Not all characters are ASCII alphanumeric or one of:  /  :  .  _  -: {denom}"
+            )));
+        }
+    }
+
+    Ok(())
 }

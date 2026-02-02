@@ -22,10 +22,8 @@ overflow-checks = true
 strip = true
 
 [dependencies]
-cw2 = "1"
-cosmwasm-std = "1.5"
-cw-storage-plus = "1.2"
-cosmwasm-schema = "1.5"
-thiserror = "1"
-astroport = { git = "https://github.com/astroport-fi/astroport-core", version = "5" }
-getrandom = {workspace = true}
+cw2 = { workspace = true }
+cosmwasm-std = { workspace = true }
+cw-storage-plus = { workspace = true }
+cosmwasm-schema = { workspace = true }
+thiserror = { workspace = true }

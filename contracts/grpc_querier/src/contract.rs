@@ -68,9 +68,7 @@ pub fn query(deps: Deps, _: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::AuthAccount { address } => Ok(to_json_binary(&auth_querier.account(address)?)?),
 
-        QueryMsg::TransferDenomTrace { hash } => {
-            Ok(to_json_binary(&transfer_querier.denom_trace(hash)?)?)
-        }
+        QueryMsg::TransferDenom { hash } => Ok(to_json_binary(&transfer_querier.denom(hash)?)?),
 
         QueryMsg::TransferEscrowAddress {
             port_id,
@@ -142,7 +140,7 @@ fn query_contractmanager_query_address_failures(deps: Deps, address: String) -> 
         pagination: None,
     };
     let mut bytes = Vec::new();
-    Message::encode(&msg, &mut bytes).map_err(|_| StdError::generic_err("cannot encode proto"))?;
+    Message::encode(&msg, &mut bytes).map_err(|_| StdError::msg("cannot encode proto"))?;
 
     let resp = make_stargate_query(
         deps,
@@ -159,7 +157,7 @@ fn query_contractmanager_query_failures(deps: Deps, address: String) -> StdResul
         pagination: None,
     };
     let mut bytes = Vec::new();
-    Message::encode(&msg, &mut bytes).map_err(|_| StdError::generic_err("cannot encode proto"))?;
+    Message::encode(&msg, &mut bytes).map_err(|_| StdError::msg("cannot encode proto"))?;
 
     let resp = make_stargate_query(
         deps,
@@ -182,14 +180,14 @@ pub fn make_stargate_query(
         data: encoded_query_data.into(),
     })
     .map_err(|serialize_err| {
-        StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
+        StdError::msg(format!("Serializing QueryRequest: {}", serialize_err))
     })?;
     match deps.querier.raw_query(&raw) {
-        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+        SystemResult::Err(system_err) => Err(StdError::msg(format!(
             "Querier system error: {}",
             system_err
         ))),
-        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
+        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::msg(format!(
             "Querier contract error: {}",
             contract_err
         ))),
@@ -200,7 +198,7 @@ pub fn make_stargate_query(
                 .debug(format!("WASMDEBUG: make_stargate_query: {:?}", str).as_str());
             from_utf8(value.as_slice())
                 .map(|s| s.to_string())
-                .map_err(|_e| StdError::generic_err("Unable to encode from utf8"))
+                .map_err(|_e| StdError::msg("Unable to encode from utf8"))
         }
     }
 }

@@ -246,6 +246,7 @@ fn execute_send(
         timeout_timestamp: 0,
         fee: fee.clone(),
         memo: "".to_string(),
+        encoding: String::new(),
     };
     let coin2 = StdCoin {
         amount: (amount * Uint128::new(2)).to_string(),
@@ -264,6 +265,7 @@ fn execute_send(
         timeout_timestamp: 0,
         fee,
         memo: "".to_string(),
+        encoding: String::new(),
     };
     let submsg1 = msg_with_sudo_callback(
         deps.branch(),
